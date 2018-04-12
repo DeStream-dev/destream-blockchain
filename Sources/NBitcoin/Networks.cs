@@ -471,20 +471,18 @@ namespace NBitcoin
 
                 .AddDNSSeeds(new[]
                 {
-                    new DNSSeedData("peak-srv-12.qb-systems.ru", "peak-srv-12.qb-systems.ru"),
-                    /*new DNSSeedData("testnet1.stratisplatform.com", "testnet1.stratisplatform.com"),
+                    new DNSSeedData("testnet1.stratisplatform.com", "testnet1.stratisplatform.com"),
                     new DNSSeedData("testnet2.stratisplatform.com", "testnet2.stratisplatform.com"),
                     new DNSSeedData("testnet3.stratisplatform.com", "testnet3.stratisplatform.com"),
-                    new DNSSeedData("testnet4.stratisplatform.com", "testnet4.stratisplatform.com")*/
+                    new DNSSeedData("testnet4.stratisplatform.com", "testnet4.stratisplatform.com")
                 });
 
             builder.AddSeeds(new[]
-            {
-                new NetworkAddress(IPAddress.Parse("95.128.181.196"), builder.Port)//, // danger cloud node
-                /*new NetworkAddress(IPAddress.Parse("51.140.231.125"), builder.Port)//, // danger cloud node
+            {    
+                new NetworkAddress(IPAddress.Parse("51.140.231.125"), builder.Port), // danger cloud node
                 new NetworkAddress(IPAddress.Parse("13.70.81.5"), 3389), // beard cloud node  
                 new NetworkAddress(IPAddress.Parse("191.235.85.131"), 3389), // fassa cloud node  
-                new NetworkAddress(IPAddress.Parse("52.232.58.52"), 26178), // neurosploit public node*/
+                new NetworkAddress(IPAddress.Parse("52.232.58.52"), 26178), // neurosploit public node
             });
 
             return builder.BuildAndRegister();
@@ -495,12 +493,16 @@ namespace NBitcoin
             var builder = Network.GetDestreamTestNetworkBuilderWithCommonData();
             builder.AddDNSSeeds(new[]
             {
-                    new DNSSeedData("peak-srv-12.qb-systems.ru", "peak-srv-12.qb-systems.ru")
+                    new DNSSeedData("peak-srv-12.qb-systems.ru", "peak-srv-12.qb-systems.ru"),
+                    new DNSSeedData("peak-srv-16.qb-systems.ru", "peak-srv-16.qb-systems.ru"),
+                    new DNSSeedData("peak-srv-17.qb-systems.ru", "peak-srv-17.qb-systems.ru")
                 });
 
             builder.AddSeeds(new[]
             {
-                new NetworkAddress(IPAddress.Parse("95.128.181.196"), builder.Port)
+                new NetworkAddress(IPAddress.Parse("95.128.181.196"), builder.Port),
+                new NetworkAddress(IPAddress.Parse("95.128.181.103"), builder.Port),//16
+                new NetworkAddress(IPAddress.Parse("95.128.181.80"), builder.Port)//17
             });
 
             return builder.BuildAndRegister();
