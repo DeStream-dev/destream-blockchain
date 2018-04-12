@@ -28,7 +28,21 @@ namespace Stratis.StratisD
         {
             try
             {
-                Network network = args.Contains("-testnet") ? Network.StratisTest : Network.StratisMain;
+                if (args != null) {
+                    foreach (var item in args)
+                    {
+                        Console.WriteLine($"cli argument: {item}");
+                    }
+                }
+                Network network = null;
+                if (args.Contains("-testnet"))
+                    network = Network.StratisTest;
+                else if (args.Contains("-destreamtest"))
+                    network = Network.DestreamTest;
+                else if (args.Contains("-destreamtestserver"))
+                    network = Network.DestreamTestServer;
+                else
+                    network = Network.StratisMain;
                 NodeSettings nodeSettings = new NodeSettings(network, ProtocolVersion.ALT_PROTOCOL_VERSION, args:args, loadConfiguration:false);
 
 

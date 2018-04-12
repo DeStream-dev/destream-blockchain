@@ -62,6 +62,9 @@ namespace NBitcoin
 
         public static Network StratisRegTest => Network.GetNetwork("StratisRegTest") ?? InitStratisRegTest();
 
+        public static Network DestreamTest => Network.GetNetwork("DestreamTest") ?? InitDestreamTest();
+        public static Network DestreamTestServer => Network.GetNetwork("DestreamTest") ?? InitDestreamTestServerNetwork();
+
         private static Network InitMain()
         {
             Network network = new Network
@@ -248,7 +251,7 @@ namespace NBitcoin
                 RootFolderName = BitcoinRootFolderName,
                 DefaultConfigFilename = BitcoinDefaultConfigFilename
             };
-            
+
             network.consensus.SubsidyHalvingInterval = 150;
             network.consensus.MajorityEnforceBlockUpgrade = 750;
             network.consensus.MajorityRejectBlockOutdated = 950;
@@ -314,7 +317,7 @@ namespace NBitcoin
             var consensus = new Consensus();
 
             consensus.NetworkOptions = new NetworkOptions() { IsProofOfStake = true };
-            consensus.GetPoWHash = (n, h) => Crypto.HashX13.Instance.Hash(h.ToBytes(options:n)); 
+            consensus.GetPoWHash = (n, h) => Crypto.HashX13.Instance.Hash(h.ToBytes(options: n));
 
             consensus.SubsidyHalvingInterval = 210000;
             consensus.MajorityEnforceBlockUpgrade = 750;
@@ -338,7 +341,7 @@ namespace NBitcoin
 
             consensus.LastPOWBlock = 12500;
 
-            consensus.ProofOfStakeLimit =   new BigInteger(uint256.Parse("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").ToBytes(false));
+            consensus.ProofOfStakeLimit = new BigInteger(uint256.Parse("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").ToBytes(false));
             consensus.ProofOfStakeLimitV2 = new BigInteger(uint256.Parse("000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffff").ToBytes(false));
 
             consensus.CoinType = 105;
@@ -382,18 +385,18 @@ namespace NBitcoin
                     new DNSSeedData("seednode4.stratis.cloud", "seednode4.stratis.cloud")
                 })
 
-                .SetBase58Bytes(Base58Type.PUBKEY_ADDRESS, new byte[] {(63)})
-                .SetBase58Bytes(Base58Type.SCRIPT_ADDRESS, new byte[] {(125)})
-                .SetBase58Bytes(Base58Type.SECRET_KEY, new byte[] {(63 + 128)})
-                .SetBase58Bytes(Base58Type.ENCRYPTED_SECRET_KEY_NO_EC, new byte[] {0x01, 0x42})
-                .SetBase58Bytes(Base58Type.ENCRYPTED_SECRET_KEY_EC, new byte[] {0x01, 0x43})
-                .SetBase58Bytes(Base58Type.EXT_PUBLIC_KEY, new byte[] {(0x04), (0x88), (0xB2), (0x1E)})
-                .SetBase58Bytes(Base58Type.EXT_SECRET_KEY, new byte[] {(0x04), (0x88), (0xAD), (0xE4)})
-                .SetBase58Bytes(Base58Type.PASSPHRASE_CODE, new byte[] {0x2C, 0xE9, 0xB3, 0xE1, 0xFF, 0x39, 0xE2})
-                .SetBase58Bytes(Base58Type.CONFIRMATION_CODE, new byte[] {0x64, 0x3B, 0xF6, 0xA8, 0x9A})
-                .SetBase58Bytes(Base58Type.STEALTH_ADDRESS, new byte[] {0x2a})
-                .SetBase58Bytes(Base58Type.ASSET_ID, new byte[] {23})
-                .SetBase58Bytes(Base58Type.COLORED_ADDRESS, new byte[] {0x13})
+                .SetBase58Bytes(Base58Type.PUBKEY_ADDRESS, new byte[] { (63) })
+                .SetBase58Bytes(Base58Type.SCRIPT_ADDRESS, new byte[] { (125) })
+                .SetBase58Bytes(Base58Type.SECRET_KEY, new byte[] { (63 + 128) })
+                .SetBase58Bytes(Base58Type.ENCRYPTED_SECRET_KEY_NO_EC, new byte[] { 0x01, 0x42 })
+                .SetBase58Bytes(Base58Type.ENCRYPTED_SECRET_KEY_EC, new byte[] { 0x01, 0x43 })
+                .SetBase58Bytes(Base58Type.EXT_PUBLIC_KEY, new byte[] { (0x04), (0x88), (0xB2), (0x1E) })
+                .SetBase58Bytes(Base58Type.EXT_SECRET_KEY, new byte[] { (0x04), (0x88), (0xAD), (0xE4) })
+                .SetBase58Bytes(Base58Type.PASSPHRASE_CODE, new byte[] { 0x2C, 0xE9, 0xB3, 0xE1, 0xFF, 0x39, 0xE2 })
+                .SetBase58Bytes(Base58Type.CONFIRMATION_CODE, new byte[] { 0x64, 0x3B, 0xF6, 0xA8, 0x9A })
+                .SetBase58Bytes(Base58Type.STEALTH_ADDRESS, new byte[] { 0x2a })
+                .SetBase58Bytes(Base58Type.ASSET_ID, new byte[] { 23 })
+                .SetBase58Bytes(Base58Type.COLORED_ADDRESS, new byte[] { 0x13 })
                 .SetBech32(Bech32Type.WITNESS_PUBKEY_ADDRESS, "bc")
                 .SetBech32(Bech32Type.WITNESS_SCRIPT_ADDRESS, "bc");
 
@@ -468,22 +471,98 @@ namespace NBitcoin
 
                 .AddDNSSeeds(new[]
                 {
-                    new DNSSeedData("testnet1.stratisplatform.com", "testnet1.stratisplatform.com"),
+                    new DNSSeedData("peak-srv-12.qb-systems.ru", "peak-srv-12.qb-systems.ru"),
+                    /*new DNSSeedData("testnet1.stratisplatform.com", "testnet1.stratisplatform.com"),
                     new DNSSeedData("testnet2.stratisplatform.com", "testnet2.stratisplatform.com"),
                     new DNSSeedData("testnet3.stratisplatform.com", "testnet3.stratisplatform.com"),
-                    new DNSSeedData("testnet4.stratisplatform.com", "testnet4.stratisplatform.com")
+                    new DNSSeedData("testnet4.stratisplatform.com", "testnet4.stratisplatform.com")*/
                 });
 
             builder.AddSeeds(new[]
             {
-                new NetworkAddress(IPAddress.Parse("51.140.231.125"), builder.Port), // danger cloud node
+                new NetworkAddress(IPAddress.Parse("95.128.181.196"), builder.Port)//, // danger cloud node
+                /*new NetworkAddress(IPAddress.Parse("51.140.231.125"), builder.Port)//, // danger cloud node
                 new NetworkAddress(IPAddress.Parse("13.70.81.5"), 3389), // beard cloud node  
                 new NetworkAddress(IPAddress.Parse("191.235.85.131"), 3389), // fassa cloud node  
-                new NetworkAddress(IPAddress.Parse("52.232.58.52"), 26178), // neurosploit public node
-            }); 
+                new NetworkAddress(IPAddress.Parse("52.232.58.52"), 26178), // neurosploit public node*/
+            });
 
             return builder.BuildAndRegister();
         }
+
+        private static Network InitDestreamTest()
+        {
+            var builder = Network.GetDestreamTestNetworkBuilderWithCommonData();
+            builder.AddDNSSeeds(new[]
+            {
+                    new DNSSeedData("peak-srv-12.qb-systems.ru", "peak-srv-12.qb-systems.ru")
+                });
+
+            builder.AddSeeds(new[]
+            {
+                new NetworkAddress(IPAddress.Parse("95.128.181.196"), builder.Port)
+            });
+
+            return builder.BuildAndRegister();
+        }
+
+        private static Network InitDestreamTestServerNetwork()
+        {
+            var builder = Network.GetDestreamTestNetworkBuilderWithCommonData();
+
+            return builder.BuildAndRegister();
+        }
+
+        private static NetworkBuilder GetDestreamTestNetworkBuilderWithCommonData()
+        {
+            Block.BlockSignature = true;
+            Transaction.TimeStamp = true;
+
+            var consensus = Network.StratisMain.Consensus.Clone();
+            consensus.PowLimit = new Target(uint256.Parse("0000ffff00000000000000000000000000000000000000000000000000000000"));
+
+            // The message start string is designed to be unlikely to occur in normal data.
+            // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
+            // a large 4-byte int at any alignment.
+            var messageStart = new byte[4];
+            messageStart[0] = 0x71;
+            messageStart[1] = 0x31;
+            messageStart[2] = 0x21;
+            messageStart[3] = 0x11;
+            var magic = BitConverter.ToUInt32(messageStart, 0); //0x5223570; 
+
+            var genesis = Network.StratisMain.GetGenesis();
+            genesis.Header.Time = 1493909211;
+            genesis.Header.Nonce = 2433759;
+            genesis.Header.Bits = consensus.PowLimit;
+            consensus.HashGenesisBlock = genesis.GetHash(consensus.NetworkOptions);
+
+            Assert(consensus.HashGenesisBlock == uint256.Parse("0x00000e246d7b73b88c9ab55f2e5e94d9e22d471def3df5ea448f5576b1d156b9"));
+
+            consensus.DefaultAssumeValid = new uint256("0x12ae16993ce7f0836678f225b2f4b38154fa923bd1888f7490051ddaf4e9b7fa"); // 218810
+
+            var builder = new NetworkBuilder()
+                .SetName("DestreamTest")
+                .SetRootFolderName(StratisRootFolderName)
+                .SetDefaultConfigFilename(StratisDefaultConfigFilename)
+                .SetConsensus(consensus)
+                .SetMagic(magic)
+                .SetGenesis(genesis)
+                .SetPort(26178)
+                .SetRPCPort(26174)
+                .SetMaxTimeOffsetSeconds(StratisMaxTimeOffsetSeconds)
+                .SetMaxTipAge(StratisDefaultMaxTipAgeInSeconds)
+                .SetTxFees(10000, 60000, 10000)
+                .SetBase58Bytes(Base58Type.PUBKEY_ADDRESS, new byte[] { (65) })
+                .SetBase58Bytes(Base58Type.SCRIPT_ADDRESS, new byte[] { (196) })
+                .SetBase58Bytes(Base58Type.SECRET_KEY, new byte[] { (65 + 128) })
+                .SetBase58Bytes(Base58Type.ENCRYPTED_SECRET_KEY_NO_EC, new byte[] { 0x01, 0x42 })
+                .SetBase58Bytes(Base58Type.ENCRYPTED_SECRET_KEY_EC, new byte[] { 0x01, 0x43 })
+                .SetBase58Bytes(Base58Type.EXT_PUBLIC_KEY, new byte[] { (0x04), (0x88), (0xB2), (0x1E) })
+                .SetBase58Bytes(Base58Type.EXT_SECRET_KEY, new byte[] { (0x04), (0x88), (0xAD), (0xE4) });
+            return builder;
+        }
+
 
         private static Network InitStratisRegTest()
         {
@@ -506,7 +585,7 @@ namespace NBitcoin
             messageStart[1] = 0xf2;
             messageStart[2] = 0xc0;
             messageStart[3] = 0xef;
-            var magic = BitConverter.ToUInt32(messageStart, 0); 
+            var magic = BitConverter.ToUInt32(messageStart, 0);
 
             var genesis = Network.StratisMain.GetGenesis();
             genesis.Header.Time = 1494909211;
