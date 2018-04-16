@@ -28,7 +28,6 @@ namespace Stratis.StratisD
         {
             try
             {
-                
                 Network network = null;
                 if (args.Contains("-testnet"))
                     network = Network.StratisTest;

@@ -2,7 +2,7 @@
   "profiles": {
     "Bitcoin Main": {
       "commandName": "Project",
-      "commandLineArgs": "stratis -testnet"
+      "commandLineArgs": "-destreamtest"
     },
     "Bitcoin Test": {
       "commandName": "Project",
