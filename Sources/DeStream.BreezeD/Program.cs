@@ -26,18 +26,15 @@ namespace Stratis.BreezeD
             {
                 // Get the API uri.
                 var isTestNet = args.Contains("-testnet");
-                var isStratis = args.Contains("stratis");
+                var isDeStream= args.Contains("destream");
 
                 var agent = "Breeze";
 
                 NodeSettings nodeSettings;
 
-                if (isStratis)
+                if (isDeStream)
                 {
-                    Network network = isTestNet ? Network.StratisTest : Network.StratisMain;
-                    if (isTestNet)
-                        args = args.Append("-addnode=51.141.28.47").ToArray(); // TODO: fix this temp hack
-
+                    Network network = isTestNet ? Network.DeStreamTest : Network.DeStreamMain;
                     nodeSettings = new NodeSettings(network, ProtocolVersion.ALT_PROTOCOL_VERSION, agent, args:args, loadConfiguration:false);
                 }
                 else

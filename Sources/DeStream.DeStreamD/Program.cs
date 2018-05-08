@@ -30,9 +30,9 @@ namespace Stratis.StratisD
             {
                 Network network = null;
                 if (args.Contains("-testnet"))
-                    network = Network.StratisTest;
+                    network = Network.DeStreamTest;
                 else
-                    network = Network.StratisMain;
+                    network = Network.DeStreamMain;
                 NodeSettings nodeSettings = new NodeSettings(network, ProtocolVersion.ALT_PROTOCOL_VERSION, args:args, loadConfiguration:false);
 
                 Console.WriteLine($"current network: {network.Name}");

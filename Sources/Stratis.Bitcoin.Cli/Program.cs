@@ -95,6 +95,11 @@ namespace Stratis.Bitcoin.Cli
                     defaultRestApiPort = 37221;
                     network = Network.StratisMain;
                 }
+                else if (networkName.Contains("destream"))
+                {
+                    defaultRestApiPort = 37221;
+                    network = Network.StratisMain;
+                }
                 else
                 {
                     defaultRestApiPort = 37220;
