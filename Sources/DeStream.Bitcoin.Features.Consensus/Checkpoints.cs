@@ -70,7 +70,7 @@ namespace DeStream.Bitcoin.Features.Consensus
     public class Checkpoints : ICheckpoints
     {
         /// <summary>List of selected checkpoints for STRAT mainnet.</summary>
-        private static Dictionary<int, CheckpointInfo> stratisMainnetCheckpoints = new Dictionary<int, CheckpointInfo>
+        private static Dictionary<int, CheckpointInfo> destreamMainnetCheckpoints = new Dictionary<int, CheckpointInfo>
         {
             { 0, new CheckpointInfo(new uint256("0x0000066e91e46e5a264d42c89e1204963b2ee6be230b443e9159020539d972af"), new uint256("0x0000000000000000000000000000000000000000000000000000000000000000")) },
             { 2, new CheckpointInfo(new uint256("0xbca5936f638181e74a5f1e9999c95b0ce77da48c2688399e72bcc53a00c61eff"), new uint256("0x7d61c139a471821caa6b7635a4636e90afcfe5e195040aecbc1ad7d24924db1e")) }, // Premine
@@ -92,7 +92,7 @@ namespace DeStream.Bitcoin.Features.Consensus
         };
 
         /// <summary>List of selected checkpoints for STRAT testnet.</summary>
-        private static Dictionary<int, CheckpointInfo> stratisTestnetCheckpoints = new Dictionary<int, CheckpointInfo>
+        private static Dictionary<int, CheckpointInfo> destreamTestnetCheckpoints = new Dictionary<int, CheckpointInfo>
         {
             { 0, new CheckpointInfo(new uint256("0x00000e246d7b73b88c9ab55f2e5e94d9e22d471def3df5ea448f5576b1d156b9"), new uint256("0x0000000000000000000000000000000000000000000000000000000000000000")) },
             { 2, new CheckpointInfo(new uint256("0x56959b1c8498631fb0ca5fe7bd83319dccdc6ac003dccb3171f39f553ecfa2f2"), new uint256("0x13f4c27ca813aefe2d9018077f8efeb3766796b9144fcc4cd51803bf4376ab02")) },
@@ -147,7 +147,7 @@ namespace DeStream.Bitcoin.Features.Consensus
         /// <summary>
         /// Initializes a new instance of the object.
         /// </summary>
-        /// <param name="network">Specification of the network the node runs on - regtest/testnet/mainnet/stratis test/main.</param>
+        /// <param name="network">Specification of the network the node runs on - regtest/testnet/mainnet/destream test/main.</param>
         /// <param name="settings">Consensus settings for node - used to see if checkpoints have been disabled or not.</param>
         public Checkpoints(Network network, ConsensusSettings settings)
         {
@@ -158,8 +158,8 @@ namespace DeStream.Bitcoin.Features.Consensus
             else if (network.Equals(Network.Main)) this.checkpoints = bitcoinMainnetCheckpoints;
             else if (network.Equals(Network.TestNet)) this.checkpoints = bitcoinTestnetCheckpoints;
             else if (network.Equals(Network.RegTest)) this.checkpoints = new Dictionary<int, CheckpointInfo>();
-            else if (network.Equals(Network.DeStreamMain)) this.checkpoints = stratisMainnetCheckpoints;
-            else if (network.Equals(Network.DeStreamTest)) this.checkpoints = stratisTestnetCheckpoints;
+            else if (network.Equals(Network.DeStreamMain)) this.checkpoints = destreamMainnetCheckpoints;
+            else if (network.Equals(Network.DeStreamTest)) this.checkpoints = destreamTestnetCheckpoints;
             else this.checkpoints = new Dictionary<int, CheckpointInfo>();
         }
 

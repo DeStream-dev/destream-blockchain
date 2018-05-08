@@ -35,62 +35,62 @@ namespace DeStream.Bitcoin.IntegrationTests
         {
             using (NodeBuilder builder = NodeBuilder.Create())
             {
-                var stratisSender = builder.CreateDeStreamPowNode();
-                var stratisReceiver = builder.CreateDeStreamPowNode();
+                var destreamSender = builder.CreateDeStreamPowNode();
+                var destreamReceiver = builder.CreateDeStreamPowNode();
 
                 builder.StartAll();
-                stratisSender.NotInIBD();
-                stratisReceiver.NotInIBD();
+                destreamSender.NotInIBD();
+                destreamReceiver.NotInIBD();
 
                 // get a key from the wallet
-                var mnemonic1 = stratisSender.FullNode.WalletManager().CreateWallet("123456", "mywallet");
-                var mnemonic2 = stratisReceiver.FullNode.WalletManager().CreateWallet("123456", "mywallet");
+                var mnemonic1 = destreamSender.FullNode.WalletManager().CreateWallet("123456", "mywallet");
+                var mnemonic2 = destreamReceiver.FullNode.WalletManager().CreateWallet("123456", "mywallet");
                 Assert.Equal(12, mnemonic1.Words.Length);
                 Assert.Equal(12, mnemonic2.Words.Length);
-                var addr = stratisSender.FullNode.WalletManager().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
-                var wallet = stratisSender.FullNode.WalletManager().GetWalletByName("mywallet");
+                var addr = destreamSender.FullNode.WalletManager().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
+                var wallet = destreamSender.FullNode.WalletManager().GetWalletByName("mywallet");
                 var key = wallet.GetExtendedPrivateKeyForAddress("123456", addr).PrivateKey;
 
-                stratisSender.SetDummyMinerSecret(new BitcoinSecret(key, stratisSender.FullNode.Network));
-                var maturity = (int)stratisSender.FullNode.Network.Consensus.Option<PowConsensusOptions>().CoinbaseMaturity;
-                stratisSender.GenerateDeStream(maturity + 5);
+                destreamSender.SetDummyMinerSecret(new BitcoinSecret(key, destreamSender.FullNode.Network));
+                var maturity = (int)destreamSender.FullNode.Network.Consensus.Option<PowConsensusOptions>().CoinbaseMaturity;
+                destreamSender.GenerateDeStream(maturity + 5);
                 // wait for block repo for block sync to work
 
-                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(stratisSender));
+                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(destreamSender));
 
                 // the mining should add coins to the wallet
-                var total = stratisSender.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount);
+                var total = destreamSender.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount);
                 Assert.Equal(Money.COIN * 105 * 50, total);
 
                 // sync both nodes
-                stratisSender.CreateRPCClient().AddNode(stratisReceiver.Endpoint, true);
-                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(stratisReceiver, stratisSender));
+                destreamSender.CreateRPCClient().AddNode(destreamReceiver.Endpoint, true);
+                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(destreamReceiver, destreamSender));
 
                 // send coins to the receiver
-                var sendto = stratisReceiver.FullNode.WalletManager().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
-                var trx = stratisSender.FullNode.WalletTransactionHandler().BuildTransaction(CreateContext(
+                var sendto = destreamReceiver.FullNode.WalletManager().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
+                var trx = destreamSender.FullNode.WalletTransactionHandler().BuildTransaction(CreateContext(
                     new WalletAccountReference("mywallet", "account 0"), "123456", sendto.ScriptPubKey, Money.COIN * 100, FeeType.Medium, 101));
 
                 // broadcast to the other node
-                stratisSender.FullNode.NodeService<WalletController>().SendTransaction(new SendTransactionRequest(trx.ToHex()));
+                destreamSender.FullNode.NodeService<WalletController>().SendTransaction(new SendTransactionRequest(trx.ToHex()));
 
                 // wait for the trx to arrive
-                TestHelper.WaitLoop(() => stratisReceiver.CreateRPCClient().GetRawMempool().Length > 0);
-                TestHelper.WaitLoop(() => stratisReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Any());
+                TestHelper.WaitLoop(() => destreamReceiver.CreateRPCClient().GetRawMempool().Length > 0);
+                TestHelper.WaitLoop(() => destreamReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Any());
 
-                var receivetotal = stratisReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount);
+                var receivetotal = destreamReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount);
                 Assert.Equal(Money.COIN * 100, receivetotal);
-                Assert.Null(stratisReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").First().Transaction.BlockHeight);
+                Assert.Null(destreamReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").First().Transaction.BlockHeight);
 
                 // generate two new blocks do the trx is confirmed
-                stratisSender.GenerateDeStream(1, new List<Transaction>(new[] { trx.Clone() }));
-                stratisSender.GenerateDeStream(1);
+                destreamSender.GenerateDeStream(1, new List<Transaction>(new[] { trx.Clone() }));
+                destreamSender.GenerateDeStream(1);
 
                 // wait for block repo for block sync to work
-                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(stratisSender));
-                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(stratisReceiver, stratisSender));
+                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(destreamSender));
+                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(destreamReceiver, destreamSender));
 
-                TestHelper.WaitLoop(() => maturity + 6 == stratisReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").First().Transaction.BlockHeight);
+                TestHelper.WaitLoop(() => maturity + 6 == destreamReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").First().Transaction.BlockHeight);
             }
         }
 
@@ -99,35 +99,35 @@ namespace DeStream.Bitcoin.IntegrationTests
         { 
             using (NodeBuilder builder = NodeBuilder.Create())
             {
-                CoreNode stratisSender = builder.CreateDeStreamPowNode();
-                CoreNode stratisReceiver = builder.CreateDeStreamPowNode();
+                CoreNode destreamSender = builder.CreateDeStreamPowNode();
+                CoreNode destreamReceiver = builder.CreateDeStreamPowNode();
 
                 builder.StartAll();
-                stratisSender.NotInIBD();
-                stratisReceiver.NotInIBD();
+                destreamSender.NotInIBD();
+                destreamReceiver.NotInIBD();
 
-                stratisSender.FullNode.WalletManager().CreateWallet("123456", "mywallet");
-                stratisReceiver.FullNode.WalletManager().CreateWallet("123456", "mywallet");
+                destreamSender.FullNode.WalletManager().CreateWallet("123456", "mywallet");
+                destreamReceiver.FullNode.WalletManager().CreateWallet("123456", "mywallet");
 
-                HdAddress addr = stratisSender.FullNode.WalletManager().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
-                Wallet wallet = stratisSender.FullNode.WalletManager().GetWalletByName("mywallet");
+                HdAddress addr = destreamSender.FullNode.WalletManager().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
+                Wallet wallet = destreamSender.FullNode.WalletManager().GetWalletByName("mywallet");
                 Key key = wallet.GetExtendedPrivateKeyForAddress("123456", addr).PrivateKey;
 
-                stratisSender.SetDummyMinerSecret(new BitcoinSecret(key, stratisSender.FullNode.Network));
-                int maturity = (int)stratisSender.FullNode.Network.Consensus.Option<PowConsensusOptions>().CoinbaseMaturity;
-                stratisSender.GenerateDeStreamWithMiner(maturity + 51);
+                destreamSender.SetDummyMinerSecret(new BitcoinSecret(key, destreamSender.FullNode.Network));
+                int maturity = (int)destreamSender.FullNode.Network.Consensus.Option<PowConsensusOptions>().CoinbaseMaturity;
+                destreamSender.GenerateDeStreamWithMiner(maturity + 51);
 
                 // Wait for block repo for block sync to work.
-                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(stratisSender));
+                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(destreamSender));
                 
-                Assert.Equal(Money.COIN * 150 * 50, stratisSender.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount));
+                Assert.Equal(Money.COIN * 150 * 50, destreamSender.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount));
 
                 // Sync both nodes.
-                stratisSender.CreateRPCClient().AddNode(stratisReceiver.Endpoint, true);
-                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(stratisReceiver, stratisSender));
+                destreamSender.CreateRPCClient().AddNode(destreamReceiver.Endpoint, true);
+                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(destreamReceiver, destreamSender));
 
                 // Get 50 unused addresses from the receiver.
-                IEnumerable<HdAddress> recevierAddresses = stratisReceiver.FullNode.WalletManager()
+                IEnumerable<HdAddress> recevierAddresses = destreamReceiver.FullNode.WalletManager()
                     .GetUnusedAddresses(new WalletAccountReference("mywallet", "account 0"), 50);
 
                 List<Recipient> recipients = recevierAddresses.Select(address => new Recipient
@@ -144,28 +144,28 @@ namespace DeStream.Bitcoin.IntegrationTests
                         MinConfirmations = 101
                     };
 
-                Transaction transaction = stratisSender.FullNode.WalletTransactionHandler().BuildTransaction(transactionBuildContext);
+                Transaction transaction = destreamSender.FullNode.WalletTransactionHandler().BuildTransaction(transactionBuildContext);
                 Assert.Equal(51, transaction.Outputs.Count);
 
                 // Broadcast to the other node.
-                stratisSender.FullNode.NodeService<WalletController>().SendTransaction(new SendTransactionRequest(transaction.ToHex()));
+                destreamSender.FullNode.NodeService<WalletController>().SendTransaction(new SendTransactionRequest(transaction.ToHex()));
 
                 // Wait for the trx's to arrive.
-                TestHelper.WaitLoop(() => stratisReceiver.CreateRPCClient().GetRawMempool().Length > 0);
-                TestHelper.WaitLoop(() => stratisReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Any());
+                TestHelper.WaitLoop(() => destreamReceiver.CreateRPCClient().GetRawMempool().Length > 0);
+                TestHelper.WaitLoop(() => destreamReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Any());
 
-                Assert.Equal(Money.COIN * 50, stratisReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount));
-                Assert.Null(stratisReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").First().Transaction.BlockHeight);  
+                Assert.Equal(Money.COIN * 50, destreamReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount));
+                Assert.Null(destreamReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").First().Transaction.BlockHeight);  
 
                 // Generate new blocks so the trx is confirmed.
-                stratisSender.GenerateDeStreamWithMiner(1);
+                destreamSender.GenerateDeStreamWithMiner(1);
 
                 // Wait for block repo for block sync to work.
-                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(stratisSender));
-                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(stratisReceiver, stratisSender));
+                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(destreamSender));
+                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(destreamReceiver, destreamSender));
 
                 // Confirm trx's have been committed to the block.
-                Assert.Equal(maturity + 52 , stratisReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").First().Transaction.BlockHeight);
+                Assert.Equal(maturity + 52 , destreamReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").First().Transaction.BlockHeight);
             }
         }
 
@@ -174,15 +174,15 @@ namespace DeStream.Bitcoin.IntegrationTests
         {
             using (NodeBuilder builder = NodeBuilder.Create())
             {
-                CoreNode stratisNodeSync = builder.CreateDeStreamPowNode();
+                CoreNode destreamNodeSync = builder.CreateDeStreamPowNode();
                 builder.StartAll();
 
                 // Move a wallet file to the right folder and restart the wallet manager to take it into account.
-                this.InitializeTestWallet(stratisNodeSync.FullNode.DataFolder.WalletPath);
-                var walletManager = stratisNodeSync.FullNode.NodeService<IWalletManager>() as WalletManager;
+                this.InitializeTestWallet(destreamNodeSync.FullNode.DataFolder.WalletPath);
+                var walletManager = destreamNodeSync.FullNode.NodeService<IWalletManager>() as WalletManager;
                 walletManager.Start();
 
-                var rpc = stratisNodeSync.CreateRPCClient();
+                var rpc = destreamNodeSync.CreateRPCClient();
                 rpc.SendCommand(NBitcoin.RPC.RPCOperations.generate, 10);
                 Assert.Equal(10, rpc.GetBlockCount());
 
@@ -203,151 +203,151 @@ namespace DeStream.Bitcoin.IntegrationTests
 
             using (NodeBuilder builder = NodeBuilder.Create())
             {
-                var stratisSender = builder.CreateDeStreamPowNode();
-                var stratisReceiver = builder.CreateDeStreamPowNode();
-                var stratisReorg = builder.CreateDeStreamPowNode();
+                var destreamSender = builder.CreateDeStreamPowNode();
+                var destreamReceiver = builder.CreateDeStreamPowNode();
+                var destreamReorg = builder.CreateDeStreamPowNode();
 
                 builder.StartAll();
-                stratisSender.NotInIBD();
-                stratisReceiver.NotInIBD();
-                stratisReorg.NotInIBD();
+                destreamSender.NotInIBD();
+                destreamReceiver.NotInIBD();
+                destreamReorg.NotInIBD();
 
                 // get a key from the wallet
-                var mnemonic1 = stratisSender.FullNode.WalletManager().CreateWallet("123456", "mywallet");
-                var mnemonic2 = stratisReceiver.FullNode.WalletManager().CreateWallet("123456", "mywallet");
+                var mnemonic1 = destreamSender.FullNode.WalletManager().CreateWallet("123456", "mywallet");
+                var mnemonic2 = destreamReceiver.FullNode.WalletManager().CreateWallet("123456", "mywallet");
                 Assert.Equal(12, mnemonic1.Words.Length);
                 Assert.Equal(12, mnemonic2.Words.Length);
-                var addr = stratisSender.FullNode.WalletManager().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
-                var wallet = stratisSender.FullNode.WalletManager().GetWalletByName("mywallet");
+                var addr = destreamSender.FullNode.WalletManager().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
+                var wallet = destreamSender.FullNode.WalletManager().GetWalletByName("mywallet");
                 var key = wallet.GetExtendedPrivateKeyForAddress("123456", addr).PrivateKey;
 
-                stratisSender.SetDummyMinerSecret(new BitcoinSecret(key, stratisSender.FullNode.Network));
-                stratisReorg.SetDummyMinerSecret(new BitcoinSecret(key, stratisSender.FullNode.Network));
+                destreamSender.SetDummyMinerSecret(new BitcoinSecret(key, destreamSender.FullNode.Network));
+                destreamReorg.SetDummyMinerSecret(new BitcoinSecret(key, destreamSender.FullNode.Network));
 
-                var maturity = (int)stratisSender.FullNode.Network.Consensus.Option<PowConsensusOptions>().CoinbaseMaturity;
-                stratisSender.GenerateDeStreamWithMiner(maturity + 15);
+                var maturity = (int)destreamSender.FullNode.Network.Consensus.Option<PowConsensusOptions>().CoinbaseMaturity;
+                destreamSender.GenerateDeStreamWithMiner(maturity + 15);
 
                 var currentBestHeight = maturity + 15;
 
                 // wait for block repo for block sync to work
-                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(stratisSender));
+                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(destreamSender));
 
                 // the mining should add coins to the wallet
-                var total = stratisSender.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount);
+                var total = destreamSender.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount);
                 Assert.Equal(Money.COIN * currentBestHeight * 50, total);
 
                 // sync all nodes
-                stratisReceiver.CreateRPCClient().AddNode(stratisSender.Endpoint, true);
-                stratisReceiver.CreateRPCClient().AddNode(stratisReorg.Endpoint, true);
-                stratisSender.CreateRPCClient().AddNode(stratisReorg.Endpoint, true);
-                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(stratisReceiver, stratisSender));
-                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(stratisReceiver, stratisReorg));
+                destreamReceiver.CreateRPCClient().AddNode(destreamSender.Endpoint, true);
+                destreamReceiver.CreateRPCClient().AddNode(destreamReorg.Endpoint, true);
+                destreamSender.CreateRPCClient().AddNode(destreamReorg.Endpoint, true);
+                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(destreamReceiver, destreamSender));
+                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(destreamReceiver, destreamReorg));
 
                 // Build Transaction 1
                 // ====================
                 // send coins to the receiver
-                var sendto = stratisReceiver.FullNode.WalletManager().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
-                var transaction1 = stratisSender.FullNode.WalletTransactionHandler().BuildTransaction(CreateContext(new WalletAccountReference("mywallet", "account 0"), "123456", sendto.ScriptPubKey, Money.COIN * 100, FeeType.Medium, 101));
+                var sendto = destreamReceiver.FullNode.WalletManager().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
+                var transaction1 = destreamSender.FullNode.WalletTransactionHandler().BuildTransaction(CreateContext(new WalletAccountReference("mywallet", "account 0"), "123456", sendto.ScriptPubKey, Money.COIN * 100, FeeType.Medium, 101));
 
                 // broadcast to the other node
-                stratisSender.FullNode.NodeService<WalletController>().SendTransaction(new SendTransactionRequest(transaction1.ToHex()));
+                destreamSender.FullNode.NodeService<WalletController>().SendTransaction(new SendTransactionRequest(transaction1.ToHex()));
 
                 // wait for the trx to arrive
-                TestHelper.WaitLoop(() => stratisReceiver.CreateRPCClient().GetRawMempool().Length > 0);
-                Assert.NotNull(stratisReceiver.CreateRPCClient().GetRawTransaction(transaction1.GetHash(), false));
-                TestHelper.WaitLoop(() => stratisReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Any());
+                TestHelper.WaitLoop(() => destreamReceiver.CreateRPCClient().GetRawMempool().Length > 0);
+                Assert.NotNull(destreamReceiver.CreateRPCClient().GetRawTransaction(transaction1.GetHash(), false));
+                TestHelper.WaitLoop(() => destreamReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Any());
 
-                var receivetotal = stratisReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount);
+                var receivetotal = destreamReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount);
                 Assert.Equal(Money.COIN * 100, receivetotal);
-                Assert.Null(stratisReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").First().Transaction.BlockHeight);
+                Assert.Null(destreamReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").First().Transaction.BlockHeight);
 
                 // generate two new blocks so the trx is confirmed
-                stratisSender.GenerateDeStreamWithMiner(1);
+                destreamSender.GenerateDeStreamWithMiner(1);
                 var transaction1MinedHeight = currentBestHeight + 1;
-                stratisSender.GenerateDeStreamWithMiner(1);
+                destreamSender.GenerateDeStreamWithMiner(1);
                 currentBestHeight = currentBestHeight + 2;
 
                 // wait for block repo for block sync to work
-                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(stratisSender));
-                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(stratisReceiver, stratisSender));
-                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(stratisReceiver, stratisReorg));
-                Assert.Equal(currentBestHeight, stratisReceiver.FullNode.Chain.Tip.Height);
-                TestHelper.WaitLoop(() => transaction1MinedHeight == stratisReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").First().Transaction.BlockHeight);
+                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(destreamSender));
+                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(destreamReceiver, destreamSender));
+                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(destreamReceiver, destreamReorg));
+                Assert.Equal(currentBestHeight, destreamReceiver.FullNode.Chain.Tip.Height);
+                TestHelper.WaitLoop(() => transaction1MinedHeight == destreamReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").First().Transaction.BlockHeight);
 
                 // Build Transaction 2
                 // ====================
                 // remove the reorg node
-                stratisReceiver.CreateRPCClient().RemoveNode(stratisReorg.Endpoint);
-                stratisSender.CreateRPCClient().RemoveNode(stratisReorg.Endpoint);
-                TestHelper.WaitLoop(() => !TestHelper.IsNodeConnected(stratisReorg));
-                var forkblock = stratisReceiver.FullNode.Chain.Tip;
+                destreamReceiver.CreateRPCClient().RemoveNode(destreamReorg.Endpoint);
+                destreamSender.CreateRPCClient().RemoveNode(destreamReorg.Endpoint);
+                TestHelper.WaitLoop(() => !TestHelper.IsNodeConnected(destreamReorg));
+                var forkblock = destreamReceiver.FullNode.Chain.Tip;
 
                 // send more coins to the wallet
-                sendto = stratisReceiver.FullNode.WalletManager().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
-                var transaction2 = stratisSender.FullNode.WalletTransactionHandler().BuildTransaction(CreateContext(new WalletAccountReference("mywallet", "account 0"), "123456", sendto.ScriptPubKey, Money.COIN * 10, FeeType.Medium, 101));
-                stratisSender.FullNode.NodeService<WalletController>().SendTransaction(new SendTransactionRequest(transaction2.ToHex()));
+                sendto = destreamReceiver.FullNode.WalletManager().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
+                var transaction2 = destreamSender.FullNode.WalletTransactionHandler().BuildTransaction(CreateContext(new WalletAccountReference("mywallet", "account 0"), "123456", sendto.ScriptPubKey, Money.COIN * 10, FeeType.Medium, 101));
+                destreamSender.FullNode.NodeService<WalletController>().SendTransaction(new SendTransactionRequest(transaction2.ToHex()));
                 // wait for the trx to arrive
-                TestHelper.WaitLoop(() => stratisReceiver.CreateRPCClient().GetRawMempool().Length > 0);
-                Assert.NotNull(stratisReceiver.CreateRPCClient().GetRawTransaction(transaction2.GetHash(), false));
-                TestHelper.WaitLoop(() => stratisReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Any());
-                var newamount = stratisReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount);
+                TestHelper.WaitLoop(() => destreamReceiver.CreateRPCClient().GetRawMempool().Length > 0);
+                Assert.NotNull(destreamReceiver.CreateRPCClient().GetRawTransaction(transaction2.GetHash(), false));
+                TestHelper.WaitLoop(() => destreamReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Any());
+                var newamount = destreamReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount);
                 Assert.Equal(Money.COIN * 110, newamount);
-                Assert.Contains(stratisReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet"), b => b.Transaction.BlockHeight == null);
+                Assert.Contains(destreamReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet"), b => b.Transaction.BlockHeight == null);
 
                 // mine more blocks so its included in the chain
 
-                stratisSender.GenerateDeStreamWithMiner(1);
+                destreamSender.GenerateDeStreamWithMiner(1);
                 var transaction2MinedHeight = currentBestHeight + 1;
-                stratisSender.GenerateDeStreamWithMiner(1);
+                destreamSender.GenerateDeStreamWithMiner(1);
                 currentBestHeight = currentBestHeight + 2;
-                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(stratisSender));
-                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(stratisReceiver, stratisSender));
-                Assert.Equal(currentBestHeight, stratisReceiver.FullNode.Chain.Tip.Height);
-                TestHelper.WaitLoop(() => stratisReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Any(b => b.Transaction.BlockHeight == transaction2MinedHeight));
+                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(destreamSender));
+                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(destreamReceiver, destreamSender));
+                Assert.Equal(currentBestHeight, destreamReceiver.FullNode.Chain.Tip.Height);
+                TestHelper.WaitLoop(() => destreamReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Any(b => b.Transaction.BlockHeight == transaction2MinedHeight));
 
                 // create a reorg by mining on two different chains
                 // ================================================
                 // advance both chains, one chin is longer
-                stratisSender.GenerateDeStreamWithMiner(2);
-                stratisReorg.GenerateDeStreamWithMiner(10);
+                destreamSender.GenerateDeStreamWithMiner(2);
+                destreamReorg.GenerateDeStreamWithMiner(10);
                 currentBestHeight = forkblock.Height + 10;
-                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(stratisSender));
-                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(stratisReorg));
+                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(destreamSender));
+                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(destreamReorg));
 
                 // connect the reorg chain
-                stratisReceiver.CreateRPCClient().AddNode(stratisReorg.Endpoint, true);
-                stratisSender.CreateRPCClient().AddNode(stratisReorg.Endpoint, true);
+                destreamReceiver.CreateRPCClient().AddNode(destreamReorg.Endpoint, true);
+                destreamSender.CreateRPCClient().AddNode(destreamReorg.Endpoint, true);
                 // wait for the chains to catch up
-                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(stratisReceiver, stratisSender));
-                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(stratisReceiver, stratisReorg));
-                Assert.Equal(currentBestHeight, stratisReceiver.FullNode.Chain.Tip.Height);
+                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(destreamReceiver, destreamSender));
+                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(destreamReceiver, destreamReorg));
+                Assert.Equal(currentBestHeight, destreamReceiver.FullNode.Chain.Tip.Height);
 
                 // ensure wallet reorg complete
-                TestHelper.WaitLoop(() => stratisReceiver.FullNode.WalletManager().WalletTipHash == stratisReorg.CreateRPCClient().GetBestBlockHash());
+                TestHelper.WaitLoop(() => destreamReceiver.FullNode.WalletManager().WalletTipHash == destreamReorg.CreateRPCClient().GetBestBlockHash());
                 // check the wallet amount was rolled back
-                var newtotal = stratisReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount);
+                var newtotal = destreamReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount);
                 Assert.Equal(receivetotal, newtotal);
-                TestHelper.WaitLoop(() => maturity + 16 == stratisReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").First().Transaction.BlockHeight);
+                TestHelper.WaitLoop(() => maturity + 16 == destreamReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").First().Transaction.BlockHeight);
 
                 // ReBuild Transaction 2
                 // ====================
                 // After the reorg transaction2 was returned back to mempool
-                stratisSender.FullNode.NodeService<WalletController>().SendTransaction(new SendTransactionRequest(transaction2.ToHex()));
+                destreamSender.FullNode.NodeService<WalletController>().SendTransaction(new SendTransactionRequest(transaction2.ToHex()));
 
-                TestHelper.WaitLoop(() => stratisReceiver.CreateRPCClient().GetRawMempool().Length > 0);
+                TestHelper.WaitLoop(() => destreamReceiver.CreateRPCClient().GetRawMempool().Length > 0);
                 // mine the transaction again
-                stratisSender.GenerateDeStreamWithMiner(1);
+                destreamSender.GenerateDeStreamWithMiner(1);
                 transaction2MinedHeight = currentBestHeight + 1;
-                stratisSender.GenerateDeStreamWithMiner(1);
+                destreamSender.GenerateDeStreamWithMiner(1);
                 currentBestHeight = currentBestHeight + 2;
 
-                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(stratisSender));
-                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(stratisReceiver, stratisSender));
-                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(stratisReceiver, stratisReorg));
-                Assert.Equal(currentBestHeight, stratisReceiver.FullNode.Chain.Tip.Height);
-                var newsecondamount = stratisReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount);
+                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(destreamSender));
+                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(destreamReceiver, destreamSender));
+                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(destreamReceiver, destreamReorg));
+                Assert.Equal(currentBestHeight, destreamReceiver.FullNode.Chain.Tip.Height);
+                var newsecondamount = destreamReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount);
                 Assert.Equal(newamount, newsecondamount);
-                TestHelper.WaitLoop(() => stratisReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Any(b => b.Transaction.BlockHeight == transaction2MinedHeight));
+                TestHelper.WaitLoop(() => destreamReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Any(b => b.Transaction.BlockHeight == transaction2MinedHeight));
             }
         }
 
@@ -356,60 +356,60 @@ namespace DeStream.Bitcoin.IntegrationTests
         {
             using (NodeBuilder builder = NodeBuilder.Create())
             {
-                var stratisSender = builder.CreateDeStreamPowNode();
-                var stratisReceiver = builder.CreateDeStreamPowNode();
-                var stratisReorg = builder.CreateDeStreamPowNode();
+                var destreamSender = builder.CreateDeStreamPowNode();
+                var destreamReceiver = builder.CreateDeStreamPowNode();
+                var destreamReorg = builder.CreateDeStreamPowNode();
 
                 builder.StartAll();
-                stratisSender.NotInIBD();
-                stratisReceiver.NotInIBD();
-                stratisReorg.NotInIBD();
+                destreamSender.NotInIBD();
+                destreamReceiver.NotInIBD();
+                destreamReorg.NotInIBD();
 
-                stratisSender.SetDummyMinerSecret(new BitcoinSecret(new Key(), stratisSender.FullNode.Network));
-                stratisReorg.SetDummyMinerSecret(new BitcoinSecret(new Key(), stratisReorg.FullNode.Network));
+                destreamSender.SetDummyMinerSecret(new BitcoinSecret(new Key(), destreamSender.FullNode.Network));
+                destreamReorg.SetDummyMinerSecret(new BitcoinSecret(new Key(), destreamReorg.FullNode.Network));
 
-                stratisSender.GenerateDeStreamWithMiner(10);
+                destreamSender.GenerateDeStreamWithMiner(10);
 
                 // wait for block repo for block sync to work
-                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(stratisSender));
+                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(destreamSender));
 
                 //// sync all nodes
-                stratisReceiver.CreateRPCClient().AddNode(stratisSender.Endpoint, true);
-                stratisReceiver.CreateRPCClient().AddNode(stratisReorg.Endpoint, true);
-                stratisSender.CreateRPCClient().AddNode(stratisReorg.Endpoint, true);
-                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(stratisReceiver, stratisSender));
-                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(stratisReceiver, stratisReorg));
+                destreamReceiver.CreateRPCClient().AddNode(destreamSender.Endpoint, true);
+                destreamReceiver.CreateRPCClient().AddNode(destreamReorg.Endpoint, true);
+                destreamSender.CreateRPCClient().AddNode(destreamReorg.Endpoint, true);
+                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(destreamReceiver, destreamSender));
+                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(destreamReceiver, destreamReorg));
 
                 // remove the reorg node
-                stratisReceiver.CreateRPCClient().RemoveNode(stratisReorg.Endpoint);
-                stratisSender.CreateRPCClient().RemoveNode(stratisReorg.Endpoint);
-                TestHelper.WaitLoop(() => !TestHelper.IsNodeConnected(stratisReorg));
+                destreamReceiver.CreateRPCClient().RemoveNode(destreamReorg.Endpoint);
+                destreamSender.CreateRPCClient().RemoveNode(destreamReorg.Endpoint);
+                TestHelper.WaitLoop(() => !TestHelper.IsNodeConnected(destreamReorg));
 
                 // create a reorg by mining on two different chains
                 // ================================================
                 // advance both chains, one chin is longer
-                stratisSender.GenerateDeStreamWithMiner(2);
-                stratisReorg.GenerateDeStreamWithMiner(10);
-                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(stratisSender));
-                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(stratisReorg));
+                destreamSender.GenerateDeStreamWithMiner(2);
+                destreamReorg.GenerateDeStreamWithMiner(10);
+                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(destreamSender));
+                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(destreamReorg));
 
-                // rewind the wallet in the stratisReceiver node
-                (stratisReceiver.FullNode.NodeService<IWalletSyncManager>() as WalletSyncManager).SyncFromHeight(5);
+                // rewind the wallet in the destreamReceiver node
+                (destreamReceiver.FullNode.NodeService<IWalletSyncManager>() as WalletSyncManager).SyncFromHeight(5);
 
                 // connect the reorg chain
-                stratisReceiver.CreateRPCClient().AddNode(stratisReorg.Endpoint, true);
-                stratisSender.CreateRPCClient().AddNode(stratisReorg.Endpoint, true);
+                destreamReceiver.CreateRPCClient().AddNode(destreamReorg.Endpoint, true);
+                destreamSender.CreateRPCClient().AddNode(destreamReorg.Endpoint, true);
                 // wait for the chains to catch up
-                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(stratisReceiver, stratisSender));
-                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(stratisReceiver, stratisReorg));
-                Assert.Equal(20, stratisReceiver.FullNode.Chain.Tip.Height);
+                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(destreamReceiver, destreamSender));
+                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(destreamReceiver, destreamReorg));
+                Assert.Equal(20, destreamReceiver.FullNode.Chain.Tip.Height);
 
-                stratisSender.GenerateDeStreamWithMiner(5);
+                destreamSender.GenerateDeStreamWithMiner(5);
 
-                TestHelper.TriggerSync(stratisReceiver);
-                TestHelper.TriggerSync(stratisSender);
-                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(stratisReceiver, stratisSender));
-                Assert.Equal(25, stratisReceiver.FullNode.Chain.Tip.Height);
+                TestHelper.TriggerSync(destreamReceiver);
+                TestHelper.TriggerSync(destreamSender);
+                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(destreamReceiver, destreamSender));
+                Assert.Equal(25, destreamReceiver.FullNode.Chain.Tip.Height);
             }
         }
 
@@ -418,58 +418,58 @@ namespace DeStream.Bitcoin.IntegrationTests
         {
             using (NodeBuilder builder = NodeBuilder.Create())
             {
-                var stratisSender = builder.CreateDeStreamPowNode();
-                var stratisReceiver = builder.CreateDeStreamPowNode();
-                var stratisReorg = builder.CreateDeStreamPowNode();
+                var destreamSender = builder.CreateDeStreamPowNode();
+                var destreamReceiver = builder.CreateDeStreamPowNode();
+                var destreamReorg = builder.CreateDeStreamPowNode();
 
                 builder.StartAll();
-                stratisSender.NotInIBD();
-                stratisReceiver.NotInIBD();
-                stratisReorg.NotInIBD();
+                destreamSender.NotInIBD();
+                destreamReceiver.NotInIBD();
+                destreamReorg.NotInIBD();
 
-                stratisSender.SetDummyMinerSecret(new BitcoinSecret(new Key(), stratisSender.FullNode.Network));
-                stratisReorg.SetDummyMinerSecret(new BitcoinSecret(new Key(), stratisReorg.FullNode.Network));
+                destreamSender.SetDummyMinerSecret(new BitcoinSecret(new Key(), destreamSender.FullNode.Network));
+                destreamReorg.SetDummyMinerSecret(new BitcoinSecret(new Key(), destreamReorg.FullNode.Network));
 
-                stratisSender.GenerateDeStreamWithMiner(10);
+                destreamSender.GenerateDeStreamWithMiner(10);
 
                 // wait for block repo for block sync to work
-                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(stratisSender));
+                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(destreamSender));
 
                 //// sync all nodes
-                stratisReceiver.CreateRPCClient().AddNode(stratisSender.Endpoint, true);
-                stratisReceiver.CreateRPCClient().AddNode(stratisReorg.Endpoint, true);
-                stratisSender.CreateRPCClient().AddNode(stratisReorg.Endpoint, true);
-                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(stratisReceiver, stratisSender));
-                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(stratisReceiver, stratisReorg));
+                destreamReceiver.CreateRPCClient().AddNode(destreamSender.Endpoint, true);
+                destreamReceiver.CreateRPCClient().AddNode(destreamReorg.Endpoint, true);
+                destreamSender.CreateRPCClient().AddNode(destreamReorg.Endpoint, true);
+                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(destreamReceiver, destreamSender));
+                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(destreamReceiver, destreamReorg));
 
                 // remove the reorg node and wait for node to be disconnected
-                stratisReceiver.CreateRPCClient().RemoveNode(stratisReorg.Endpoint);
-                stratisSender.CreateRPCClient().RemoveNode(stratisReorg.Endpoint);
-                TestHelper.WaitLoop(() => !TestHelper.IsNodeConnected(stratisReorg));
+                destreamReceiver.CreateRPCClient().RemoveNode(destreamReorg.Endpoint);
+                destreamSender.CreateRPCClient().RemoveNode(destreamReorg.Endpoint);
+                TestHelper.WaitLoop(() => !TestHelper.IsNodeConnected(destreamReorg));
 
                 // create a reorg by mining on two different chains
                 // ================================================
                 // advance both chains, one chin is longer
-                stratisSender.GenerateDeStreamWithMiner(2);
-                stratisReorg.GenerateDeStreamWithMiner(10);
-                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(stratisSender));
-                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(stratisReorg));
+                destreamSender.GenerateDeStreamWithMiner(2);
+                destreamReorg.GenerateDeStreamWithMiner(10);
+                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(destreamSender));
+                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(destreamReorg));
 
                 // connect the reorg chain
-                stratisReceiver.CreateRPCClient().AddNode(stratisReorg.Endpoint, true);
-                stratisSender.CreateRPCClient().AddNode(stratisReorg.Endpoint, true);
+                destreamReceiver.CreateRPCClient().AddNode(destreamReorg.Endpoint, true);
+                destreamSender.CreateRPCClient().AddNode(destreamReorg.Endpoint, true);
                 // wait for the chains to catch up
-                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(stratisReceiver, stratisSender));
-                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(stratisReceiver, stratisReorg));
-                Assert.Equal(20, stratisReceiver.FullNode.Chain.Tip.Height);
+                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(destreamReceiver, destreamSender));
+                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(destreamReceiver, destreamReorg));
+                Assert.Equal(20, destreamReceiver.FullNode.Chain.Tip.Height);
 
-                // rewind the wallet in the stratisReceiver node
-                (stratisReceiver.FullNode.NodeService<IWalletSyncManager>() as WalletSyncManager).SyncFromHeight(10);
+                // rewind the wallet in the destreamReceiver node
+                (destreamReceiver.FullNode.NodeService<IWalletSyncManager>() as WalletSyncManager).SyncFromHeight(10);
 
-                stratisSender.GenerateDeStreamWithMiner(5);
+                destreamSender.GenerateDeStreamWithMiner(5);
 
-                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(stratisReceiver, stratisSender));
-                Assert.Equal(25, stratisReceiver.FullNode.Chain.Tip.Height);
+                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(destreamReceiver, destreamSender));
+                Assert.Equal(25, destreamReceiver.FullNode.Chain.Tip.Height);
             }
         }
 
@@ -478,29 +478,29 @@ namespace DeStream.Bitcoin.IntegrationTests
         {
             using (NodeBuilder builder = NodeBuilder.Create())
             {
-                var stratisminer = builder.CreateDeStreamPowNode();
+                var destreamminer = builder.CreateDeStreamPowNode();
 
                 builder.StartAll();
-                stratisminer.NotInIBD();
+                destreamminer.NotInIBD();
 
                 // get a key from the wallet
-                var mnemonic = stratisminer.FullNode.WalletManager().CreateWallet("123456", "mywallet");
+                var mnemonic = destreamminer.FullNode.WalletManager().CreateWallet("123456", "mywallet");
                 Assert.Equal(12, mnemonic.Words.Length);
-                var addr = stratisminer.FullNode.WalletManager().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
-                var wallet = stratisminer.FullNode.WalletManager().GetWalletByName("mywallet");
+                var addr = destreamminer.FullNode.WalletManager().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
+                var wallet = destreamminer.FullNode.WalletManager().GetWalletByName("mywallet");
                 var key = wallet.GetExtendedPrivateKeyForAddress("123456", addr).PrivateKey;
 
-                stratisminer.SetDummyMinerSecret(key.GetBitcoinSecret(stratisminer.FullNode.Network));
-                stratisminer.GenerateDeStream(10);
+                destreamminer.SetDummyMinerSecret(key.GetBitcoinSecret(destreamminer.FullNode.Network));
+                destreamminer.GenerateDeStream(10);
                 // wait for block repo for block sync to work
-                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(stratisminer));
+                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(destreamminer));
 
                 // push the wallet back
-                stratisminer.FullNode.Services.ServiceProvider.GetService<IWalletSyncManager>().SyncFromHeight(5);
+                destreamminer.FullNode.Services.ServiceProvider.GetService<IWalletSyncManager>().SyncFromHeight(5);
 
-                stratisminer.GenerateDeStream(5);
+                destreamminer.GenerateDeStream(5);
 
-                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(stratisminer));
+                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(destreamminer));
             }
         }
 
@@ -509,28 +509,28 @@ namespace DeStream.Bitcoin.IntegrationTests
         {
             using (NodeBuilder builder = NodeBuilder.Create())
             {
-                var stratisNodeSync = builder.CreateDeStreamPowNode();
+                var destreamNodeSync = builder.CreateDeStreamPowNode();
                 builder.StartAll();
-                stratisNodeSync.NotInIBD();
+                destreamNodeSync.NotInIBD();
 
                 // get a key from the wallet
-                var mnemonic = stratisNodeSync.FullNode.WalletManager().CreateWallet("123456", "mywallet");
+                var mnemonic = destreamNodeSync.FullNode.WalletManager().CreateWallet("123456", "mywallet");
                 Assert.Equal(12, mnemonic.Words.Length);
-                var addr = stratisNodeSync.FullNode.WalletManager().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
-                var wallet = stratisNodeSync.FullNode.WalletManager().GetWalletByName("mywallet");
+                var addr = destreamNodeSync.FullNode.WalletManager().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
+                var wallet = destreamNodeSync.FullNode.WalletManager().GetWalletByName("mywallet");
                 var key = wallet.GetExtendedPrivateKeyForAddress("123456", addr).PrivateKey;
 
-                stratisNodeSync.SetDummyMinerSecret(key.GetBitcoinSecret(stratisNodeSync.FullNode.Network));
-                stratisNodeSync.GenerateDeStream(10);
-                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(stratisNodeSync));
+                destreamNodeSync.SetDummyMinerSecret(key.GetBitcoinSecret(destreamNodeSync.FullNode.Network));
+                destreamNodeSync.GenerateDeStream(10);
+                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(destreamNodeSync));
 
                 // set the tip of best chain some blocks in the apst
-                stratisNodeSync.FullNode.Chain.SetTip(stratisNodeSync.FullNode.Chain.GetBlock(stratisNodeSync.FullNode.Chain.Height - 5));
+                destreamNodeSync.FullNode.Chain.SetTip(destreamNodeSync.FullNode.Chain.GetBlock(destreamNodeSync.FullNode.Chain.Height - 5));
 
                 // stop the node it will persist the chain with the reset tip
-                stratisNodeSync.FullNode.Dispose();
+                destreamNodeSync.FullNode.Dispose();
 
-                var newNodeInstance = builder.CloneDeStreamNode(stratisNodeSync);
+                var newNodeInstance = builder.CloneDeStreamNode(destreamNodeSync);
 
                 // load the node, this should hit the block store recover code
                 newNodeInstance.Start();

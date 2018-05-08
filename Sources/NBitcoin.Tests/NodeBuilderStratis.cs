@@ -13,7 +13,7 @@ using NBitcoin.RPC;
 namespace NBitcoin.Tests
 {
 
-        // Require a stratis node running with the following stratis.conf file
+        // Require a destream node running with the following destream.conf file
         //server=1
         //rpcuser=rpcuser
         //rpcpassword = rpcpassword
@@ -111,8 +111,8 @@ namespace NBitcoin.Tests
 
         public void StartAll()
         {
-            if (!Process.GetProcesses().Any(p => p.ProcessName.Contains("stratis")))
-                throw new NotSupportedException("stratis node is not running");
+            if (!Process.GetProcesses().Any(p => p.ProcessName.Contains("destream")))
+                throw new NotSupportedException("destream node is not running");
 
             //Task.WaitAll(Nodes.Where(n => n.State == CoreNodeState.Stopped).Select(n => n.StartAsync()).ToArray());
         }

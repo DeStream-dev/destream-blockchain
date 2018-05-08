@@ -86,7 +86,7 @@ namespace DeStream.Bitcoin.Features.Dns.Tests
             IPeerAddressManager peerAddressManager = new Mock<IPeerAddressManager>().Object;
             IDnsServer dnsServer = new Mock<IDnsServer>().Object;
             DnsSettings dnsSettings = new Mock<DnsSettings>().Object;
-            dnsSettings.DnsHostName = "stratis.test.com";
+            dnsSettings.DnsHostName = "destream.test.com";
 
             Action a = () => { new WhitelistManager(dateTimeProvider, loggerFactory, peerAddressManager, dnsServer, null, dnsSettings); };
 
@@ -105,7 +105,7 @@ namespace DeStream.Bitcoin.Features.Dns.Tests
             IDnsServer dnsServer = new Mock<IDnsServer>().Object;
             NodeSettings nodeSettings = NodeSettings.Default();
             DnsSettings dnsSettings = new Mock<DnsSettings>().Object;
-            dnsSettings.DnsHostName = "stratis.test.com";
+            dnsSettings.DnsHostName = "destream.test.com";
 
             Action a = () => { new WhitelistManager(dateTimeProvider, loggerFactory, peerAddressManager, dnsServer, null, dnsSettings); };
 
@@ -169,7 +169,7 @@ namespace DeStream.Bitcoin.Features.Dns.Tests
             NodeSettings nodeSettings = NodeSettings.Default();
             DnsSettings dnsSettings = new Mock<DnsSettings>().Object;
             dnsSettings.DnsPeerBlacklistThresholdInSeconds = inactiveTimePeriod;
-            dnsSettings.DnsHostName = "stratis.test.com";
+            dnsSettings.DnsHostName = "destream.test.com";
             ConnectionManagerSettings connectionSettings = new ConnectionManagerSettings();
             connectionSettings.Load(nodeSettings);
 
@@ -273,7 +273,7 @@ namespace DeStream.Bitcoin.Features.Dns.Tests
             NodeSettings nodeSettings = new NodeSettings(network, args:args);
             DnsSettings dnsSettings = new Mock<DnsSettings>().Object;
             dnsSettings.DnsPeerBlacklistThresholdInSeconds = inactiveTimePeriod;
-            dnsSettings.DnsHostName = "stratis.test.com";
+            dnsSettings.DnsHostName = "destream.test.com";
             dnsSettings.DnsFullNode = false;
             ConnectionManagerSettings connectionSettings = new ConnectionManagerSettings();
             connectionSettings.Load(nodeSettings);
@@ -362,7 +362,7 @@ namespace DeStream.Bitcoin.Features.Dns.Tests
             DnsSettings dnsSettings = new Mock<DnsSettings>().Object;
             dnsSettings.DnsFullNode = true;
             dnsSettings.DnsPeerBlacklistThresholdInSeconds = inactiveTimePeriod;
-            dnsSettings.DnsHostName = "stratis.test.com";
+            dnsSettings.DnsHostName = "destream.test.com";
             ConnectionManagerSettings connectionSettings = new ConnectionManagerSettings();
             connectionSettings.Load(nodeSettings);
 
@@ -454,7 +454,7 @@ namespace DeStream.Bitcoin.Features.Dns.Tests
             NodeSettings nodeSettings = NodeSettings.Default();
             DnsSettings dnsSettings = new Mock<DnsSettings>().Object;
             dnsSettings.DnsPeerBlacklistThresholdInSeconds = inactiveTimePeriod;
-            dnsSettings.DnsHostName = "stratis.test.com";
+            dnsSettings.DnsHostName = "destream.test.com";
             ConnectionManagerSettings connectionSettings = new ConnectionManagerSettings();
             connectionSettings.Load(nodeSettings);
 

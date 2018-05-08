@@ -12,7 +12,6 @@ namespace DeStream.Bitcoin.Features.Wallet.Helpers
     ///  This specific comparer has been made to filter out duplicate payment listings in the case of a transaction with multiple inputs.
     ///  This causes multiple items inside the wallet data that all have the same amount, transaction/spending id and payment details.
     ///  However not all fields on this model are equal to each other so we only compare the ones we need.
-    ///  See: https://github.com/stratisproject/Breeze/issues/175
     /// </remarks>
     public class SentTransactionItemModelComparer : IEqualityComparer<TransactionItemModel>
     {

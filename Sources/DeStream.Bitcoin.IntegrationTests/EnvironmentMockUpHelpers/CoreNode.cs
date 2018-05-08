@@ -73,7 +73,7 @@ namespace DeStream.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers
             this.networkPeerFactory = new NetworkPeerFactory(network, DateTimeProvider.Default, loggerFactory, new PayloadProvider().DiscoverPayloads(), new SelfEndpointTracker());
         }
 
-        /// <summary>Get stratis full node if possible.</summary>
+        /// <summary>Get destream full node if possible.</summary>
         public FullNode FullNode
         {
             get

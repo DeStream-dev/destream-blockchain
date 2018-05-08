@@ -148,40 +148,40 @@ namespace DeStream.Bitcoin.IntegrationTests
         {
             using (NodeBuilder builder = NodeBuilder.Create())
             {
-                var stratisNodeSync = builder.CreateDeStreamPowNode();
-                var stratisNode1 = builder.CreateDeStreamPowNode();
-                var stratisNode2 = builder.CreateDeStreamPowNode();
+                var destreamNodeSync = builder.CreateDeStreamPowNode();
+                var destreamNode1 = builder.CreateDeStreamPowNode();
+                var destreamNode2 = builder.CreateDeStreamPowNode();
                 builder.StartAll();
-                stratisNodeSync.NotInIBD();
-                stratisNode1.NotInIBD();
-                stratisNode2.NotInIBD();
+                destreamNodeSync.NotInIBD();
+                destreamNode1.NotInIBD();
+                destreamNode2.NotInIBD();
 
                 // generate blocks and wait for the downloader to pickup
-                stratisNodeSync.SetDummyMinerSecret(new BitcoinSecret(new Key(), stratisNodeSync.FullNode.Network));
-                stratisNodeSync.GenerateDeStreamWithMiner(10); // coinbase maturity = 10
+                destreamNodeSync.SetDummyMinerSecret(new BitcoinSecret(new Key(), destreamNodeSync.FullNode.Network));
+                destreamNodeSync.GenerateDeStreamWithMiner(10); // coinbase maturity = 10
                 // wait for block repo for block sync to work
-                TestHelper.WaitLoop(() => stratisNodeSync.FullNode.ConsensusLoop().Tip.HashBlock == stratisNodeSync.FullNode.Chain.Tip.HashBlock);
-                TestHelper.WaitLoop(() => stratisNodeSync.FullNode.ChainBehaviorState.ConsensusTip.HashBlock == stratisNodeSync.FullNode.Chain.Tip.HashBlock);
-                TestHelper.WaitLoop(() => stratisNodeSync.FullNode.HighestPersistedBlock().HashBlock == stratisNodeSync.FullNode.Chain.Tip.HashBlock);
+                TestHelper.WaitLoop(() => destreamNodeSync.FullNode.ConsensusLoop().Tip.HashBlock == destreamNodeSync.FullNode.Chain.Tip.HashBlock);
+                TestHelper.WaitLoop(() => destreamNodeSync.FullNode.ChainBehaviorState.ConsensusTip.HashBlock == destreamNodeSync.FullNode.Chain.Tip.HashBlock);
+                TestHelper.WaitLoop(() => destreamNodeSync.FullNode.HighestPersistedBlock().HashBlock == destreamNodeSync.FullNode.Chain.Tip.HashBlock);
 
                 // sync both nodes
-                stratisNode1.CreateRPCClient().AddNode(stratisNodeSync.Endpoint, true);
-                stratisNode2.CreateRPCClient().AddNode(stratisNodeSync.Endpoint, true);
-                TestHelper.WaitLoop(() => stratisNode1.CreateRPCClient().GetBestBlockHash() == stratisNodeSync.CreateRPCClient().GetBestBlockHash());
-                TestHelper.WaitLoop(() => stratisNode2.CreateRPCClient().GetBestBlockHash() == stratisNodeSync.CreateRPCClient().GetBestBlockHash());
+                destreamNode1.CreateRPCClient().AddNode(destreamNodeSync.Endpoint, true);
+                destreamNode2.CreateRPCClient().AddNode(destreamNodeSync.Endpoint, true);
+                TestHelper.WaitLoop(() => destreamNode1.CreateRPCClient().GetBestBlockHash() == destreamNodeSync.CreateRPCClient().GetBestBlockHash());
+                TestHelper.WaitLoop(() => destreamNode2.CreateRPCClient().GetBestBlockHash() == destreamNodeSync.CreateRPCClient().GetBestBlockHash());
 
                 // set node2 to use inv (not headers)
-                stratisNode2.FullNode.ConnectionManager.ConnectedPeers.First().Behavior<BlockStoreBehavior>().PreferHeaders = false;
+                destreamNode2.FullNode.ConnectionManager.ConnectedPeers.First().Behavior<BlockStoreBehavior>().PreferHeaders = false;
 
                 // generate two new blocks
-                stratisNodeSync.GenerateDeStreamWithMiner(2);
+                destreamNodeSync.GenerateDeStreamWithMiner(2);
                 // wait for block repo for block sync to work
-                TestHelper.WaitLoop(() => stratisNodeSync.FullNode.Chain.Tip.HashBlock == stratisNodeSync.FullNode.ConsensusLoop().Tip.HashBlock);
-                TestHelper.WaitLoop(() => stratisNodeSync.FullNode.BlockStoreManager().BlockRepository.GetAsync(stratisNodeSync.CreateRPCClient().GetBestBlockHash()).Result != null);
+                TestHelper.WaitLoop(() => destreamNodeSync.FullNode.Chain.Tip.HashBlock == destreamNodeSync.FullNode.ConsensusLoop().Tip.HashBlock);
+                TestHelper.WaitLoop(() => destreamNodeSync.FullNode.BlockStoreManager().BlockRepository.GetAsync(destreamNodeSync.CreateRPCClient().GetBestBlockHash()).Result != null);
 
                 // wait for the other nodes to pick up the newly generated blocks
-                TestHelper.WaitLoop(() => stratisNode1.CreateRPCClient().GetBestBlockHash() == stratisNodeSync.CreateRPCClient().GetBestBlockHash());
-                TestHelper.WaitLoop(() => stratisNode2.CreateRPCClient().GetBestBlockHash() == stratisNodeSync.CreateRPCClient().GetBestBlockHash());
+                TestHelper.WaitLoop(() => destreamNode1.CreateRPCClient().GetBestBlockHash() == destreamNodeSync.CreateRPCClient().GetBestBlockHash());
+                TestHelper.WaitLoop(() => destreamNode2.CreateRPCClient().GetBestBlockHash() == destreamNodeSync.CreateRPCClient().GetBestBlockHash());
             }
         }
 
@@ -190,30 +190,30 @@ namespace DeStream.Bitcoin.IntegrationTests
         {
             using (NodeBuilder builder = NodeBuilder.Create())
             {
-                var stratisNodeSync = builder.CreateDeStreamPowNode();
+                var destreamNodeSync = builder.CreateDeStreamPowNode();
                 builder.StartAll();
-                stratisNodeSync.NotInIBD();
+                destreamNodeSync.NotInIBD();
 
                 // generate blocks and wait for the downloader to pickup
-                stratisNodeSync.SetDummyMinerSecret(new BitcoinSecret(new Key(), stratisNodeSync.FullNode.Network));
+                destreamNodeSync.SetDummyMinerSecret(new BitcoinSecret(new Key(), destreamNodeSync.FullNode.Network));
 
-                stratisNodeSync.GenerateDeStreamWithMiner(10);
-                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(stratisNodeSync));
+                destreamNodeSync.GenerateDeStreamWithMiner(10);
+                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(destreamNodeSync));
 
                 // set the tip of best chain some blocks in the apst
-                stratisNodeSync.FullNode.Chain.SetTip(stratisNodeSync.FullNode.Chain.GetBlock(stratisNodeSync.FullNode.Chain.Height - 5));
+                destreamNodeSync.FullNode.Chain.SetTip(destreamNodeSync.FullNode.Chain.GetBlock(destreamNodeSync.FullNode.Chain.Height - 5));
 
                 // stop the node it will persist the chain with the reset tip
-                stratisNodeSync.FullNode.Dispose();
+                destreamNodeSync.FullNode.Dispose();
 
-                var newNodeInstance = builder.CloneDeStreamNode(stratisNodeSync);
+                var newNodeInstance = builder.CloneDeStreamNode(destreamNodeSync);
 
                 // load the node, this should hit the block store recover code
                 newNodeInstance.Start();
 
                 // check that store recovered to be the same as the best chain.
                 Assert.Equal(newNodeInstance.FullNode.Chain.Tip.HashBlock, newNodeInstance.FullNode.HighestPersistedBlock().HashBlock);
-                //TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(stratisNodeSync));
+                //TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(destreamNodeSync));
             }
         }
 
@@ -222,51 +222,51 @@ namespace DeStream.Bitcoin.IntegrationTests
         {
             using (NodeBuilder builder = NodeBuilder.Create())
             {
-                var stratisNodeSync = builder.CreateDeStreamPowNode();
-                var stratisNode1 = builder.CreateDeStreamPowNode();
-                var stratisNode2 = builder.CreateDeStreamPowNode();
+                var destreamNodeSync = builder.CreateDeStreamPowNode();
+                var destreamNode1 = builder.CreateDeStreamPowNode();
+                var destreamNode2 = builder.CreateDeStreamPowNode();
                 builder.StartAll();
-                stratisNodeSync.NotInIBD();
-                stratisNode1.NotInIBD();
-                stratisNode2.NotInIBD();
+                destreamNodeSync.NotInIBD();
+                destreamNode1.NotInIBD();
+                destreamNode2.NotInIBD();
 
                 // generate blocks and wait for the downloader to pickup
-                stratisNode1.SetDummyMinerSecret(new BitcoinSecret(new Key(), stratisNodeSync.FullNode.Network));
-                stratisNode2.SetDummyMinerSecret(new BitcoinSecret(new Key(), stratisNodeSync.FullNode.Network));
+                destreamNode1.SetDummyMinerSecret(new BitcoinSecret(new Key(), destreamNodeSync.FullNode.Network));
+                destreamNode2.SetDummyMinerSecret(new BitcoinSecret(new Key(), destreamNodeSync.FullNode.Network));
                 // sync both nodes
-                stratisNodeSync.CreateRPCClient().AddNode(stratisNode1.Endpoint, true);
-                stratisNodeSync.CreateRPCClient().AddNode(stratisNode2.Endpoint, true);
+                destreamNodeSync.CreateRPCClient().AddNode(destreamNode1.Endpoint, true);
+                destreamNodeSync.CreateRPCClient().AddNode(destreamNode2.Endpoint, true);
 
-                stratisNode1.GenerateDeStreamWithMiner(10);
-                TestHelper.WaitLoop(() => stratisNode1.FullNode.HighestPersistedBlock().Height == 10);
+                destreamNode1.GenerateDeStreamWithMiner(10);
+                TestHelper.WaitLoop(() => destreamNode1.FullNode.HighestPersistedBlock().Height == 10);
 
-                TestHelper.WaitLoop(() => stratisNode1.FullNode.HighestPersistedBlock().HashBlock == stratisNodeSync.FullNode.HighestPersistedBlock().HashBlock);
-                TestHelper.WaitLoop(() => stratisNode2.FullNode.HighestPersistedBlock().HashBlock == stratisNodeSync.FullNode.HighestPersistedBlock().HashBlock);
+                TestHelper.WaitLoop(() => destreamNode1.FullNode.HighestPersistedBlock().HashBlock == destreamNodeSync.FullNode.HighestPersistedBlock().HashBlock);
+                TestHelper.WaitLoop(() => destreamNode2.FullNode.HighestPersistedBlock().HashBlock == destreamNodeSync.FullNode.HighestPersistedBlock().HashBlock);
 
                 // remove node 2
-                stratisNodeSync.CreateRPCClient().RemoveNode(stratisNode2.Endpoint);
-                TestHelper.WaitLoop(() => !TestHelper.IsNodeConnected(stratisNode2));
+                destreamNodeSync.CreateRPCClient().RemoveNode(destreamNode2.Endpoint);
+                TestHelper.WaitLoop(() => !TestHelper.IsNodeConnected(destreamNode2));
 
                 // mine some more with node 1
-                stratisNode1.GenerateDeStreamWithMiner(10);
+                destreamNode1.GenerateDeStreamWithMiner(10);
 
                 // wait for node 1 to sync
-                TestHelper.WaitLoop(() => stratisNode1.FullNode.HighestPersistedBlock().Height == 20);
-                TestHelper.WaitLoop(() => stratisNode1.FullNode.HighestPersistedBlock().HashBlock == stratisNodeSync.FullNode.HighestPersistedBlock().HashBlock);
+                TestHelper.WaitLoop(() => destreamNode1.FullNode.HighestPersistedBlock().Height == 20);
+                TestHelper.WaitLoop(() => destreamNode1.FullNode.HighestPersistedBlock().HashBlock == destreamNodeSync.FullNode.HighestPersistedBlock().HashBlock);
 
                 // remove node 1
-                stratisNodeSync.CreateRPCClient().RemoveNode(stratisNode1.Endpoint);
-                TestHelper.WaitLoop(() => !TestHelper.IsNodeConnected(stratisNode1));
+                destreamNodeSync.CreateRPCClient().RemoveNode(destreamNode1.Endpoint);
+                TestHelper.WaitLoop(() => !TestHelper.IsNodeConnected(destreamNode1));
 
                 // mine a higher chain with node2
-                stratisNode2.GenerateDeStreamWithMiner(20);
-                TestHelper.WaitLoop(() => stratisNode2.FullNode.HighestPersistedBlock().Height == 30);
+                destreamNode2.GenerateDeStreamWithMiner(20);
+                TestHelper.WaitLoop(() => destreamNode2.FullNode.HighestPersistedBlock().Height == 30);
 
                 // add node2
-                stratisNodeSync.CreateRPCClient().AddNode(stratisNode2.Endpoint, true);
+                destreamNodeSync.CreateRPCClient().AddNode(destreamNode2.Endpoint, true);
 
                 // node2 should be synced
-                TestHelper.WaitLoop(() => stratisNode2.FullNode.HighestPersistedBlock().HashBlock == stratisNodeSync.FullNode.HighestPersistedBlock().HashBlock);
+                TestHelper.WaitLoop(() => destreamNode2.FullNode.HighestPersistedBlock().HashBlock == destreamNodeSync.FullNode.HighestPersistedBlock().HashBlock);
             }
         }
 
@@ -275,26 +275,26 @@ namespace DeStream.Bitcoin.IntegrationTests
         {
             using (NodeBuilder builder = NodeBuilder.Create())
             {
-                var stratisNode1 = builder.CreateDeStreamPowNode();
-                var stratisNode2 = builder.CreateDeStreamPowNode();
+                var destreamNode1 = builder.CreateDeStreamPowNode();
+                var destreamNode2 = builder.CreateDeStreamPowNode();
                 builder.StartAll();
-                stratisNode1.NotInIBD();
-                stratisNode2.NotInIBD();
+                destreamNode1.NotInIBD();
+                destreamNode2.NotInIBD();
 
                 // generate blocks and wait for the downloader to pickup
-                stratisNode1.SetDummyMinerSecret(new BitcoinSecret(new Key(), stratisNode1.FullNode.Network));
-                stratisNode2.SetDummyMinerSecret(new BitcoinSecret(new Key(), stratisNode2.FullNode.Network));
+                destreamNode1.SetDummyMinerSecret(new BitcoinSecret(new Key(), destreamNode1.FullNode.Network));
+                destreamNode2.SetDummyMinerSecret(new BitcoinSecret(new Key(), destreamNode2.FullNode.Network));
                 // sync both nodes
-                stratisNode1.CreateRPCClient().AddNode(stratisNode2.Endpoint, true);
-                stratisNode1.GenerateDeStreamWithMiner(10);
-                TestHelper.WaitLoop(() => stratisNode1.FullNode.HighestPersistedBlock().Height == 10);
-                TestHelper.WaitLoop(() => stratisNode1.FullNode.HighestPersistedBlock().HashBlock == stratisNode2.FullNode.HighestPersistedBlock().HashBlock);
+                destreamNode1.CreateRPCClient().AddNode(destreamNode2.Endpoint, true);
+                destreamNode1.GenerateDeStreamWithMiner(10);
+                TestHelper.WaitLoop(() => destreamNode1.FullNode.HighestPersistedBlock().Height == 10);
+                TestHelper.WaitLoop(() => destreamNode1.FullNode.HighestPersistedBlock().HashBlock == destreamNode2.FullNode.HighestPersistedBlock().HashBlock);
 
-                var bestBlock1 = stratisNode1.FullNode.BlockStoreManager().BlockRepository.GetAsync(stratisNode1.FullNode.Chain.Tip.HashBlock).Result;
+                var bestBlock1 = destreamNode1.FullNode.BlockStoreManager().BlockRepository.GetAsync(destreamNode1.FullNode.Chain.Tip.HashBlock).Result;
                 Assert.NotNull(bestBlock1);
 
                 // get the block coinbase trx
-                var trx = stratisNode2.FullNode.BlockStoreManager().BlockRepository.GetTrxAsync(bestBlock1.Transactions.First().GetHash()).Result;
+                var trx = destreamNode2.FullNode.BlockStoreManager().BlockRepository.GetTrxAsync(bestBlock1.Transactions.First().GetHash()).Result;
                 Assert.NotNull(trx);
                 Assert.Equal(bestBlock1.Transactions.First().GetHash(), trx.GetHash());
             }

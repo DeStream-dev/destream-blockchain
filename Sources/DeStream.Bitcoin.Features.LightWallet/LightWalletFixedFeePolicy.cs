@@ -6,9 +6,8 @@ using DeStream.Bitcoin.Features.Wallet.Interfaces;
 namespace DeStream.Bitcoin.Features.LightWallet
 {
     /// <summary>
-    /// Light wallet fixed fee policy used for stratis network.
+    /// Light wallet fixed fee policy used for destream network.
     /// </summary>
-    /// <seealso cref="https://github.com/stratisproject/stratisX/blob/master/src/wallet.cpp#L1437">DeStreamX fee calculation.</seealso>
     public class LightWalletFixedFeePolicy : IWalletFeePolicy
     {
         /// <inheritdoc />

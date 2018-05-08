@@ -26,7 +26,7 @@ namespace DeStream.BreezeD
             {
                 // Get the API uri.
                 var isTestNet = args.Contains("-testnet");
-                var isDeStream = args.Contains("stratis");
+                var isDeStream = args.Contains("destream");
                 var isDestreamTest = args.Contains("-destreamtest");
 
                 var agent = "Breeze";

@@ -35,9 +35,9 @@ namespace DeStream.Bitcoin.Features.Wallet.Tests
         public void GetAllTransactionsByCoinTypeReturnsTransactionsFromWalletByCoinType()
         {
             var wallet = new Wallet();
-            var stratisAccountRoot = CreateAccountRootWithHdAccountHavingAddresses("DeStreamAccount", CoinType.DeStream);
+            var destreamAccountRoot = CreateAccountRootWithHdAccountHavingAddresses("DeStreamAccount", CoinType.DeStream);
             var bitcoinAccountRoot = CreateAccountRootWithHdAccountHavingAddresses("BitcoinAccount", CoinType.Bitcoin);
-            var stratisAccountRoot2 = CreateAccountRootWithHdAccountHavingAddresses("DeStreamAccount2", CoinType.DeStream);
+            var destreamAccountRoot2 = CreateAccountRootWithHdAccountHavingAddresses("DeStreamAccount2", CoinType.DeStream);
 
             var transaction1 = CreateTransaction(new uint256(1), new Money(15000), 1);
             var transaction2 = CreateTransaction(new uint256(2), new Money(91209), 1);
@@ -46,16 +46,16 @@ namespace DeStream.Bitcoin.Features.Wallet.Tests
             var transaction5 = CreateTransaction(new uint256(5), new Money(52387), 1);
             var transaction6 = CreateTransaction(new uint256(6), new Money(879873), 1);
 
-            stratisAccountRoot.Accounts.ElementAt(0).InternalAddresses.ElementAt(0).Transactions.Add(transaction1);
-            stratisAccountRoot.Accounts.ElementAt(0).ExternalAddresses.ElementAt(0).Transactions.Add(transaction2);
+            destreamAccountRoot.Accounts.ElementAt(0).InternalAddresses.ElementAt(0).Transactions.Add(transaction1);
+            destreamAccountRoot.Accounts.ElementAt(0).ExternalAddresses.ElementAt(0).Transactions.Add(transaction2);
             bitcoinAccountRoot.Accounts.ElementAt(0).InternalAddresses.ElementAt(0).Transactions.Add(transaction3);
             bitcoinAccountRoot.Accounts.ElementAt(0).ExternalAddresses.ElementAt(0).Transactions.Add(transaction4);
-            stratisAccountRoot2.Accounts.ElementAt(0).InternalAddresses.ElementAt(0).Transactions.Add(transaction5);
-            stratisAccountRoot2.Accounts.ElementAt(0).ExternalAddresses.ElementAt(0).Transactions.Add(transaction6);
+            destreamAccountRoot2.Accounts.ElementAt(0).InternalAddresses.ElementAt(0).Transactions.Add(transaction5);
+            destreamAccountRoot2.Accounts.ElementAt(0).ExternalAddresses.ElementAt(0).Transactions.Add(transaction6);
 
-            wallet.AccountsRoot.Add(stratisAccountRoot);
+            wallet.AccountsRoot.Add(destreamAccountRoot);
             wallet.AccountsRoot.Add(bitcoinAccountRoot);
-            wallet.AccountsRoot.Add(stratisAccountRoot2);
+            wallet.AccountsRoot.Add(destreamAccountRoot2);
 
             var result = wallet.GetAllTransactionsByCoinType(CoinType.DeStream).ToList();
 
@@ -99,20 +99,20 @@ namespace DeStream.Bitcoin.Features.Wallet.Tests
         public void GetAllPubKeysByCoinTypeReturnsPubkeysFromWalletByCoinType()
         {
             var wallet = new Wallet();
-            var stratisAccountRoot = CreateAccountRootWithHdAccountHavingAddresses("DeStreamAccount", CoinType.DeStream);
+            var destreamAccountRoot = CreateAccountRootWithHdAccountHavingAddresses("DeStreamAccount", CoinType.DeStream);
             var bitcoinAccountRoot = CreateAccountRootWithHdAccountHavingAddresses("BitcoinAccount", CoinType.Bitcoin);
-            var stratisAccountRoot2 = CreateAccountRootWithHdAccountHavingAddresses("DeStreamAccount2", CoinType.DeStream);
-            wallet.AccountsRoot.Add(stratisAccountRoot);
+            var destreamAccountRoot2 = CreateAccountRootWithHdAccountHavingAddresses("DeStreamAccount2", CoinType.DeStream);
+            wallet.AccountsRoot.Add(destreamAccountRoot);
             wallet.AccountsRoot.Add(bitcoinAccountRoot);
-            wallet.AccountsRoot.Add(stratisAccountRoot2);
+            wallet.AccountsRoot.Add(destreamAccountRoot2);
 
             var result = wallet.GetAllPubKeysByCoinType(CoinType.DeStream).ToList();
 
             Assert.Equal(4, result.Count);
-            Assert.Equal(stratisAccountRoot.Accounts.ElementAt(0).ExternalAddresses.ElementAt(0).ScriptPubKey, result[0]);
-            Assert.Equal(stratisAccountRoot2.Accounts.ElementAt(0).ExternalAddresses.ElementAt(0).ScriptPubKey, result[1]);
-            Assert.Equal(stratisAccountRoot.Accounts.ElementAt(0).InternalAddresses.ElementAt(0).ScriptPubKey, result[2]);
-            Assert.Equal(stratisAccountRoot2.Accounts.ElementAt(0).InternalAddresses.ElementAt(0).ScriptPubKey, result[3]);
+            Assert.Equal(destreamAccountRoot.Accounts.ElementAt(0).ExternalAddresses.ElementAt(0).ScriptPubKey, result[0]);
+            Assert.Equal(destreamAccountRoot2.Accounts.ElementAt(0).ExternalAddresses.ElementAt(0).ScriptPubKey, result[1]);
+            Assert.Equal(destreamAccountRoot.Accounts.ElementAt(0).InternalAddresses.ElementAt(0).ScriptPubKey, result[2]);
+            Assert.Equal(destreamAccountRoot2.Accounts.ElementAt(0).InternalAddresses.ElementAt(0).ScriptPubKey, result[3]);
         }
 
         [Fact]

@@ -15,7 +15,7 @@ namespace NBitcoin.Tests
     [Trait("RPCClient", "RPCClient")]
     public class pos_RPCClientTests
     {
-        public static bool noClient = !Process.GetProcesses().Any(p => p.ProcessName.Contains("stratis"));
+        public static bool noClient = !Process.GetProcesses().Any(p => p.ProcessName.Contains("destream"));
         private const string TestAccount = "NBitcoin.RPCClientTests";
 
         public pos_RPCClientTests()

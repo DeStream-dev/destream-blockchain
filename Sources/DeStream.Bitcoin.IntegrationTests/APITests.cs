@@ -65,7 +65,7 @@ namespace DeStream.Bitcoin.IntegrationTests
 
             try
             {
-                var fullNode = this.apiTestsFixture.stratisPowNode.FullNode;
+                var fullNode = this.apiTestsFixture.destreamPowNode.FullNode;
                 var apiURI = fullNode.NodeService<ApiSettings>().ApiUri;
 
                 using (client = new HttpClient())
@@ -91,7 +91,7 @@ namespace DeStream.Bitcoin.IntegrationTests
         {
             try
             {
-                var fullNode = this.apiTestsFixture.stratisStakeNode.FullNode;
+                var fullNode = this.apiTestsFixture.destreamStakeNode.FullNode;
                 var apiURI = fullNode.NodeService<ApiSettings>().ApiUri;
 
                 Assert.NotNull(fullNode.NodeService<IPosMinting>(true));
@@ -134,7 +134,7 @@ namespace DeStream.Bitcoin.IntegrationTests
         {
             try
             {
-                var fullNode = this.apiTestsFixture.stratisPowNode.FullNode;
+                var fullNode = this.apiTestsFixture.destreamPowNode.FullNode;
                 var apiURI = fullNode.NodeService<ApiSettings>().ApiUri;
 
                 using (client = new HttpClient())
@@ -162,7 +162,7 @@ namespace DeStream.Bitcoin.IntegrationTests
         {
             try
             {
-                var fullNode = this.apiTestsFixture.stratisPowNode.FullNode;
+                var fullNode = this.apiTestsFixture.destreamPowNode.FullNode;
                 var apiURI = fullNode.NodeService<ApiSettings>().ApiUri;
 
                 using (client = new HttpClient())
@@ -186,8 +186,8 @@ namespace DeStream.Bitcoin.IntegrationTests
     public class ApiTestsFixture : IDisposable
     {
         public NodeBuilder builder;
-        public CoreNode stratisPowNode;
-        public CoreNode stratisStakeNode;
+        public CoreNode destreamPowNode;
+        public CoreNode destreamStakeNode;
         private bool initialBlockSignature;
 
         public ApiTestsFixture()
@@ -197,7 +197,7 @@ namespace DeStream.Bitcoin.IntegrationTests
 
             this.builder = NodeBuilder.Create();
 
-            this.stratisPowNode = this.builder.CreateDeStreamPowNode(false, fullNodeBuilder =>
+            this.destreamPowNode = this.builder.CreateDeStreamPowNode(false, fullNodeBuilder =>
             {
                 fullNodeBuilder
                .UsePowConsensus()
@@ -210,17 +210,17 @@ namespace DeStream.Bitcoin.IntegrationTests
             });
 
             // start api on different ports
-            this.stratisPowNode.ConfigParameters.Add("apiuri", "http://localhost:37221");
+            this.destreamPowNode.ConfigParameters.Add("apiuri", "http://localhost:37221");
             this.builder.StartAll();
 
             // Move a wallet file to the right folder and restart the wallet manager to take it into account.
-            this.InitializeTestWallet(this.stratisPowNode.FullNode.DataFolder.WalletPath);
-            var walletManager = this.stratisPowNode.FullNode.NodeService<IWalletManager>() as WalletManager;
+            this.InitializeTestWallet(this.destreamPowNode.FullNode.DataFolder.WalletPath);
+            var walletManager = this.destreamPowNode.FullNode.NodeService<IWalletManager>() as WalletManager;
             walletManager.Start();
 
             Block.BlockSignature = true;
 
-            this.stratisStakeNode = this.builder.CreateDeStreamPosNode(false, fullNodeBuilder =>
+            this.destreamStakeNode = this.builder.CreateDeStreamPosNode(false, fullNodeBuilder =>
             {
                 fullNodeBuilder
                 .UsePosConsensus()
@@ -232,7 +232,7 @@ namespace DeStream.Bitcoin.IntegrationTests
                 .AddRPC();
             });
 
-            this.stratisStakeNode.ConfigParameters.Add("apiuri", "http://localhost:37222");
+            this.destreamStakeNode.ConfigParameters.Add("apiuri", "http://localhost:37222");
 
             this.builder.StartAll();
         }

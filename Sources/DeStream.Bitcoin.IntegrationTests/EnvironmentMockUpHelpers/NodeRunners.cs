@@ -71,7 +71,7 @@ namespace DeStream.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers
 
         public void Start(string dataDir)
         {
-            NodeSettings nodeSettings = new NodeSettings(Network.DeStreamRegTest, ProtocolVersion.ALT_PROTOCOL_VERSION, args:new string[] { "-conf=stratis.conf", "-datadir=" + dataDir }, loadConfiguration:false);
+            NodeSettings nodeSettings = new NodeSettings(Network.DeStreamRegTest, ProtocolVersion.ALT_PROTOCOL_VERSION, args:new string[] { "-conf=destream.conf", "-datadir=" + dataDir }, loadConfiguration:false);
 
             var node = BuildFullNode(nodeSettings, this.callback);
 

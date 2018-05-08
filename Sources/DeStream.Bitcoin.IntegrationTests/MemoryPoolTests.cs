@@ -34,27 +34,27 @@ namespace DeStream.Bitcoin.IntegrationTests
         {
             using (NodeBuilder builder = NodeBuilder.Create())
             {
-                var stratisNodeSync = builder.CreateDeStreamPowNode();
+                var destreamNodeSync = builder.CreateDeStreamPowNode();
                 builder.StartAll();
 
-                stratisNodeSync.SetDummyMinerSecret(new BitcoinSecret(new Key(), stratisNodeSync.FullNode.Network));
-                stratisNodeSync.GenerateDeStream(105); // coinbase maturity = 100
-                TestHelper.WaitLoop(() => stratisNodeSync.FullNode.ConsensusLoop().Tip.HashBlock == stratisNodeSync.FullNode.Chain.Tip.HashBlock);
-                TestHelper.WaitLoop(() => stratisNodeSync.FullNode.HighestPersistedBlock().HashBlock == stratisNodeSync.FullNode.Chain.Tip.HashBlock);
+                destreamNodeSync.SetDummyMinerSecret(new BitcoinSecret(new Key(), destreamNodeSync.FullNode.Network));
+                destreamNodeSync.GenerateDeStream(105); // coinbase maturity = 100
+                TestHelper.WaitLoop(() => destreamNodeSync.FullNode.ConsensusLoop().Tip.HashBlock == destreamNodeSync.FullNode.Chain.Tip.HashBlock);
+                TestHelper.WaitLoop(() => destreamNodeSync.FullNode.HighestPersistedBlock().HashBlock == destreamNodeSync.FullNode.Chain.Tip.HashBlock);
 
-                var block = stratisNodeSync.FullNode.BlockStoreManager().BlockRepository.GetAsync(stratisNodeSync.FullNode.Chain.GetBlock(4).HashBlock).Result;
+                var block = destreamNodeSync.FullNode.BlockStoreManager().BlockRepository.GetAsync(destreamNodeSync.FullNode.Chain.GetBlock(4).HashBlock).Result;
                 var prevTrx = block.Transactions.First();
-                var dest = new BitcoinSecret(new Key(), stratisNodeSync.FullNode.Network);
+                var dest = new BitcoinSecret(new Key(), destreamNodeSync.FullNode.Network);
 
                 Transaction tx = new Transaction();
-                tx.AddInput(new TxIn(new OutPoint(prevTrx.GetHash(), 0), PayToPubkeyHashTemplate.Instance.GenerateScriptPubKey(stratisNodeSync.MinerSecret.PubKey)));
+                tx.AddInput(new TxIn(new OutPoint(prevTrx.GetHash(), 0), PayToPubkeyHashTemplate.Instance.GenerateScriptPubKey(destreamNodeSync.MinerSecret.PubKey)));
                 tx.AddOutput(new TxOut("25", dest.PubKey.Hash));
                 tx.AddOutput(new TxOut("24", new Key().PubKey.Hash)); // 1 btc fee
-                tx.Sign(stratisNodeSync.MinerSecret, false);
+                tx.Sign(destreamNodeSync.MinerSecret, false);
 
-                stratisNodeSync.Broadcast(tx);
+                destreamNodeSync.Broadcast(tx);
 
-                TestHelper.WaitLoop(() => stratisNodeSync.CreateRPCClient().GetRawMempool().Length == 1);
+                TestHelper.WaitLoop(() => destreamNodeSync.CreateRPCClient().GetRawMempool().Length == 1);
             }
         }
 
@@ -63,31 +63,31 @@ namespace DeStream.Bitcoin.IntegrationTests
         {
             using (NodeBuilder builder = NodeBuilder.Create())
             {
-                var stratisNodeSync = builder.CreateDeStreamPowNode();
+                var destreamNodeSync = builder.CreateDeStreamPowNode();
                 builder.StartAll();
-                stratisNodeSync.NotInIBD();
+                destreamNodeSync.NotInIBD();
 
-                stratisNodeSync.SetDummyMinerSecret(new BitcoinSecret(new Key(), stratisNodeSync.FullNode.Network));
-                stratisNodeSync.GenerateDeStream(105); // coinbase maturity = 100
-                TestHelper.WaitLoop(() => stratisNodeSync.FullNode.ConsensusLoop().Tip.HashBlock == stratisNodeSync.FullNode.Chain.Tip.HashBlock);
-                TestHelper.WaitLoop(() => stratisNodeSync.FullNode.HighestPersistedBlock().HashBlock == stratisNodeSync.FullNode.Chain.Tip.HashBlock);
+                destreamNodeSync.SetDummyMinerSecret(new BitcoinSecret(new Key(), destreamNodeSync.FullNode.Network));
+                destreamNodeSync.GenerateDeStream(105); // coinbase maturity = 100
+                TestHelper.WaitLoop(() => destreamNodeSync.FullNode.ConsensusLoop().Tip.HashBlock == destreamNodeSync.FullNode.Chain.Tip.HashBlock);
+                TestHelper.WaitLoop(() => destreamNodeSync.FullNode.HighestPersistedBlock().HashBlock == destreamNodeSync.FullNode.Chain.Tip.HashBlock);
 
-                var block = stratisNodeSync.FullNode.BlockStoreManager().BlockRepository.GetAsync(stratisNodeSync.FullNode.Chain.GetBlock(4).HashBlock).Result;
+                var block = destreamNodeSync.FullNode.BlockStoreManager().BlockRepository.GetAsync(destreamNodeSync.FullNode.Chain.GetBlock(4).HashBlock).Result;
                 var prevTrx = block.Transactions.First();
-                var dest1 = new BitcoinSecret(new Key(), stratisNodeSync.FullNode.Network);
-                var dest2 = new BitcoinSecret(new Key(), stratisNodeSync.FullNode.Network);
+                var dest1 = new BitcoinSecret(new Key(), destreamNodeSync.FullNode.Network);
+                var dest2 = new BitcoinSecret(new Key(), destreamNodeSync.FullNode.Network);
 
                 Transaction parentTx = new Transaction();
-                parentTx.AddInput(new TxIn(new OutPoint(prevTrx.GetHash(), 0), PayToPubkeyHashTemplate.Instance.GenerateScriptPubKey(stratisNodeSync.MinerSecret.PubKey)));
+                parentTx.AddInput(new TxIn(new OutPoint(prevTrx.GetHash(), 0), PayToPubkeyHashTemplate.Instance.GenerateScriptPubKey(destreamNodeSync.MinerSecret.PubKey)));
                 parentTx.AddOutput(new TxOut("25", dest1.PubKey.Hash));
                 parentTx.AddOutput(new TxOut("24", dest2.PubKey.Hash)); // 1 btc fee
-                parentTx.Sign(stratisNodeSync.MinerSecret, false);
-                stratisNodeSync.Broadcast(parentTx);
+                parentTx.Sign(destreamNodeSync.MinerSecret, false);
+                destreamNodeSync.Broadcast(parentTx);
                 // wiat for the trx to enter the pool
-                TestHelper.WaitLoop(() => stratisNodeSync.CreateRPCClient().GetRawMempool().Length == 1);
+                TestHelper.WaitLoop(() => destreamNodeSync.CreateRPCClient().GetRawMempool().Length == 1);
                 // mine the transactions in the mempool
-                stratisNodeSync.GenerateDeStream(1, stratisNodeSync.FullNode.MempoolManager().InfoAllAsync().Result.Select(s => s.Trx).ToList());
-                TestHelper.WaitLoop(() => stratisNodeSync.CreateRPCClient().GetRawMempool().Length == 0);
+                destreamNodeSync.GenerateDeStream(1, destreamNodeSync.FullNode.MempoolManager().InfoAllAsync().Result.Select(s => s.Trx).ToList());
+                TestHelper.WaitLoop(() => destreamNodeSync.CreateRPCClient().GetRawMempool().Length == 0);
 
                 //create a new trx spending both outputs
                 Transaction tx = new Transaction();
@@ -96,8 +96,8 @@ namespace DeStream.Bitcoin.IntegrationTests
                 tx.AddOutput(new TxOut("48", new Key().PubKey.Hash)); // 1 btc fee
                 var signed = new TransactionBuilder().AddKeys(dest1, dest2).AddCoins(parentTx.Outputs.AsCoins()).SignTransaction(tx);
 
-                stratisNodeSync.Broadcast(signed);
-                TestHelper.WaitLoop(() => stratisNodeSync.CreateRPCClient().GetRawMempool().Length == 1);
+                destreamNodeSync.Broadcast(signed);
+                TestHelper.WaitLoop(() => destreamNodeSync.CreateRPCClient().GetRawMempool().Length == 1);
             }
         }
 
@@ -106,36 +106,36 @@ namespace DeStream.Bitcoin.IntegrationTests
         {
             using (NodeBuilder builder = NodeBuilder.Create())
             {
-                var stratisNodeSync = builder.CreateDeStreamPowNode();
+                var destreamNodeSync = builder.CreateDeStreamPowNode();
                 builder.StartAll();
-                stratisNodeSync.NotInIBD();
+                destreamNodeSync.NotInIBD();
 
-                stratisNodeSync.SetDummyMinerSecret(new BitcoinSecret(new Key(), stratisNodeSync.FullNode.Network));
-                stratisNodeSync.GenerateDeStream(201); // coinbase maturity = 100
-                TestHelper.WaitLoop(() => stratisNodeSync.FullNode.ConsensusLoop().Tip.HashBlock == stratisNodeSync.FullNode.Chain.Tip.HashBlock);
-                TestHelper.WaitLoop(() => stratisNodeSync.FullNode.HighestPersistedBlock().HashBlock == stratisNodeSync.FullNode.Chain.Tip.HashBlock);
+                destreamNodeSync.SetDummyMinerSecret(new BitcoinSecret(new Key(), destreamNodeSync.FullNode.Network));
+                destreamNodeSync.GenerateDeStream(201); // coinbase maturity = 100
+                TestHelper.WaitLoop(() => destreamNodeSync.FullNode.ConsensusLoop().Tip.HashBlock == destreamNodeSync.FullNode.Chain.Tip.HashBlock);
+                TestHelper.WaitLoop(() => destreamNodeSync.FullNode.HighestPersistedBlock().HashBlock == destreamNodeSync.FullNode.Chain.Tip.HashBlock);
 
                 var trxs = new List<Transaction>();
                 foreach (var index in Enumerable.Range(1, 100))
                 {
-                    var block = stratisNodeSync.FullNode.BlockStoreManager().BlockRepository.GetAsync(stratisNodeSync.FullNode.Chain.GetBlock(index).HashBlock).Result;
+                    var block = destreamNodeSync.FullNode.BlockStoreManager().BlockRepository.GetAsync(destreamNodeSync.FullNode.Chain.GetBlock(index).HashBlock).Result;
                     var prevTrx = block.Transactions.First();
-                    var dest = new BitcoinSecret(new Key(), stratisNodeSync.FullNode.Network);
+                    var dest = new BitcoinSecret(new Key(), destreamNodeSync.FullNode.Network);
 
                     Transaction tx = new Transaction();
-                    tx.AddInput(new TxIn(new OutPoint(prevTrx.GetHash(), 0), PayToPubkeyHashTemplate.Instance.GenerateScriptPubKey(stratisNodeSync.MinerSecret.PubKey)));
+                    tx.AddInput(new TxIn(new OutPoint(prevTrx.GetHash(), 0), PayToPubkeyHashTemplate.Instance.GenerateScriptPubKey(destreamNodeSync.MinerSecret.PubKey)));
                     tx.AddOutput(new TxOut("25", dest.PubKey.Hash));
                     tx.AddOutput(new TxOut("24", new Key().PubKey.Hash)); // 1 btc fee
-                    tx.Sign(stratisNodeSync.MinerSecret, false);
+                    tx.Sign(destreamNodeSync.MinerSecret, false);
                     trxs.Add(tx);
                 }
                 var options = new ParallelOptions { MaxDegreeOfParallelism = 10 };
                 Parallel.ForEach(trxs, options, transaction =>
                 {
-                    stratisNodeSync.Broadcast(transaction);
+                    destreamNodeSync.Broadcast(transaction);
                 });
 
-                TestHelper.WaitLoop(() => stratisNodeSync.CreateRPCClient().GetRawMempool().Length == 100);
+                TestHelper.WaitLoop(() => destreamNodeSync.CreateRPCClient().GetRawMempool().Length == 100);
             }
         }
 
@@ -144,22 +144,22 @@ namespace DeStream.Bitcoin.IntegrationTests
         {
             using (NodeBuilder builder = NodeBuilder.Create())
             {
-                var stratisNodeSync = builder.CreateDeStreamPowNode();
+                var destreamNodeSync = builder.CreateDeStreamPowNode();
                 builder.StartAll();
-                stratisNodeSync.NotInIBD();
-                stratisNodeSync.FullNode.Settings.RequireStandard = true; // make sure to test standard tx
+                destreamNodeSync.NotInIBD();
+                destreamNodeSync.FullNode.Settings.RequireStandard = true; // make sure to test standard tx
 
-                stratisNodeSync.SetDummyMinerSecret(new BitcoinSecret(new Key(), stratisNodeSync.FullNode.Network));
-                stratisNodeSync.GenerateDeStream(100); // coinbase maturity = 100
-                TestHelper.WaitLoop(() => stratisNodeSync.FullNode.ConsensusLoop().Tip.HashBlock == stratisNodeSync.FullNode.Chain.Tip.HashBlock);
-                TestHelper.WaitLoop(() => stratisNodeSync.FullNode.HighestPersistedBlock().HashBlock == stratisNodeSync.FullNode.Chain.Tip.HashBlock);
+                destreamNodeSync.SetDummyMinerSecret(new BitcoinSecret(new Key(), destreamNodeSync.FullNode.Network));
+                destreamNodeSync.GenerateDeStream(100); // coinbase maturity = 100
+                TestHelper.WaitLoop(() => destreamNodeSync.FullNode.ConsensusLoop().Tip.HashBlock == destreamNodeSync.FullNode.Chain.Tip.HashBlock);
+                TestHelper.WaitLoop(() => destreamNodeSync.FullNode.HighestPersistedBlock().HashBlock == destreamNodeSync.FullNode.Chain.Tip.HashBlock);
 
                 // Make sure skipping validation of transctions that were
                 // validated going into the memory pool does not allow
                 // double-spends in blocks to pass validation when they should not.
 
-                var scriptPubKey = PayToPubkeyHashTemplate.Instance.GenerateScriptPubKey(stratisNodeSync.MinerSecret.PubKey);
-                var genBlock = stratisNodeSync.FullNode.BlockStoreManager().BlockRepository.GetAsync(stratisNodeSync.FullNode.Chain.GetBlock(1).HashBlock).Result;
+                var scriptPubKey = PayToPubkeyHashTemplate.Instance.GenerateScriptPubKey(destreamNodeSync.MinerSecret.PubKey);
+                var genBlock = destreamNodeSync.FullNode.BlockStoreManager().BlockRepository.GetAsync(destreamNodeSync.FullNode.Chain.GetBlock(1).HashBlock).Result;
 
                 // Create a double-spend of mature coinbase txn:
                 List<Transaction> spends = new List<Transaction>(2);
@@ -169,40 +169,40 @@ namespace DeStream.Bitcoin.IntegrationTests
                     trx.AddInput(new TxIn(new OutPoint(genBlock.Transactions[0].GetHash(), 0), scriptPubKey));
                     trx.AddOutput(Money.Cents(11), new Key().PubKey.Hash);
                     // Sign:
-                    trx.Sign(stratisNodeSync.MinerSecret, false);
+                    trx.Sign(destreamNodeSync.MinerSecret, false);
                     spends.Add(trx);
                 }
 
                 // Test 1: block with both of those transactions should be rejected.
-                var block = stratisNodeSync.GenerateDeStream(1, spends).Single();
-                TestHelper.WaitLoop(() => stratisNodeSync.FullNode.ConsensusLoop().Tip.HashBlock == stratisNodeSync.FullNode.Chain.Tip.HashBlock);
-                Assert.True(stratisNodeSync.FullNode.Chain.Tip.HashBlock != block.GetHash());
+                var block = destreamNodeSync.GenerateDeStream(1, spends).Single();
+                TestHelper.WaitLoop(() => destreamNodeSync.FullNode.ConsensusLoop().Tip.HashBlock == destreamNodeSync.FullNode.Chain.Tip.HashBlock);
+                Assert.True(destreamNodeSync.FullNode.Chain.Tip.HashBlock != block.GetHash());
 
                 // Test 2: ... and should be rejected if spend1 is in the memory pool
-                Assert.True(stratisNodeSync.AddToDeStreamMempool(spends[0]));
-                block = stratisNodeSync.GenerateDeStream(1, spends).Single();
-                TestHelper.WaitLoop(() => stratisNodeSync.FullNode.ConsensusLoop().Tip.HashBlock == stratisNodeSync.FullNode.Chain.Tip.HashBlock);
-                Assert.True(stratisNodeSync.FullNode.Chain.Tip.HashBlock != block.GetHash());
-                stratisNodeSync.FullNode.MempoolManager().Clear().Wait();
+                Assert.True(destreamNodeSync.AddToDeStreamMempool(spends[0]));
+                block = destreamNodeSync.GenerateDeStream(1, spends).Single();
+                TestHelper.WaitLoop(() => destreamNodeSync.FullNode.ConsensusLoop().Tip.HashBlock == destreamNodeSync.FullNode.Chain.Tip.HashBlock);
+                Assert.True(destreamNodeSync.FullNode.Chain.Tip.HashBlock != block.GetHash());
+                destreamNodeSync.FullNode.MempoolManager().Clear().Wait();
 
                 // Test 3: ... and should be rejected if spend2 is in the memory pool
-                Assert.True(stratisNodeSync.AddToDeStreamMempool(spends[1]));
-                block = stratisNodeSync.GenerateDeStream(1, spends).Single();
-                TestHelper.WaitLoop(() => stratisNodeSync.FullNode.ConsensusLoop().Tip.HashBlock == stratisNodeSync.FullNode.Chain.Tip.HashBlock);
-                Assert.True(stratisNodeSync.FullNode.Chain.Tip.HashBlock != block.GetHash());
-                stratisNodeSync.FullNode.MempoolManager().Clear().Wait();
+                Assert.True(destreamNodeSync.AddToDeStreamMempool(spends[1]));
+                block = destreamNodeSync.GenerateDeStream(1, spends).Single();
+                TestHelper.WaitLoop(() => destreamNodeSync.FullNode.ConsensusLoop().Tip.HashBlock == destreamNodeSync.FullNode.Chain.Tip.HashBlock);
+                Assert.True(destreamNodeSync.FullNode.Chain.Tip.HashBlock != block.GetHash());
+                destreamNodeSync.FullNode.MempoolManager().Clear().Wait();
 
                 // Final sanity test: first spend in mempool, second in block, that's OK:
                 List<Transaction> oneSpend = new List<Transaction>();
                 oneSpend.Add(spends[0]);
-                Assert.True(stratisNodeSync.AddToDeStreamMempool(spends[1]));
-                block = stratisNodeSync.GenerateDeStream(1, oneSpend).Single();
-                TestHelper.WaitLoop(() => stratisNodeSync.FullNode.ConsensusLoop().Tip.HashBlock == stratisNodeSync.FullNode.Chain.Tip.HashBlock);
-                Assert.True(stratisNodeSync.FullNode.Chain.Tip.HashBlock == block.GetHash());
+                Assert.True(destreamNodeSync.AddToDeStreamMempool(spends[1]));
+                block = destreamNodeSync.GenerateDeStream(1, oneSpend).Single();
+                TestHelper.WaitLoop(() => destreamNodeSync.FullNode.ConsensusLoop().Tip.HashBlock == destreamNodeSync.FullNode.Chain.Tip.HashBlock);
+                Assert.True(destreamNodeSync.FullNode.Chain.Tip.HashBlock == block.GetHash());
 
                 // spends[1] should have been removed from the mempool when the
                 // block with spends[0] is accepted:
-                TestHelper.WaitLoop(() => stratisNodeSync.FullNode.MempoolManager().MempoolSize().Result == 0);
+                TestHelper.WaitLoop(() => destreamNodeSync.FullNode.MempoolManager().MempoolSize().Result == 0);
             }
         }
 
@@ -219,65 +219,65 @@ namespace DeStream.Bitcoin.IntegrationTests
 
             using (NodeBuilder builder = NodeBuilder.Create())
             {
-                var stratisNode = builder.CreateDeStreamPowNode();
+                var destreamNode = builder.CreateDeStreamPowNode();
                 builder.StartAll();
 
-                stratisNode.SetDummyMinerSecret(new BitcoinSecret(new Key(), stratisNode.FullNode.Network));
+                destreamNode.SetDummyMinerSecret(new BitcoinSecret(new Key(), destreamNode.FullNode.Network));
 
                 // 50 orphan transactions:
                 for (ulong i = 0; i < 50; i++)
                 {
                     Transaction tx = new Transaction();
                     tx.AddInput(new TxIn(new OutPoint(randHash(), 0), new Script(OpcodeType.OP_1)));
-                    tx.AddOutput(new TxOut(new Money(1 * Money.CENT), stratisNode.MinerSecret.ScriptPubKey));
+                    tx.AddOutput(new TxOut(new Money(1 * Money.CENT), destreamNode.MinerSecret.ScriptPubKey));
 
-                    stratisNode.FullNode.MempoolManager().Orphans.AddOrphanTx(i, tx).Wait();
+                    destreamNode.FullNode.MempoolManager().Orphans.AddOrphanTx(i, tx).Wait();
                 }
 
-                Assert.Equal(50, stratisNode.FullNode.MempoolManager().Orphans.OrphansList().Count);
+                Assert.Equal(50, destreamNode.FullNode.MempoolManager().Orphans.OrphansList().Count);
 
                 // ... and 50 that depend on other orphans:
                 for (ulong i = 0; i < 50; i++)
                 {
-                    var txPrev = stratisNode.FullNode.MempoolManager().Orphans.OrphansList().ElementAt(rand.Next(stratisNode.FullNode.MempoolManager().Orphans.OrphansList().Count));
+                    var txPrev = destreamNode.FullNode.MempoolManager().Orphans.OrphansList().ElementAt(rand.Next(destreamNode.FullNode.MempoolManager().Orphans.OrphansList().Count));
 
                     Transaction tx = new Transaction();
                     tx.AddInput(new TxIn(new OutPoint(txPrev.Tx.GetHash(), 0), new Script(OpcodeType.OP_1)));
-                    tx.AddOutput(new TxOut(new Money((1 + i + 100) * Money.CENT), stratisNode.MinerSecret.ScriptPubKey));
-                    stratisNode.FullNode.MempoolManager().Orphans.AddOrphanTx(i, tx).Wait();
+                    tx.AddOutput(new TxOut(new Money((1 + i + 100) * Money.CENT), destreamNode.MinerSecret.ScriptPubKey));
+                    destreamNode.FullNode.MempoolManager().Orphans.AddOrphanTx(i, tx).Wait();
                 }
 
-                Assert.Equal(100, stratisNode.FullNode.MempoolManager().Orphans.OrphansList().Count);
+                Assert.Equal(100, destreamNode.FullNode.MempoolManager().Orphans.OrphansList().Count);
 
                 // This really-big orphan should be ignored:
                 for (ulong i = 0; i < 10; i++)
                 {
-                    var txPrev = stratisNode.FullNode.MempoolManager().Orphans.OrphansList().ElementAt(rand.Next(stratisNode.FullNode.MempoolManager().Orphans.OrphansList().Count));
+                    var txPrev = destreamNode.FullNode.MempoolManager().Orphans.OrphansList().ElementAt(rand.Next(destreamNode.FullNode.MempoolManager().Orphans.OrphansList().Count));
                     Transaction tx = new Transaction();
-                    tx.AddOutput(new TxOut(new Money(1 * Money.CENT), stratisNode.MinerSecret.ScriptPubKey));
+                    tx.AddOutput(new TxOut(new Money(1 * Money.CENT), destreamNode.MinerSecret.ScriptPubKey));
                     foreach (var index in Enumerable.Range(0, 2777))
                         tx.AddInput(new TxIn(new OutPoint(txPrev.Tx.GetHash(), index), new Script(OpcodeType.OP_1)));
 
-                    Assert.False(stratisNode.FullNode.MempoolManager().Orphans.AddOrphanTx(i, tx).Result);
+                    Assert.False(destreamNode.FullNode.MempoolManager().Orphans.AddOrphanTx(i, tx).Result);
                 }
 
-                Assert.Equal(100, stratisNode.FullNode.MempoolManager().Orphans.OrphansList().Count);
+                Assert.Equal(100, destreamNode.FullNode.MempoolManager().Orphans.OrphansList().Count);
 
                 // Test EraseOrphansFor:
                 for (ulong i = 0; i < 3; i++)
                 {
-                    var sizeBefore = stratisNode.FullNode.MempoolManager().Orphans.OrphansList().Count;
-                    stratisNode.FullNode.MempoolManager().Orphans.EraseOrphansFor(i).Wait();
-                    Assert.True(stratisNode.FullNode.MempoolManager().Orphans.OrphansList().Count < sizeBefore);
+                    var sizeBefore = destreamNode.FullNode.MempoolManager().Orphans.OrphansList().Count;
+                    destreamNode.FullNode.MempoolManager().Orphans.EraseOrphansFor(i).Wait();
+                    Assert.True(destreamNode.FullNode.MempoolManager().Orphans.OrphansList().Count < sizeBefore);
                 }
 
                 // Test LimitOrphanTxSize() function:
-                stratisNode.FullNode.MempoolManager().Orphans.LimitOrphanTxSizeAsync(40).Wait();
-                Assert.True(stratisNode.FullNode.MempoolManager().Orphans.OrphansList().Count <= 40);
-                stratisNode.FullNode.MempoolManager().Orphans.LimitOrphanTxSizeAsync(10).Wait();
-                Assert.True(stratisNode.FullNode.MempoolManager().Orphans.OrphansList().Count <= 10);
-                stratisNode.FullNode.MempoolManager().Orphans.LimitOrphanTxSizeAsync(0).Wait();
-                Assert.True(!stratisNode.FullNode.MempoolManager().Orphans.OrphansList().Any());
+                destreamNode.FullNode.MempoolManager().Orphans.LimitOrphanTxSizeAsync(40).Wait();
+                Assert.True(destreamNode.FullNode.MempoolManager().Orphans.OrphansList().Count <= 40);
+                destreamNode.FullNode.MempoolManager().Orphans.LimitOrphanTxSizeAsync(10).Wait();
+                Assert.True(destreamNode.FullNode.MempoolManager().Orphans.OrphansList().Count <= 10);
+                destreamNode.FullNode.MempoolManager().Orphans.LimitOrphanTxSizeAsync(0).Wait();
+                Assert.True(!destreamNode.FullNode.MempoolManager().Orphans.OrphansList().Any());
             }
         }
 
@@ -286,40 +286,40 @@ namespace DeStream.Bitcoin.IntegrationTests
         {
             using (NodeBuilder builder = NodeBuilder.Create())
             {
-                var stratisNodeSync = builder.CreateDeStreamPowNode();
+                var destreamNodeSync = builder.CreateDeStreamPowNode();
                 builder.StartAll();
-                stratisNodeSync.NotInIBD();
+                destreamNodeSync.NotInIBD();
 
-                stratisNodeSync.SetDummyMinerSecret(new BitcoinSecret(new Key(), stratisNodeSync.FullNode.Network));
-                stratisNodeSync.GenerateDeStream(101); // coinbase maturity = 100
-                TestHelper.WaitLoop(() => stratisNodeSync.FullNode.ConsensusLoop().Tip.HashBlock == stratisNodeSync.FullNode.Chain.Tip.HashBlock);
-                TestHelper.WaitLoop(() => stratisNodeSync.FullNode.ChainBehaviorState.ConsensusTip.HashBlock == stratisNodeSync.FullNode.Chain.Tip.HashBlock);
-                TestHelper.WaitLoop(() => stratisNodeSync.FullNode.HighestPersistedBlock().HashBlock == stratisNodeSync.FullNode.Chain.Tip.HashBlock);
+                destreamNodeSync.SetDummyMinerSecret(new BitcoinSecret(new Key(), destreamNodeSync.FullNode.Network));
+                destreamNodeSync.GenerateDeStream(101); // coinbase maturity = 100
+                TestHelper.WaitLoop(() => destreamNodeSync.FullNode.ConsensusLoop().Tip.HashBlock == destreamNodeSync.FullNode.Chain.Tip.HashBlock);
+                TestHelper.WaitLoop(() => destreamNodeSync.FullNode.ChainBehaviorState.ConsensusTip.HashBlock == destreamNodeSync.FullNode.Chain.Tip.HashBlock);
+                TestHelper.WaitLoop(() => destreamNodeSync.FullNode.HighestPersistedBlock().HashBlock == destreamNodeSync.FullNode.Chain.Tip.HashBlock);
 
-                var block = stratisNodeSync.FullNode.BlockStoreManager().BlockRepository.GetAsync(stratisNodeSync.FullNode.Chain.GetBlock(1).HashBlock).Result;
+                var block = destreamNodeSync.FullNode.BlockStoreManager().BlockRepository.GetAsync(destreamNodeSync.FullNode.Chain.GetBlock(1).HashBlock).Result;
                 var prevTrx = block.Transactions.First();
-                var dest = new BitcoinSecret(new Key(), stratisNodeSync.FullNode.Network);
+                var dest = new BitcoinSecret(new Key(), destreamNodeSync.FullNode.Network);
 
                 var key = new Key();
                 Transaction tx = new Transaction();
-                tx.AddInput(new TxIn(new OutPoint(prevTrx.GetHash(), 0), PayToPubkeyHashTemplate.Instance.GenerateScriptPubKey(stratisNodeSync.MinerSecret.PubKey)));
+                tx.AddInput(new TxIn(new OutPoint(prevTrx.GetHash(), 0), PayToPubkeyHashTemplate.Instance.GenerateScriptPubKey(destreamNodeSync.MinerSecret.PubKey)));
                 tx.AddOutput(new TxOut("25", dest.PubKey.Hash));
                 tx.AddOutput(new TxOut("24", key.PubKey.Hash)); // 1 btc fee
-                tx.Sign(stratisNodeSync.MinerSecret, false);
+                tx.Sign(destreamNodeSync.MinerSecret, false);
 
                 Transaction txOrphan = new Transaction();
                 txOrphan.AddInput(new TxIn(new OutPoint(tx.GetHash(), 1), PayToPubkeyHashTemplate.Instance.GenerateScriptPubKey(key.PubKey)));
                 txOrphan.AddOutput(new TxOut("10", new Key().PubKey.Hash));
-                txOrphan.Sign(key.GetBitcoinSecret(stratisNodeSync.FullNode.Network), false);
+                txOrphan.Sign(key.GetBitcoinSecret(destreamNodeSync.FullNode.Network), false);
 
                 // broadcast the orphan
-                stratisNodeSync.Broadcast(txOrphan);
-                TestHelper.WaitLoop(() => stratisNodeSync.FullNode.MempoolManager().Orphans.OrphansList().Count == 1);
+                destreamNodeSync.Broadcast(txOrphan);
+                TestHelper.WaitLoop(() => destreamNodeSync.FullNode.MempoolManager().Orphans.OrphansList().Count == 1);
                 // broadcast the parent
-                stratisNodeSync.Broadcast(tx);
-                TestHelper.WaitLoop(() => stratisNodeSync.FullNode.MempoolManager().Orphans.OrphansList().Count == 0);
+                destreamNodeSync.Broadcast(tx);
+                TestHelper.WaitLoop(() => destreamNodeSync.FullNode.MempoolManager().Orphans.OrphansList().Count == 0);
                 // wait for orphan to get in the pool
-                TestHelper.WaitLoop(() => stratisNodeSync.CreateRPCClient().GetRawMempool().Length == 2);
+                TestHelper.WaitLoop(() => destreamNodeSync.CreateRPCClient().GetRawMempool().Length == 2);
             }
         }
 
@@ -328,69 +328,69 @@ namespace DeStream.Bitcoin.IntegrationTests
         {
             using (NodeBuilder builder = NodeBuilder.Create())
             {
-                var stratisNodeSync = builder.CreateDeStreamPowNode();
-                var stratisNode1 = builder.CreateDeStreamPowNode();
-                var stratisNode2 = builder.CreateDeStreamPowNode();
+                var destreamNodeSync = builder.CreateDeStreamPowNode();
+                var destreamNode1 = builder.CreateDeStreamPowNode();
+                var destreamNode2 = builder.CreateDeStreamPowNode();
                 builder.StartAll();
 
-                stratisNodeSync.NotInIBD();
-                stratisNode1.NotInIBD();
-                stratisNode2.NotInIBD();
+                destreamNodeSync.NotInIBD();
+                destreamNode1.NotInIBD();
+                destreamNode2.NotInIBD();
 
                 // generate blocks and wait for the downloader to pickup
-                stratisNodeSync.SetDummyMinerSecret(new BitcoinSecret(new Key(), stratisNodeSync.FullNode.Network));
-                stratisNodeSync.GenerateDeStreamWithMiner(105); // coinbase maturity = 100
+                destreamNodeSync.SetDummyMinerSecret(new BitcoinSecret(new Key(), destreamNodeSync.FullNode.Network));
+                destreamNodeSync.GenerateDeStreamWithMiner(105); // coinbase maturity = 100
                 // wait for block repo for block sync to work
-                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(stratisNodeSync));
+                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(destreamNodeSync));
 
                 // sync both nodes
-                stratisNode1.CreateRPCClient().AddNode(stratisNodeSync.Endpoint, true);
-                stratisNode2.CreateRPCClient().AddNode(stratisNodeSync.Endpoint, true);
-                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(stratisNode1, stratisNodeSync));
-                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(stratisNode2, stratisNodeSync));
+                destreamNode1.CreateRPCClient().AddNode(destreamNodeSync.Endpoint, true);
+                destreamNode2.CreateRPCClient().AddNode(destreamNodeSync.Endpoint, true);
+                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(destreamNode1, destreamNodeSync));
+                TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(destreamNode2, destreamNodeSync));
 
                 // create some transactions and push them to the pool
                 var trxs = new List<Transaction>();
                 foreach (var index in Enumerable.Range(1, 5))
                 {
-                    var block = stratisNodeSync.FullNode.BlockStoreManager().BlockRepository.GetAsync(stratisNodeSync.FullNode.Chain.GetBlock(index).HashBlock).Result;
+                    var block = destreamNodeSync.FullNode.BlockStoreManager().BlockRepository.GetAsync(destreamNodeSync.FullNode.Chain.GetBlock(index).HashBlock).Result;
                     var prevTrx = block.Transactions.First();
-                    var dest = new BitcoinSecret(new Key(), stratisNodeSync.FullNode.Network);
+                    var dest = new BitcoinSecret(new Key(), destreamNodeSync.FullNode.Network);
 
                     Transaction tx = new Transaction();
-                    tx.AddInput(new TxIn(new OutPoint(prevTrx.GetHash(), 0), PayToPubkeyHashTemplate.Instance.GenerateScriptPubKey(stratisNodeSync.MinerSecret.PubKey)));
+                    tx.AddInput(new TxIn(new OutPoint(prevTrx.GetHash(), 0), PayToPubkeyHashTemplate.Instance.GenerateScriptPubKey(destreamNodeSync.MinerSecret.PubKey)));
                     tx.AddOutput(new TxOut("25", dest.PubKey.Hash));
                     tx.AddOutput(new TxOut("24", new Key().PubKey.Hash)); // 1 btc fee
-                    tx.Sign(stratisNodeSync.MinerSecret, false);
+                    tx.Sign(destreamNodeSync.MinerSecret, false);
                     trxs.Add(tx);
                 }
                 var options = new ParallelOptions { MaxDegreeOfParallelism = 5 };
                 Parallel.ForEach(trxs, options, transaction =>
                 {
-                    stratisNodeSync.Broadcast(transaction);
+                    destreamNodeSync.Broadcast(transaction);
                 });
 
                 // wait for all nodes to have all trx
-                TestHelper.WaitLoop(() => stratisNodeSync.CreateRPCClient().GetRawMempool().Length == 5);
+                TestHelper.WaitLoop(() => destreamNodeSync.CreateRPCClient().GetRawMempool().Length == 5);
 
                 // the full node should be connected to both nodes
-                Assert.True(stratisNodeSync.FullNode.ConnectionManager.ConnectedPeers.Count() >= 2);
+                Assert.True(destreamNodeSync.FullNode.ConnectionManager.ConnectedPeers.Count() >= 2);
 
                 // reset the trickle timer on the full node that has the transactions in the pool
-                foreach (var node in stratisNodeSync.FullNode.ConnectionManager.ConnectedPeers) node.Behavior<MempoolBehavior>().NextInvSend = 0;
+                foreach (var node in destreamNodeSync.FullNode.ConnectionManager.ConnectedPeers) node.Behavior<MempoolBehavior>().NextInvSend = 0;
 
-                TestHelper.WaitLoop(() => stratisNode1.CreateRPCClient().GetRawMempool().Length == 5);
-                TestHelper.WaitLoop(() => stratisNode2.CreateRPCClient().GetRawMempool().Length == 5);
+                TestHelper.WaitLoop(() => destreamNode1.CreateRPCClient().GetRawMempool().Length == 5);
+                TestHelper.WaitLoop(() => destreamNode2.CreateRPCClient().GetRawMempool().Length == 5);
 
                 // mine the transactions in the mempool
-                stratisNodeSync.GenerateDeStreamWithMiner(1);
-                TestHelper.WaitLoop(() => stratisNodeSync.CreateRPCClient().GetRawMempool().Length == 0);
+                destreamNodeSync.GenerateDeStreamWithMiner(1);
+                TestHelper.WaitLoop(() => destreamNodeSync.CreateRPCClient().GetRawMempool().Length == 0);
 
                 // wait for block and mempool to change
-                TestHelper.WaitLoop(() => stratisNode1.CreateRPCClient().GetBestBlockHash() == stratisNodeSync.CreateRPCClient().GetBestBlockHash());
-                TestHelper.WaitLoop(() => stratisNode2.CreateRPCClient().GetBestBlockHash() == stratisNodeSync.CreateRPCClient().GetBestBlockHash());
-                TestHelper.WaitLoop(() => stratisNode1.CreateRPCClient().GetRawMempool().Length == 0);
-                TestHelper.WaitLoop(() => stratisNode2.CreateRPCClient().GetRawMempool().Length == 0);
+                TestHelper.WaitLoop(() => destreamNode1.CreateRPCClient().GetBestBlockHash() == destreamNodeSync.CreateRPCClient().GetBestBlockHash());
+                TestHelper.WaitLoop(() => destreamNode2.CreateRPCClient().GetBestBlockHash() == destreamNodeSync.CreateRPCClient().GetBestBlockHash());
+                TestHelper.WaitLoop(() => destreamNode1.CreateRPCClient().GetRawMempool().Length == 0);
+                TestHelper.WaitLoop(() => destreamNode2.CreateRPCClient().GetRawMempool().Length == 0);
             }
         }
     }

@@ -39,7 +39,6 @@ namespace DeStream.Bitcoin.Features.Miner.Interfaces
         /// <returns>Staking difficulty.</returns>
         /// <remarks>
         /// The actual idea behind the calculation is a mystery. It was simply ported from
-        /// <see cref="https://github.com/stratisproject/stratisX/blob/47851b7337f528f52ec20e86dca7dcead8191cf5/src/rpcblockchain.cpp#L16"/>.
         /// </remarks>
         double GetDifficulty(ChainedBlock block);
 
@@ -68,7 +67,6 @@ namespace DeStream.Bitcoin.Features.Miner.Interfaces
         /// presented on the network to generate each block.
         /// <para>
         /// The method was ported from
-        /// <see cref="https://github.com/stratisproject/stratisX/blob/47851b7337f528f52ec20e86dca7dcead8191cf5/src/rpcblockchain.cpp#L74"/>.
         /// </para>
         /// </remarks>
         double GetNetworkWeight();

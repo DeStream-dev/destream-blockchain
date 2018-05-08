@@ -181,7 +181,6 @@ namespace DeStream.Bitcoin.Features.Miner
 
         /// <summary><c>true</c> if coinstake transaction splits the coin and generates extra UTXO
         /// to prevent halting chain; <c>false</c> to disable coinstake splitting.</summary>
-        /// <remarks>TODO: It should be configurable option, not constant. <see cref="https://github.com/stratisproject/DeStreamBitcoinFullNode/issues/550"/></remarks>
         public const bool CoinstakeSplitEnabled = true;
 
         /// <summary> If <see cref="CoinstakeSplitEnabled"/> is set, the coinstake will be split if

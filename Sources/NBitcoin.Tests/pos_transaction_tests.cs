@@ -2418,7 +2418,7 @@ namespace NBitcoin.Tests
         private void tx_valid()
         {
             // test is disabled for now
-            // todo: get test data for the stratis blockchain
+            // todo: get test data for the destream blockchain
 
             // Read tests from test/data/tx_valid.json
             // Format is an array of arrays
@@ -2539,7 +2539,7 @@ namespace NBitcoin.Tests
         private void tx_invalid()
         {
             // test is disabled for now
-            // todo: get test data for the stratis blockchain
+            // todo: get test data for the destream blockchain
 
             // Read tests from test/data/tx_valid.json
             // Format is an array of arrays

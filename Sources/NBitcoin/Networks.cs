@@ -45,10 +45,10 @@ namespace NBitcoin
         public const string BitcoinDefaultConfigFilename = "bitcoin.conf";
 
         /// <summary> The name of the root folder containing the different DeStream blockchains (DeStreamMain, DeStreamTest, DeStreamRegTest). </summary>
-        public const string DeStreamRootFolderName = "stratis";
+        public const string DeStreamRootFolderName = "destream";
 
         /// <summary> The default name used for the DeStream configuration file. </summary>
-        public const string DeStreamDefaultConfigFilename = "stratis.conf";
+        public const string DeStreamDefaultConfigFilename = "destream.conf";
 
         public static Network Main => Network.GetNetwork("Main") ?? InitMain();
 
@@ -379,10 +379,10 @@ namespace NBitcoin
 
                 .AddDNSSeeds(new[]
                 {
-                    new DNSSeedData("seednode1.stratisplatform.com", "seednode1.stratisplatform.com"),
-                    new DNSSeedData("seednode2.stratis.cloud", "seednode2.stratis.cloud"),
-                    new DNSSeedData("seednode3.stratisplatform.com", "seednode3.stratisplatform.com"),
-                    new DNSSeedData("seednode4.stratis.cloud", "seednode4.stratis.cloud")
+                    new DNSSeedData("seednode1.destreamplatform.com", "seednode1.destreamplatform.com"),
+                    new DNSSeedData("seednode2.destream.cloud", "seednode2.destream.cloud"),
+                    new DNSSeedData("seednode3.destreamplatform.com", "seednode3.destreamplatform.com"),
+                    new DNSSeedData("seednode4.destream.cloud", "seednode4.destream.cloud")
                 })
 
                 .SetBase58Bytes(Base58Type.PUBKEY_ADDRESS, new byte[] { (63) })
@@ -471,10 +471,10 @@ namespace NBitcoin
 
                 .AddDNSSeeds(new[]
                 {
-                    new DNSSeedData("testnet1.stratisplatform.com", "testnet1.stratisplatform.com"),
-                    new DNSSeedData("testnet2.stratisplatform.com", "testnet2.stratisplatform.com"),
-                    new DNSSeedData("testnet3.stratisplatform.com", "testnet3.stratisplatform.com"),
-                    new DNSSeedData("testnet4.stratisplatform.com", "testnet4.stratisplatform.com")
+                    new DNSSeedData("testnet1.destreamplatform.com", "testnet1.destreamplatform.com"),
+                    new DNSSeedData("testnet2.destreamplatform.com", "testnet2.destreamplatform.com"),
+                    new DNSSeedData("testnet3.destreamplatform.com", "testnet3.destreamplatform.com"),
+                    new DNSSeedData("testnet4.destreamplatform.com", "testnet4.destreamplatform.com")
                 });
 
             builder.AddSeeds(new[]

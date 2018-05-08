@@ -33,7 +33,7 @@ namespace DeStream.Bitcoin.Features.Dns.Tests
         public void WhenLoad_AndStreamContainsIPAddressResourceRecord_AndIsIPv4_ThenEntryIsPopulated()
         {
             // Arrange
-            Domain domain = new Domain("stratis.test.com");
+            Domain domain = new Domain("destream.test.com");
 
             IPAddressResourceRecord testResourceRecord = new IPAddressResourceRecord(domain, IPAddress.Parse("192.168.0.1"));
             Question question = new Question(domain, RecordType.A);
@@ -56,7 +56,7 @@ namespace DeStream.Bitcoin.Features.Dns.Tests
         public void WhenLoad_AndStreamContainsIPAddressResourceRecord_AndIsIPv6_ThenEntryIsPopulated()
         {
             // Arrange
-            Domain domain = new Domain("stratis.test.com");
+            Domain domain = new Domain("destream.test.com");
 
             IPAddressResourceRecord testResourceRecord = new IPAddressResourceRecord(domain, IPAddress.Parse("2001:db8:85a3:0:0:8a2e:370:7334"));
             Question question = new Question(domain, RecordType.AAAA);
@@ -79,8 +79,8 @@ namespace DeStream.Bitcoin.Features.Dns.Tests
         public void WhenLoad_AndStreamContainsCanonicalNameResourceRecord_ThenEntryIsPopulated()
         {
             // Arrange
-            Domain domain = new Domain("stratis.test.com");
-            Domain cNameDomain = new Domain("www.stratis.test.com");
+            Domain domain = new Domain("destream.test.com");
+            Domain cNameDomain = new Domain("www.destream.test.com");
 
             CanonicalNameResourceRecord testResourceRecord = new CanonicalNameResourceRecord(domain, cNameDomain);
             Question question = new Question(domain, RecordType.CNAME);
@@ -103,8 +103,8 @@ namespace DeStream.Bitcoin.Features.Dns.Tests
         public void WhenLoad_AndStreamContainsMailExchangeResourceRecord_ThenEntryIsPopulated()
         {
             // Arrange
-            Domain domain = new Domain("stratis.test.com");
-            Domain exchangeDomain = new Domain("mail.stratis.test.com");
+            Domain domain = new Domain("destream.test.com");
+            Domain exchangeDomain = new Domain("mail.destream.test.com");
             int preference = 10;
 
             MailExchangeResourceRecord testResourceRecord = new MailExchangeResourceRecord(domain, preference, exchangeDomain);
@@ -130,7 +130,7 @@ namespace DeStream.Bitcoin.Features.Dns.Tests
         public void WhenLoad_AndStreamContainsNameServerResourceRecord_ThenEntryIsPopulated()
         {
             // Arrange
-            Domain domain = new Domain("stratis.test.com");
+            Domain domain = new Domain("destream.test.com");
             Domain nsDomain = new Domain("ns");
 
             NameServerResourceRecord testResourceRecord = new NameServerResourceRecord(domain, nsDomain);
@@ -155,8 +155,8 @@ namespace DeStream.Bitcoin.Features.Dns.Tests
         public void WhenLoad_AndStreamContainsPointerResourceRecord_ThenEntryIsPopulated()
         {
             // Arrange
-            Domain domain = new Domain("stratis.test.com");
-            Domain nsDomain = new Domain("pointer.stratis.test.com");
+            Domain domain = new Domain("destream.test.com");
+            Domain nsDomain = new Domain("pointer.destream.test.com");
 
             PointerResourceRecord testResourceRecord = new PointerResourceRecord(domain, nsDomain);
 
@@ -180,7 +180,7 @@ namespace DeStream.Bitcoin.Features.Dns.Tests
         public void WhenLoad_AndStreamContainsStartOfAuthorityResourceRecord_ThenEntryIsPopulated()
         {
             // Arrange
-            Domain domain = new Domain("stratis.test.com");
+            Domain domain = new Domain("destream.test.com");
             Domain masterDomain = new Domain("master.test.com");
             Domain responsibleDomain = new Domain("responsible.test.com");
             long serialNumber = 12121212;
@@ -228,7 +228,7 @@ namespace DeStream.Bitcoin.Features.Dns.Tests
             // Arrange.
             using (MemoryStream stream = new MemoryStream())
             {
-                string domainName = "stratis.test.com";
+                string domainName = "destream.test.com";
                 DnsSeedMasterFile masterFile = new DnsSeedMasterFile();
 
                 IList<IResourceRecord> testResourceRecords = new List<IResourceRecord>()
@@ -277,7 +277,7 @@ namespace DeStream.Bitcoin.Features.Dns.Tests
         public void WhenSave_AndMasterListContainsIPAddressResourceRecord_AndIsIPv4_ThenEntryIsSaved()
         {
             // Arrange
-            Domain domain = new Domain("stratis.test.com");
+            Domain domain = new Domain("destream.test.com");
 
             IPAddressResourceRecord testResourceRecord = new IPAddressResourceRecord(domain, IPAddress.Parse("192.168.0.1"));
             DnsSeedMasterFile masterFile = new DnsSeedMasterFile();
@@ -307,7 +307,7 @@ namespace DeStream.Bitcoin.Features.Dns.Tests
         public void WhenSave_AndMasterListContainsIPAddressResourceRecord_AndIsIPv6_ThenEntryIsSaved()
         {
             // Arrange
-            Domain domain = new Domain("stratis.test.com");
+            Domain domain = new Domain("destream.test.com");
 
             IPAddressResourceRecord testResourceRecord = new IPAddressResourceRecord(domain, IPAddress.Parse("2001:db8:85a3:0:0:8a2e:370:7334"));
             DnsSeedMasterFile masterFile = new DnsSeedMasterFile();
@@ -337,8 +337,8 @@ namespace DeStream.Bitcoin.Features.Dns.Tests
         public void WhenSave_AndMasterListContainsCanonicalNameResourceRecord_ThenEntryIsSaved()
         {
             // Arrange
-            Domain domain = new Domain("stratis.test.com");
-            Domain cNameDomain = new Domain("www.stratis.test.com");
+            Domain domain = new Domain("destream.test.com");
+            Domain cNameDomain = new Domain("www.destream.test.com");
 
             CanonicalNameResourceRecord testResourceRecord = new CanonicalNameResourceRecord(domain, cNameDomain);
             DnsSeedMasterFile masterFile = new DnsSeedMasterFile();
@@ -368,8 +368,8 @@ namespace DeStream.Bitcoin.Features.Dns.Tests
         public void WhenSave_AndMasterListContainsMailExchangeResourceRecord_ThenEntryIsSaved()
         {
             // Arrange
-            Domain domain = new Domain("stratis.test.com");
-            Domain exchangeDomain = new Domain("mail.stratis.test.com");
+            Domain domain = new Domain("destream.test.com");
+            Domain exchangeDomain = new Domain("mail.destream.test.com");
             int preference = 10;
 
             MailExchangeResourceRecord testResourceRecord = new MailExchangeResourceRecord(domain, preference, exchangeDomain);
@@ -400,7 +400,7 @@ namespace DeStream.Bitcoin.Features.Dns.Tests
         public void WhenSave_AndMasterListContainsNameServerResourceRecord_ThenEntryIsSaved()
         {
             // Arrange
-            Domain domain = new Domain("stratis.test.com");
+            Domain domain = new Domain("destream.test.com");
             Domain nsDomain = new Domain("ns");
 
             NameServerResourceRecord testResourceRecord = new NameServerResourceRecord(domain, nsDomain);
@@ -431,8 +431,8 @@ namespace DeStream.Bitcoin.Features.Dns.Tests
         public void WhenSave_AndMasterListContainsPointerResourceRecord_ThenEntryIsSaved()
         {
             // Arrange
-            Domain domain = new Domain("stratis.test.com");
-            Domain nsDomain = new Domain("pointer.stratis.test.com");
+            Domain domain = new Domain("destream.test.com");
+            Domain nsDomain = new Domain("pointer.destream.test.com");
 
             PointerResourceRecord testResourceRecord = new PointerResourceRecord(domain, nsDomain);
             DnsSeedMasterFile masterFile = new DnsSeedMasterFile();
@@ -462,7 +462,7 @@ namespace DeStream.Bitcoin.Features.Dns.Tests
         public void WhenSave_AndMasterListContainsStartOfAuthorityResourceRecord_ThenEntryIsSaved()
         {
             // Arrange
-            Domain domain = new Domain("stratis.test.com");
+            Domain domain = new Domain("destream.test.com");
             Domain masterDomain = new Domain("master.test.com");
             Domain responsibleDomain = new Domain("responsible.test.com");
             long serialNumber = 12121212;
@@ -514,7 +514,7 @@ namespace DeStream.Bitcoin.Features.Dns.Tests
         public void WhenSave_AndMasterListContainsEntries_ThenEntriesAreSaved()
         {
             // Arrange.
-            string domainName = "stratis.test.com";
+            string domainName = "destream.test.com";
 
             IList<IResourceRecord> testResourceRecords = new List<IResourceRecord>()
                 {

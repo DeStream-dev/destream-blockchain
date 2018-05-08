@@ -172,38 +172,38 @@ namespace DeStream.Bitcoin.IntegrationTests
         {
             using (NodeBuilder builder = NodeBuilder.Create())
             {
-                var stratisNode = builder.CreateDeStreamPowNode();
+                var destreamNode = builder.CreateDeStreamPowNode();
                 var coreNode1 = builder.CreateNode();
                 var coreNode2 = builder.CreateNode();
                 builder.StartAll();
 
-                //Core1 discovers 10 blocks, sends to stratis
+                //Core1 discovers 10 blocks, sends to destream
                 var tip = coreNode1.FindBlock(10).Last();
-                stratisNode.CreateRPCClient().AddNode(coreNode1.Endpoint, true);
-                TestHelper.WaitLoop(() => stratisNode.CreateRPCClient().GetBestBlockHash() == coreNode1.CreateRPCClient().GetBestBlockHash());
-                stratisNode.CreateRPCClient().RemoveNode(coreNode1.Endpoint);
+                destreamNode.CreateRPCClient().AddNode(coreNode1.Endpoint, true);
+                TestHelper.WaitLoop(() => destreamNode.CreateRPCClient().GetBestBlockHash() == coreNode1.CreateRPCClient().GetBestBlockHash());
+                destreamNode.CreateRPCClient().RemoveNode(coreNode1.Endpoint);
 
-                //Core2 discovers 20 blocks, sends to stratis
+                //Core2 discovers 20 blocks, sends to destream
                 tip = coreNode2.FindBlock(20).Last();
-                stratisNode.CreateRPCClient().AddNode(coreNode2.Endpoint, true);
-                TestHelper.WaitLoop(() => stratisNode.CreateRPCClient().GetBestBlockHash() == coreNode2.CreateRPCClient().GetBestBlockHash());
-                stratisNode.CreateRPCClient().RemoveNode(coreNode2.Endpoint);
-                ((CachedCoinView)stratisNode.FullNode.CoinView()).FlushAsync().Wait();
+                destreamNode.CreateRPCClient().AddNode(coreNode2.Endpoint, true);
+                TestHelper.WaitLoop(() => destreamNode.CreateRPCClient().GetBestBlockHash() == coreNode2.CreateRPCClient().GetBestBlockHash());
+                destreamNode.CreateRPCClient().RemoveNode(coreNode2.Endpoint);
+                ((CachedCoinView)destreamNode.FullNode.CoinView()).FlushAsync().Wait();
 
-                //Core1 discovers 30 blocks, sends to stratis
+                //Core1 discovers 30 blocks, sends to destream
                 tip = coreNode1.FindBlock(30).Last();
-                stratisNode.CreateRPCClient().AddNode(coreNode1.Endpoint, true);
-                TestHelper.WaitLoop(() => stratisNode.CreateRPCClient().GetBestBlockHash() == coreNode1.CreateRPCClient().GetBestBlockHash());
-                stratisNode.CreateRPCClient().RemoveNode(coreNode1.Endpoint);
+                destreamNode.CreateRPCClient().AddNode(coreNode1.Endpoint, true);
+                TestHelper.WaitLoop(() => destreamNode.CreateRPCClient().GetBestBlockHash() == coreNode1.CreateRPCClient().GetBestBlockHash());
+                destreamNode.CreateRPCClient().RemoveNode(coreNode1.Endpoint);
 
-                //Core2 discovers 50 blocks, sends to stratis
+                //Core2 discovers 50 blocks, sends to destream
                 tip = coreNode2.FindBlock(50).Last();
-                stratisNode.CreateRPCClient().AddNode(coreNode2.Endpoint, true);
-                TestHelper.WaitLoop(() => stratisNode.CreateRPCClient().GetBestBlockHash() == coreNode2.CreateRPCClient().GetBestBlockHash());
-                stratisNode.CreateRPCClient().RemoveNode(coreNode2.Endpoint);
-                ((CachedCoinView)stratisNode.FullNode.CoinView()).FlushAsync().Wait();
+                destreamNode.CreateRPCClient().AddNode(coreNode2.Endpoint, true);
+                TestHelper.WaitLoop(() => destreamNode.CreateRPCClient().GetBestBlockHash() == coreNode2.CreateRPCClient().GetBestBlockHash());
+                destreamNode.CreateRPCClient().RemoveNode(coreNode2.Endpoint);
+                ((CachedCoinView)destreamNode.FullNode.CoinView()).FlushAsync().Wait();
 
-                TestHelper.WaitLoop(() => stratisNode.CreateRPCClient().GetBestBlockHash() == coreNode2.CreateRPCClient().GetBestBlockHash());
+                TestHelper.WaitLoop(() => destreamNode.CreateRPCClient().GetBestBlockHash() == coreNode2.CreateRPCClient().GetBestBlockHash());
             }
         }
 

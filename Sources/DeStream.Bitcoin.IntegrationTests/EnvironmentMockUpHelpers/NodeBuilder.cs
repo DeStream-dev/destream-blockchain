@@ -245,7 +245,7 @@ namespace DeStream.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers
         public CoreNode CreateDeStreamPosNode(bool start = false, Action<IFullNodeBuilder> callback = null)
         {
             string child = this.CreateNewEmptyFolder();
-            var node = new CoreNode(child, new DeStreamBitcoinPosRunner(callback), this, Network.RegTest, configfile: "stratis.conf");
+            var node = new CoreNode(child, new DeStreamBitcoinPosRunner(callback), this, Network.RegTest, configfile: "destream.conf");
             this.Nodes.Add(node);
             if (start)
                 node.Start();

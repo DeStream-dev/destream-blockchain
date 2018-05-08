@@ -14,7 +14,7 @@ namespace NBitcoin.Tests
         /*
          * TODO: Consider importing to FN.
 
-        public static bool noClient = !Process.GetProcesses().Any(p => p.ProcessName.Contains("stratis"));
+        public static bool noClient = !Process.GetProcesses().Any(p => p.ProcessName.Contains("destream"));
 
         [Fact]
         [Trait("UnitTest", "UnitTest")]

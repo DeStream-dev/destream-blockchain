@@ -65,7 +65,7 @@ namespace DeStream.Bitcoin.Cli
                     builder.AppendLine();
                     builder.AppendLine("Command line arguments:");
                     builder.AppendLine();
-                    builder.AppendLine("[network-name]                     Name of the network - e.g. \"stratis\", \"stratismain\", \"stratistest\", \"bitcoinmain\", \"bitcointest\".");
+                    builder.AppendLine("[network-name]                     Name of the network - e.g. \"destream\", \"destreammain\", \"destreamtest\", \"bitcoinmain\", \"bitcointest\".");
                     builder.AppendLine("[options]                          Options for the CLI (optional) - e.g. -help, -rpcuser, see below.");
                     builder.AppendLine("[command]                          Name of RPC method or API <controller>/<method>.");
                     builder.AppendLine("[arguments]                        Argument by position (RPC) or Name = Value pairs (API) (optional).");
@@ -79,8 +79,8 @@ namespace DeStream.Bitcoin.Cli
                     builder.AppendLine();
                     builder.AppendLine("Examples:");
                     builder.AppendLine();
-                    builder.AppendLine("dotnet run stratis Wallet/history WalletName=testwallet - Lists all the historical transactions of the wallet called 'testwallet'.");
-                    builder.AppendLine("dotnet run stratis getinfo -rpcuser=stratistestuser -rpcpassword=stratistestpassword -rpcconnect=127.0.0.3 -rpcport=26174 - Displays general information about the DeStream node on the 127.0.0.3:26174, authenticating with the RPC specified user.");
+                    builder.AppendLine("dotnet run destream Wallet/history WalletName=testwallet - Lists all the historical transactions of the wallet called 'testwallet'.");
+                    builder.AppendLine("dotnet run destream getinfo -rpcuser=destreamtestuser -rpcpassword=destreamtestpassword -rpcconnect=127.0.0.3 -rpcport=26174 - Displays general information about the DeStream node on the 127.0.0.3:26174, authenticating with the RPC specified user.");
                     builder.AppendLine("dotnet run bitcoin getbalance -rpcuser=btctestuser -rpcpassword=btctestpass - Displays the current balance of the opened wallet on the 127.0.0.1:8332 node, authenticating with the RPC specified user.");
                     Console.WriteLine(builder);
                     return;
@@ -90,7 +90,7 @@ namespace DeStream.Bitcoin.Cli
                 int defaultRestApiPort = 0;
                 Network network = null;
 
-                if (networkName.Contains("stratis"))
+                if (networkName.Contains("destream"))
                 {
                     defaultRestApiPort = 37221;
                     network = Network.DeStreamMain;

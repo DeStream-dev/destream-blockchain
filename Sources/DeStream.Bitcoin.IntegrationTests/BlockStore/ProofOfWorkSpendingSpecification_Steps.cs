@@ -40,7 +40,7 @@ namespace DeStream.Bitcoin.IntegrationTests.BlockStore
             this.nodeBuilder.Dispose();
         }
 
-        private void a_sending_and_receiving_stratis_bitcoin_node_and_wallet()
+        private void a_sending_and_receiving_destream_bitcoin_node_and_wallet()
         {
             this.sendingDeStreamBitcoinNode = this.nodeBuilder.CreateDeStreamPowNode();
             this.receivingDeStreamBitcoinNode = this.nodeBuilder.CreateDeStreamPowNode();
