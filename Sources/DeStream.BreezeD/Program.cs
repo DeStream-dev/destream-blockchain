@@ -3,15 +3,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.Protocol;
-using DeStream.Bitcoin;
-using DeStream.Bitcoin.Builder;
-using DeStream.Bitcoin.Configuration;
-using DeStream.Bitcoin.Features.Api;
-using DeStream.Bitcoin.Features.LightWallet;
-using DeStream.Bitcoin.Features.Notifications;
-using DeStream.Bitcoin.Utilities;
+using Stratis.Bitcoin;
+using Stratis.Bitcoin.Builder;
+using Stratis.Bitcoin.Configuration;
+using Stratis.Bitcoin.Features.Api;
+using Stratis.Bitcoin.Features.LightWallet;
+using Stratis.Bitcoin.Features.Notifications;
+using Stratis.Bitcoin.Utilities;
 
-namespace DeStream.BreezeD
+namespace Stratis.BreezeD
 {
     public class Program
     {
@@ -26,24 +26,15 @@ namespace DeStream.BreezeD
             {
                 // Get the API uri.
                 var isTestNet = args.Contains("-testnet");
-                var isDeStream = args.Contains("destream");
-                var isDestreamTest = args.Contains("-destreamtest");
+                var isDeStream= args.Contains("destream");
 
                 var agent = "Breeze";
 
                 NodeSettings nodeSettings;
 
-                if(isDestreamTest)
-                {
-                    Network network = Network.DestreamTest;
-                    nodeSettings = new NodeSettings(network, ProtocolVersion.ALT_PROTOCOL_VERSION, agent, args: args, loadConfiguration: false);
-                }
-                else if (isDeStream)
+                if (isDeStream)
                 {
                     Network network = isTestNet ? Network.DeStreamTest : Network.DeStreamMain;
-                    if (isTestNet)
-                        args = args.Append("-addnode=51.141.28.47").ToArray(); // TODO: fix this temp hack
-
                     nodeSettings = new NodeSettings(network, ProtocolVersion.ALT_PROTOCOL_VERSION, agent, args:args, loadConfiguration:false);
                 }
                 else

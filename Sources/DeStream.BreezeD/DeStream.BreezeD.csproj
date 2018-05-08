@@ -18,11 +18,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NBitcoin\NBitcoin.csproj" />
-    <ProjectReference Include="..\DeStream.Bitcoin.Features.Api\DeStream.Bitcoin.Features.Api.csproj" />
-    <ProjectReference Include="..\DeStream.Bitcoin.Features.LightWallet\DeStream.Bitcoin.Features.LightWallet.csproj" />
-    <ProjectReference Include="..\DeStream.Bitcoin.Features.Notifications\DeStream.Bitcoin.Features.Notifications.csproj" />
-    <ProjectReference Include="..\DeStream.Bitcoin.Features.Wallet\DeStream.Bitcoin.Features.Wallet.csproj" />
-    <ProjectReference Include="..\DeStream.Bitcoin\DeStream.Bitcoin.csproj" />
+    <ProjectReference Include="..\Stratis.Bitcoin.Features.Api\Stratis.Bitcoin.Features.Api.csproj" />
+    <ProjectReference Include="..\Stratis.Bitcoin.Features.LightWallet\Stratis.Bitcoin.Features.LightWallet.csproj" />
+    <ProjectReference Include="..\Stratis.Bitcoin.Features.Notifications\Stratis.Bitcoin.Features.Notifications.csproj" />
+    <ProjectReference Include="..\Stratis.Bitcoin.Features.Wallet\Stratis.Bitcoin.Features.Wallet.csproj" />
+    <ProjectReference Include="..\Stratis.Bitcoin\Stratis.Bitcoin.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

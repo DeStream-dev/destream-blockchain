@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Company>NDeStream</Company>
-    <Copyright>Copyright © DeStream Platform SA 2017</Copyright>
+    <Company>NStratis</Company>
+    <Copyright>Copyright © Stratis Platform SA 2017</Copyright>
     <Description>The C# Bitcoin Library based on NBitcoin</Description>
   </PropertyGroup>
   
@@ -13,9 +13,9 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>NBitcoin</RootNamespace>
-    <PackageId>NDeStream</PackageId>
-    <Authors>NDeStream</Authors>
-    <Product>NDeStream</Product>
+    <PackageId>NStratis</PackageId>
+    <Authors>NStratis</Authors>
+    <Product>NStratis</Product>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

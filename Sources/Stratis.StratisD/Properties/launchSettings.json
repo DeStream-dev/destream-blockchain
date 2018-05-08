@@ -1,0 +1,19 @@
+{
+  "profiles": {
+    "Stratis.StratisD": {
+      "commandName": "Project"
+    },
+    "Stratis.StratisD Test": {
+      "commandName": "Project",
+      "commandLineArgs": "-testnet"
+    },
+    "Stratis.StratisD Test with RPC": {
+      "commandName": "Project",
+      "commandLineArgs": "-testnet -server -rpcpassword=password -rpcuser=user"
+    },
+    "Stratis.StratisD Test Keepalive 60s": {
+      "commandName": "Project",
+      "commandLineArgs": "-testnet -keepalive=60"
+    }
+  }
+}

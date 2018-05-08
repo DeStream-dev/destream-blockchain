@@ -63,14 +63,14 @@ namespace NBitcoin.BitcoinCore
             }
         }
 
-        public ConcurrentChain GetDeStreamChain()
+        public ConcurrentChain GetStratisChain()
         {
             var chain = new ConcurrentChain(this.Network);
-            SynchronizeDeStreamChain(chain);
+            SynchronizeStratisChain(chain);
             return chain;
         }
 
-        public void SynchronizeDeStreamChain(ChainBase chain)
+        public void SynchronizeStratisChain(ChainBase chain)
         {
             var blocks = new Dictionary<uint256, Block>();
             var chainedBlocks = new Dictionary<uint256, ChainedBlock>();

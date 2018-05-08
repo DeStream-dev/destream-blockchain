@@ -788,7 +788,7 @@ namespace NBitcoin.RPC
             return result;
         }
 
-        public async Task<PeerInfo[]> GetDeStreamPeersInfoAsync()
+        public async Task<PeerInfo[]> GetStratisPeersInfoAsync()
         {
             RPCResponse resp = await SendCommandAsync(RPCOperations.getpeerinfo).ConfigureAwait(false);
             var peers = resp.Result as JArray;

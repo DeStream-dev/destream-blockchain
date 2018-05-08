@@ -4,18 +4,18 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using NBitcoin;
 using NBitcoin.Protocol;
-using DeStream.Bitcoin.Builder;
-using DeStream.Bitcoin.Configuration;
-using DeStream.Bitcoin.Features.Api;
-using DeStream.Bitcoin.Features.BlockStore;
-using DeStream.Bitcoin.Features.Consensus;
-using DeStream.Bitcoin.Features.MemoryPool;
-using DeStream.Bitcoin.Features.Miner;
-using DeStream.Bitcoin.Features.RPC;
-using DeStream.Bitcoin.Features.Wallet;
-using DeStream.Bitcoin.Utilities;
+using Stratis.Bitcoin.Builder;
+using Stratis.Bitcoin.Configuration;
+using Stratis.Bitcoin.Features.Api;
+using Stratis.Bitcoin.Features.BlockStore;
+using Stratis.Bitcoin.Features.Consensus;
+using Stratis.Bitcoin.Features.MemoryPool;
+using Stratis.Bitcoin.Features.Miner;
+using Stratis.Bitcoin.Features.RPC;
+using Stratis.Bitcoin.Features.Wallet;
+using Stratis.Bitcoin.Utilities;
 
-namespace DeStream.DeStreamD
+namespace Stratis.StratisD
 {
     public class Program
     {
@@ -31,10 +31,6 @@ namespace DeStream.DeStreamD
                 Network network = null;
                 if (args.Contains("-testnet"))
                     network = Network.DeStreamTest;
-                else if (args.Contains("-destreamtest"))
-                    network = Network.DestreamTest;
-                else if (args.Contains("-destreamtestserver"))
-                    network = Network.DestreamTestServer;
                 else
                     network = Network.DeStreamMain;
                 NodeSettings nodeSettings = new NodeSettings(network, ProtocolVersion.ALT_PROTOCOL_VERSION, args:args, loadConfiguration:false);

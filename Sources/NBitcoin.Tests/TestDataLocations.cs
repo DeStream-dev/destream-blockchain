@@ -1,7 +1,7 @@
 ﻿using System.IO;
 
 #if NOWEBCLIENT
-//using nDeStream.Tests;
+//using nStratis.Tests;
 #endif
 namespace NBitcoin.Tests
 {

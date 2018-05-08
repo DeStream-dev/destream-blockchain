@@ -2,19 +2,19 @@
   "profiles": {
     "Bitcoin Main": {
       "commandName": "Project",
-      "commandLineArgs": "-destreamtest"
+      "commandLineArgs": "-testnet"
     },
     "Bitcoin Test": {
       "commandName": "Project",
       "commandLineArgs": "-testnet -debug=all -loglevel=debug"
     },
-    "DeStream Main": {
+    "Stratis Main": {
       "commandName": "Project",
-      "commandLineArgs": "destream "
+      "commandLineArgs": "stratis "
     },
-    "DeStream Test": {
+    "Stratis Test": {
       "commandName": "Project",
-      "commandLineArgs": "destream -testnet -debug=all -loglevel=debug"
+      "commandLineArgs": "stratis -testnet -debug=all -loglevel=debug"
     }
   }
 }

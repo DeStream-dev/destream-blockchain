@@ -5,7 +5,7 @@ namespace NBitcoin.Tests
     {
         public pos_ProtocolTests()
         {
-            // These tests should be using the DeStream network.
+            // These tests should be using the Stratis network.
             // Set these expected values accordingly.
             Transaction.TimeStamp = true;
             Block.BlockSignature = true;
@@ -14,7 +14,7 @@ namespace NBitcoin.Tests
         /*
          * TODO: Consider importing to FN.
 
-        public static bool noClient = !Process.GetProcesses().Any(p => p.ProcessName.Contains("destream"));
+        public static bool noClient = !Process.GetProcesses().Any(p => p.ProcessName.Contains("stratis"));
 
         [Fact]
         [Trait("UnitTest", "UnitTest")]
@@ -82,7 +82,7 @@ namespace NBitcoin.Tests
 
             foreach (var test in tests)
             {
-                var message = Network.DeStreamMain.ParseMessage(TestUtils.ParseHex(test.Message), test.Version);
+                var message = Network.StratisMain.ParseMessage(TestUtils.ParseHex(test.Message), test.Version);
                 test.Test(message.Payload);
                 var bytes = message.ToBytes(test.Version);
                 var old = message;
@@ -99,7 +99,7 @@ namespace NBitcoin.Tests
         {
             if (pos_RPCClientTests.noClient) return;
 
-            using (var builder = NodeBuilderDeStream.Create())
+            using (var builder = NodeBuilderStratis.Create())
             {
                 var seed = builder.CreateNode(false).CreateNodeClient();
                 Assert.True(seed.State == NodeState.Connected);
@@ -114,7 +114,7 @@ namespace NBitcoin.Tests
         //[Trait("Protocol", "Protocol")]
         public void CanGetMerkleRoot()
         {
-            using (var builder = NodeBuilderDeStream.Create())
+            using (var builder = NodeBuilderStratis.Create())
             {
                 var node = builder.CreateNode(false).CreateNodeClient();
                 //builder.Nodes[0].Generate(101);
@@ -183,14 +183,14 @@ namespace NBitcoin.Tests
         {
             if (pos_RPCClientTests.noClient) return;
 
-            using (var builder = NodeBuilderDeStream.Create())
+            using (var builder = NodeBuilderStratis.Create())
             {
                 var node = builder.CreateNode(false);
                 CancellationTokenSource cts = new CancellationTokenSource();
                 cts.Cancel();
                 try
                 {
-                    var client = Node.Connect(Network.DeStreamMain, "127.0.0.1:" + node.ProtocolPort.ToString(), new NodeConnectionParameters()
+                    var client = Node.Connect(Network.StratisMain, "127.0.0.1:" + node.ProtocolPort.ToString(), new NodeConnectionParameters()
                     {
                         ConnectCancellation = cts.Token
                     });
@@ -208,13 +208,13 @@ namespace NBitcoin.Tests
         {
             if (pos_RPCClientTests.noClient) return;
 
-            using (var builder = NodeBuilderDeStream.Create())
+            using (var builder = NodeBuilderStratis.Create())
             {
                 var node = builder.CreateNode();
                 node.ConfigParameters.Add("whitelist", "127.0.0.1");
                 //node.Start();
                 //node.Generate(101);
-                //node.CreateRPCClient().SendToAddress(new Key().PubKey.GetAddress(Network.DeStreamMain), Money.Coins(1.0m));
+                //node.CreateRPCClient().SendToAddress(new Key().PubKey.GetAddress(Network.StratisMain), Money.Coins(1.0m));
                 var client = node.CreateNodeClient();
                 client.VersionHandshake();
                 var transactions = client.GetMempoolTransactions();
@@ -228,7 +228,7 @@ namespace NBitcoin.Tests
         {
             if (pos_RPCClientTests.noClient) return;
 
-            using (var builder = NodeBuilderDeStream.Create())
+            using (var builder = NodeBuilderStratis.Create())
             {
                 var node = builder.CreateNode(false);
                 //node.Generate(50);
@@ -251,7 +251,7 @@ namespace NBitcoin.Tests
         {
             if (pos_RPCClientTests.noClient) return;
 
-            using (var builder = NodeBuilderDeStream.Create())
+            using (var builder = NodeBuilderStratis.Create())
             {
                 var node = builder.CreateNode();
                 node.ConfigParameters.Add("whitelist", "127.0.0.1");
@@ -273,7 +273,7 @@ namespace NBitcoin.Tests
 
             var stop = uint256.Parse("c9920baf967a314bd123efa184d54d4b9e7460301e3f2e059bafc77c45d03017");
 
-            using (var builder = NodeBuilderDeStream.Create())
+            using (var builder = NodeBuilderStratis.Create())
             {
                 //bool generating = true;
                 builder.CreateNode(false);
@@ -492,13 +492,13 @@ namespace NBitcoin.Tests
         {
             if (pos_RPCClientTests.noClient) return;
 
-            using (var builder = NodeBuilderDeStream.Create())
+            using (var builder = NodeBuilderStratis.Create())
             {
                 var node = builder.CreateNode(false).CreateNodeClient();
                 node.VersionHandshake();
                 node.SendMessageAsync(new GetDataPayload(new InventoryVector()
                 {
-                    Hash = Network.DeStreamMain.GenesisHash,
+                    Hash = Network.StratisMain.GenesisHash,
                     Type = InventoryType.MSG_BLOCK
                 }));
 
@@ -513,7 +513,7 @@ namespace NBitcoin.Tests
         {
             if (pos_RPCClientTests.noClient) return;
 
-            using (var builder = NodeBuilderDeStream.Create())
+            using (var builder = NodeBuilderStratis.Create())
             {
                 var node = builder.CreateNode(false).CreateNodeClient();
                 //builder.Nodes[0].Generate(50);
@@ -535,7 +535,7 @@ namespace NBitcoin.Tests
         {
             if (pos_RPCClientTests.noClient) return;
 
-            using (var builder = NodeBuilderDeStream.Create())
+            using (var builder = NodeBuilderStratis.Create())
             {
                 var node = builder.CreateNode(false).CreateNodeClient();
                 //builder.Nodes[0].Generate(50);
@@ -556,7 +556,7 @@ namespace NBitcoin.Tests
         {
             if (pos_RPCClientTests.noClient) return;
 
-            using (var builder = NodeBuilderDeStream.Create())
+            using (var builder = NodeBuilderStratis.Create())
             {
                 var node = builder.CreateNode(false).CreateNodeClient();
                 //builder.Nodes[0].Generate(150);
