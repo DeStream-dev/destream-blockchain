@@ -10,7 +10,7 @@ namespace NBitcoin.Tests
         public JsonConverterTests()
         {
             // These flags may get set due to static network initializers
-            // which include the initializers for Stratis.
+            // which include the initializers for DeStream.
             Transaction.TimeStamp = false;
             Block.BlockSignature = false;
         }

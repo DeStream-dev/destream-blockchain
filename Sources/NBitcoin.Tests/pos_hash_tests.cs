@@ -11,7 +11,7 @@ namespace NBitcoin.Tests
     {
         public pos_hash_tests()
         {
-            // These tests should be using the Stratis network.
+            // These tests should be using the DeStream network.
             // Set these expected values accordingly.
             Transaction.TimeStamp = true;
             Block.BlockSignature = true;
@@ -133,7 +133,7 @@ namespace NBitcoin.Tests
         [Trait("UnitTest", "UnitTest")]
         public void hash256()
         {
-            Assert.Equal(uint256.Parse("0x0000066e91e46e5a264d42c89e1204963b2ee6be230b443e9159020539d972af"), Network.StratisMain.GetGenesis().GetHash());
+            Assert.Equal(uint256.Parse("0x0000066e91e46e5a264d42c89e1204963b2ee6be230b443e9159020539d972af"), Network.DeStreamMain.GetGenesis().GetHash());
         }
 
         [Fact]

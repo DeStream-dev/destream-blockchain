@@ -20,7 +20,7 @@ namespace NBitcoin.Tests
     {
         public pos_transaction_tests()
         {
-            // These tests should be using the Stratis network.
+            // These tests should be using the DeStream network.
             // Set these expected values accordingly.
             Transaction.TimeStamp = true;
             Block.BlockSignature = true;
@@ -44,7 +44,7 @@ namespace NBitcoin.Tests
         [Trait("UnitTest", "UnitTest")]
         public void CanGetMedianBlock()
         {
-            ConcurrentChain chain = new ConcurrentChain(Network.StratisMain);
+            ConcurrentChain chain = new ConcurrentChain(Network.DeStreamMain);
             DateTimeOffset now = DateTimeOffset.UtcNow;
             chain.SetTip(CreateBlock(now, 0, chain));
             chain.SetTip(CreateBlock(now, -1, chain));
@@ -77,10 +77,10 @@ namespace NBitcoin.Tests
             if (chain != null)
             {
                 b.Header.HashPrevBlock = chain.Tip.HashBlock;
-                return new ChainedBlock(b.Header, b.Header.GetHash(Network.StratisMain.NetworkOptions), chain.Tip);
+                return new ChainedBlock(b.Header, b.Header.GetHash(Network.DeStreamMain.NetworkOptions), chain.Tip);
             }
             else
-                return new ChainedBlock(b.Header, b.Header.GetHash(Network.StratisMain.NetworkOptions), 0);
+                return new ChainedBlock(b.Header, b.Header.GetHash(Network.DeStreamMain.NetworkOptions), 0);
         }
 
         [Fact]
@@ -147,7 +147,7 @@ namespace NBitcoin.Tests
         public void CanExtractTxOutDestinationEasily()
         {
             
-            var secret = new BitcoinSecret("VHqBm5xVQvosc7u4dDwMmzbr8mL4KzZBn5VgqjunovgURtXBo5cV", Network.StratisMain);
+            var secret = new BitcoinSecret("VHqBm5xVQvosc7u4dDwMmzbr8mL4KzZBn5VgqjunovgURtXBo5cV", Network.DeStreamMain);
 
             var tx = new Transaction();
             var p2pkh = new TxOut(new Money((UInt64)45000000), secret.GetAddress());
@@ -994,7 +994,7 @@ namespace NBitcoin.Tests
             ConcurrentChain chain = new ConcurrentChain(new BlockHeader()
             {
                 BlockTime = first
-            }, Network.StratisMain);
+            }, Network.DeStreamMain);
             first = first + TimeSpan.FromMinutes(10);
             while (currentHeight != chain.Height)
             {
@@ -1622,7 +1622,7 @@ namespace NBitcoin.Tests
         //https://gist.github.com/gavinandresen/3966071
         public void CanPartiallySignTransaction()
         {
-            var network = Network.StratisMain;
+            var network = Network.DeStreamMain;
             var privKeys = new[]{"7R3MeCSVTTzp3w3Ny4g7RWpvMYu7CfuERZJcPqn1VRL3kyV9A2p",
                         "7R41movhhKW2ZencnZvzcoDssFpKfNCv4yRqHnXco85rBLN1C2D",
                         "7Qidst55wkYRJpJN4aEnGjz64Mnf7BrSehVuX2HqWWPpYNEkqQJ"}

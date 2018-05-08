@@ -1,0 +1,20 @@
+{
+  "profiles": {
+    "DeStream.DeStreamD": {
+      "commandName": "Project",
+      "commandLineArgs": "-destreamtest"
+    },
+    "DeStream.DeStreamD Test": {
+      "commandName": "Project",
+      "commandLineArgs": "-testnet"
+    },
+    "DeStream.DeStreamD Test with RPC": {
+      "commandName": "Project",
+      "commandLineArgs": "-testnet -server -rpcpassword=password -rpcuser=user"
+    },
+    "DeStream.DeStreamD Test Keepalive 60s": {
+      "commandName": "Project",
+      "commandLineArgs": "-testnet -keepalive=60"
+    }
+  }
+}

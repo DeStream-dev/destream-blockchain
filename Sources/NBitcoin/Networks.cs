@@ -29,14 +29,14 @@ namespace NBitcoin
         /// <summary> Bitcoin maximal value for the calculated time offset. If the value is over this limit, the time syncing feature will be switched off. </summary>
         public const int BitcoinMaxTimeOffsetSeconds = 70 * 60;
 
-        /// <summary> Stratis maximal value for the calculated time offset. If the value is over this limit, the time syncing feature will be switched off. </summary>
-        public const int StratisMaxTimeOffsetSeconds = 25 * 60;
+        /// <summary> DeStream maximal value for the calculated time offset. If the value is over this limit, the time syncing feature will be switched off. </summary>
+        public const int DeStreamMaxTimeOffsetSeconds = 25 * 60;
 
         /// <summary> Bitcoin default value for the maximum tip age in seconds to consider the node in initial block download (24 hours). </summary>
         public const int BitcoinDefaultMaxTipAgeInSeconds = 24 * 60 * 60;
 
-        /// <summary> Stratis default value for the maximum tip age in seconds to consider the node in initial block download (2 hours). </summary>
-        public const int StratisDefaultMaxTipAgeInSeconds = 2 * 60 * 60;
+        /// <summary> DeStream default value for the maximum tip age in seconds to consider the node in initial block download (2 hours). </summary>
+        public const int DeStreamDefaultMaxTipAgeInSeconds = 2 * 60 * 60;
 
         /// <summary> The name of the root folder containing the different Bitcoin blockchains (Main, TestNet, RegTest). </summary>
         public const string BitcoinRootFolderName = "bitcoin";
@@ -44,11 +44,11 @@ namespace NBitcoin
         /// <summary> The default name used for the Bitcoin configuration file. </summary>
         public const string BitcoinDefaultConfigFilename = "bitcoin.conf";
 
-        /// <summary> The name of the root folder containing the different Stratis blockchains (StratisMain, StratisTest, StratisRegTest). </summary>
-        public const string StratisRootFolderName = "stratis";
+        /// <summary> The name of the root folder containing the different DeStream blockchains (DeStreamMain, DeStreamTest, DeStreamRegTest). </summary>
+        public const string DeStreamRootFolderName = "stratis";
 
-        /// <summary> The default name used for the Stratis configuration file. </summary>
-        public const string StratisDefaultConfigFilename = "stratis.conf";
+        /// <summary> The default name used for the DeStream configuration file. </summary>
+        public const string DeStreamDefaultConfigFilename = "stratis.conf";
 
         public static Network Main => Network.GetNetwork("Main") ?? InitMain();
 
@@ -56,11 +56,11 @@ namespace NBitcoin
 
         public static Network RegTest => Network.GetNetwork("RegTest") ?? InitReg();
 
-        public static Network StratisMain => Network.GetNetwork("StratisMain") ?? InitStratisMain();
+        public static Network DeStreamMain => Network.GetNetwork("DeStreamMain") ?? InitDeStreamMain();
 
-        public static Network StratisTest => Network.GetNetwork("StratisTest") ?? InitStratisTest();
+        public static Network DeStreamTest => Network.GetNetwork("DeStreamTest") ?? InitDeStreamTest();
 
-        public static Network StratisRegTest => Network.GetNetwork("StratisRegTest") ?? InitStratisRegTest();
+        public static Network DeStreamRegTest => Network.GetNetwork("DeStreamRegTest") ?? InitDeStreamRegTest();
 
         public static Network DestreamTest => Network.GetNetwork("DestreamTest") ?? InitDestreamTest();
         public static Network DestreamTestServer => Network.GetNetwork("DestreamTest") ?? InitDestreamTestServerNetwork();
@@ -309,7 +309,7 @@ namespace NBitcoin
             return network;
         }
 
-        private static Network InitStratisMain()
+        private static Network InitDeStreamMain()
         {
             Block.BlockSignature = true;
             Transaction.TimeStamp = true;
@@ -348,7 +348,7 @@ namespace NBitcoin
 
             consensus.DefaultAssumeValid = new uint256("0x8c2cf95f9ca72e13c8c4cdf15c2d7cc49993946fb49be4be147e106d502f1869"); // 642930
 
-            Block genesis = CreateStratisGenesisBlock(1470467000, 1831645, 0x1e0fffff, 1, Money.Zero);
+            Block genesis = CreateDeStreamGenesisBlock(1470467000, 1831645, 0x1e0fffff, 1, Money.Zero);
             consensus.HashGenesisBlock = genesis.GetHash(consensus.NetworkOptions);
 
             // The message start string is designed to be unlikely to occur in normal data.
@@ -365,17 +365,17 @@ namespace NBitcoin
             Assert(genesis.Header.HashMerkleRoot == uint256.Parse("0x65a26bc20b0351aebf05829daefa8f7db2f800623439f3c114257c91447f1518"));
 
             var builder = new NetworkBuilder()
-                .SetName("StratisMain")
-                .SetRootFolderName(StratisRootFolderName)
-                .SetDefaultConfigFilename(StratisDefaultConfigFilename)
+                .SetName("DeStreamMain")
+                .SetRootFolderName(DeStreamRootFolderName)
+                .SetDefaultConfigFilename(DeStreamDefaultConfigFilename)
                 .SetConsensus(consensus)
                 .SetMagic(magic)
                 .SetGenesis(genesis)
                 .SetPort(16178)
                 .SetRPCPort(16174)
                 .SetTxFees(10000, 60000, 10000)
-                .SetMaxTimeOffsetSeconds(StratisMaxTimeOffsetSeconds)
-                .SetMaxTipAge(StratisDefaultMaxTipAgeInSeconds)
+                .SetMaxTimeOffsetSeconds(DeStreamMaxTimeOffsetSeconds)
+                .SetMaxTipAge(DeStreamDefaultMaxTipAgeInSeconds)
 
                 .AddDNSSeeds(new[]
                 {
@@ -421,12 +421,12 @@ namespace NBitcoin
             return builder.BuildAndRegister();
         }
 
-        private static Network InitStratisTest()
+        private static Network InitDeStreamTest()
         {
             Block.BlockSignature = true;
             Transaction.TimeStamp = true;
 
-            var consensus = Network.StratisMain.Consensus.Clone();
+            var consensus = Network.DeStreamMain.Consensus.Clone();
             consensus.PowLimit = new Target(uint256.Parse("0000ffff00000000000000000000000000000000000000000000000000000000"));
 
             // The message start string is designed to be unlikely to occur in normal data.
@@ -439,7 +439,7 @@ namespace NBitcoin
             messageStart[3] = 0x11;
             var magic = BitConverter.ToUInt32(messageStart, 0); //0x5223570; 
 
-            var genesis = Network.StratisMain.GetGenesis();
+            var genesis = Network.DeStreamMain.GetGenesis();
             genesis.Header.Time = 1493909211;
             genesis.Header.Nonce = 2433759;
             genesis.Header.Bits = consensus.PowLimit;
@@ -450,16 +450,16 @@ namespace NBitcoin
             consensus.DefaultAssumeValid = new uint256("0x12ae16993ce7f0836678f225b2f4b38154fa923bd1888f7490051ddaf4e9b7fa"); // 218810
 
             var builder = new NetworkBuilder()
-                .SetName("StratisTest")
-                .SetRootFolderName(StratisRootFolderName)
-                .SetDefaultConfigFilename(StratisDefaultConfigFilename)
+                .SetName("DeStreamTest")
+                .SetRootFolderName(DeStreamRootFolderName)
+                .SetDefaultConfigFilename(DeStreamDefaultConfigFilename)
                 .SetConsensus(consensus)
                 .SetMagic(magic)
                 .SetGenesis(genesis)
                 .SetPort(26178)
                 .SetRPCPort(26174)
-                .SetMaxTimeOffsetSeconds(StratisMaxTimeOffsetSeconds)
-                .SetMaxTipAge(StratisDefaultMaxTipAgeInSeconds)
+                .SetMaxTimeOffsetSeconds(DeStreamMaxTimeOffsetSeconds)
+                .SetMaxTipAge(DeStreamDefaultMaxTipAgeInSeconds)
                 .SetTxFees(10000, 60000, 10000)
                 .SetBase58Bytes(Base58Type.PUBKEY_ADDRESS, new byte[] { (65) })
                 .SetBase58Bytes(Base58Type.SCRIPT_ADDRESS, new byte[] { (196) })
@@ -520,7 +520,7 @@ namespace NBitcoin
             Block.BlockSignature = true;
             Transaction.TimeStamp = true;
 
-            var consensus = Network.StratisMain.Consensus.Clone();
+            var consensus = Network.DeStreamMain.Consensus.Clone();
             consensus.PowLimit = new Target(uint256.Parse("0000ffff00000000000000000000000000000000000000000000000000000000"));
 
             // The message start string is designed to be unlikely to occur in normal data.
@@ -533,7 +533,7 @@ namespace NBitcoin
             messageStart[3] = 0x11;
             var magic = BitConverter.ToUInt32(messageStart, 0); //0x5223570; 
 
-            var genesis = Network.StratisMain.GetGenesis();
+            var genesis = Network.DeStreamMain.GetGenesis();
             genesis.Header.Time = 1493909211;
             genesis.Header.Nonce = 2433759;
             genesis.Header.Bits = consensus.PowLimit;
@@ -545,15 +545,15 @@ namespace NBitcoin
 
             var builder = new NetworkBuilder()
                 .SetName("DestreamTest")
-                .SetRootFolderName(StratisRootFolderName)
-                .SetDefaultConfigFilename(StratisDefaultConfigFilename)
+                .SetRootFolderName(DeStreamRootFolderName)
+                .SetDefaultConfigFilename(DeStreamDefaultConfigFilename)
                 .SetConsensus(consensus)
                 .SetMagic(magic)
                 .SetGenesis(genesis)
                 .SetPort(26178)
                 .SetRPCPort(26174)
-                .SetMaxTimeOffsetSeconds(StratisMaxTimeOffsetSeconds)
-                .SetMaxTipAge(StratisDefaultMaxTipAgeInSeconds)
+                .SetMaxTimeOffsetSeconds(DeStreamMaxTimeOffsetSeconds)
+                .SetMaxTipAge(DeStreamDefaultMaxTipAgeInSeconds)
                 .SetTxFees(10000, 60000, 10000)
                 .SetBase58Bytes(Base58Type.PUBKEY_ADDRESS, new byte[] { (65) })
                 .SetBase58Bytes(Base58Type.SCRIPT_ADDRESS, new byte[] { (196) })
@@ -566,17 +566,17 @@ namespace NBitcoin
         }
 
 
-        private static Network InitStratisRegTest()
+        private static Network InitDeStreamRegTest()
         {
             // TODO: move this to Networks
-            var net = Network.GetNetwork("StratisRegTest");
+            var net = Network.GetNetwork("DeStreamRegTest");
             if (net != null)
                 return net;
 
             Block.BlockSignature = true;
             Transaction.TimeStamp = true;
 
-            var consensus = Network.StratisTest.Consensus.Clone();
+            var consensus = Network.DeStreamTest.Consensus.Clone();
             consensus.PowLimit = new Target(uint256.Parse("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"));
 
             consensus.PowAllowMinDifficultyBlocks = true;
@@ -589,7 +589,7 @@ namespace NBitcoin
             messageStart[3] = 0xef;
             var magic = BitConverter.ToUInt32(messageStart, 0);
 
-            var genesis = Network.StratisMain.GetGenesis();
+            var genesis = Network.DeStreamMain.GetGenesis();
             genesis.Header.Time = 1494909211;
             genesis.Header.Nonce = 2433759;
             genesis.Header.Bits = consensus.PowLimit;
@@ -600,16 +600,16 @@ namespace NBitcoin
             consensus.DefaultAssumeValid = null; // turn off assumevalid for regtest.
 
             var builder = new NetworkBuilder()
-                .SetName("StratisRegTest")
-                .SetRootFolderName(StratisRootFolderName)
-                .SetDefaultConfigFilename(StratisDefaultConfigFilename)
+                .SetName("DeStreamRegTest")
+                .SetRootFolderName(DeStreamRootFolderName)
+                .SetDefaultConfigFilename(DeStreamDefaultConfigFilename)
                 .SetConsensus(consensus)
                 .SetMagic(magic)
                 .SetGenesis(genesis)
                 .SetPort(18444)
                 .SetRPCPort(18442)
-                .SetMaxTimeOffsetSeconds(StratisMaxTimeOffsetSeconds)
-                .SetMaxTipAge(StratisDefaultMaxTipAgeInSeconds)
+                .SetMaxTimeOffsetSeconds(DeStreamMaxTimeOffsetSeconds)
+                .SetMaxTipAge(DeStreamDefaultMaxTipAgeInSeconds)
                 .SetBase58Bytes(Base58Type.PUBKEY_ADDRESS, new byte[] { (65) })
                 .SetBase58Bytes(Base58Type.SCRIPT_ADDRESS, new byte[] { (196) })
                 .SetBase58Bytes(Base58Type.SECRET_KEY, new byte[] { (65 + 128) })
@@ -656,13 +656,13 @@ namespace NBitcoin
             return genesis;
         }
 
-        private static Block CreateStratisGenesisBlock(uint nTime, uint nNonce, uint nBits, int nVersion, Money genesisReward)
+        private static Block CreateDeStreamGenesisBlock(uint nTime, uint nNonce, uint nBits, int nVersion, Money genesisReward)
         {
             string pszTimestamp = "http://www.theonion.com/article/olympics-head-priestess-slits-throat-official-rio--53466";
-            return CreateStratisGenesisBlock(pszTimestamp, nTime, nNonce, nBits, nVersion, genesisReward);
+            return CreateDeStreamGenesisBlock(pszTimestamp, nTime, nNonce, nBits, nVersion, genesisReward);
         }
 
-        private static Block CreateStratisGenesisBlock(string pszTimestamp, uint nTime, uint nNonce, uint nBits, int nVersion, Money genesisReward)
+        private static Block CreateDeStreamGenesisBlock(string pszTimestamp, uint nTime, uint nNonce, uint nBits, int nVersion, Money genesisReward)
         {
             Transaction txNew = new Transaction();
             txNew.Version = 1;

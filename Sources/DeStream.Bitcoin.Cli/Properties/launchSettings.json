@@ -1,0 +1,16 @@
+{
+  "profiles": {
+    "DeStream.CLI DeStream REST API": {
+      "commandName": "Project",
+      "commandLineArgs": "stratis Wallet/files"
+    },
+    "DeStream.CLI DeStream RPC": {
+      "commandName": "Project",
+      "commandLineArgs": "stratis -rpcuser=stratistestuser -rpcpassword=stratistestpass -rpcport=26174 getinfo"
+    },
+    "DeStream.CLI Bitcoin RPC": {
+      "commandName": "Project",
+      "commandLineArgs": "bitcoin -rpcuser=btctestuser -rpcpassword=btctestpass getbalance"
+    }
+  }
+}

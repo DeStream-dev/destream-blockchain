@@ -20,7 +20,7 @@ namespace NBitcoin.Tests
 
         public pos_RPCClientTests()
         {
-            // These tests should be using the Stratis network.
+            // These tests should be using the DeStream network.
             // Set these expected values accordingly.
             Transaction.TimeStamp = true;
             Block.BlockSignature = true;
@@ -31,7 +31,7 @@ namespace NBitcoin.Tests
         {
             if (noClient) return;
 
-            using (var builder = NodeBuilderStratis.Create())
+            using (var builder = NodeBuilderDeStream.Create())
             {
                 RPCClient rpc = builder.CreateNode().CreateRPCClient();
                 builder.StartAll();
@@ -47,7 +47,7 @@ namespace NBitcoin.Tests
         {
             if (noClient) return;
 
-            using (var builder = NodeBuilderStratis.Create())
+            using (var builder = NodeBuilderDeStream.Create())
             {
                 RPCClient rpc = builder.CreateNode().CreateRPCClient();
                 builder.StartAll();
@@ -61,14 +61,14 @@ namespace NBitcoin.Tests
         {
             if (noClient) return;
 
-            using (var builder = NodeBuilderStratis.Create())
+            using (var builder = NodeBuilderDeStream.Create())
             {
                 RPCClient rpc = builder.CreateNode().CreateRPCClient();
                 builder.StartAll();
                 RPCResponse response = rpc.SendCommand(RPCOperations.getblockhash, 0);
                 var actualGenesis = (string)response.Result;
-                Assert.Equal(Network.StratisMain.GetGenesis().GetHash().ToString(), actualGenesis);
-                //Assert.Equal(Network.StratisMain.GetGenesis().GetHash(), rpc.GetBestBlockHash());
+                Assert.Equal(Network.DeStreamMain.GetGenesis().GetHash().ToString(), actualGenesis);
+                //Assert.Equal(Network.DeStreamMain.GetGenesis().GetHash(), rpc.GetBestBlockHash());
             }
         }
 
@@ -77,9 +77,9 @@ namespace NBitcoin.Tests
         {
             if (noClient) return;
 
-            using (var builder = NodeBuilderStratis.Create())
+            using (var builder = NodeBuilderDeStream.Create())
             {
-                CoreNodeStratis node = builder.CreateNode();
+                CoreNodeDeStream node = builder.CreateNode();
                 RPCClient rpc = node.CreateRPCClient();
                 builder.StartAll();
                 ////node.Generate(101);
@@ -95,9 +95,9 @@ namespace NBitcoin.Tests
         {
             if (noClient) return;
 
-            using (var builder = NodeBuilderStratis.Create())
+            using (var builder = NodeBuilderDeStream.Create())
             {
-                CoreNodeStratis node = builder.CreateNode();
+                CoreNodeDeStream node = builder.CreateNode();
                 RPCClient rpc = node.CreateRPCClient();
                 builder.StartAll();
                 ////node.Generate(10);
@@ -111,15 +111,15 @@ namespace NBitcoin.Tests
         {
             if (noClient) return;
 
-            using (var builder = NodeBuilderStratis.Create())
+            using (var builder = NodeBuilderDeStream.Create())
             {
                 RPCClient rpc = builder.CreateNode().CreateRPCClient();
                 builder.StartAll();
                 BlockHeader response = rpc.GetBlockHeader(0);
-                AssertEx.CollectionEquals(Network.StratisMain.GetGenesis().Header.ToBytes(), response.ToBytes());
+                AssertEx.CollectionEquals(Network.DeStreamMain.GetGenesis().Header.ToBytes(), response.ToBytes());
 
                 response = rpc.GetBlockHeader(0);
-                Assert.Equal(Network.StratisMain.GenesisHash, response.GetHash());
+                Assert.Equal(Network.DeStreamMain.GenesisHash, response.GetHash());
             }
         }
 
@@ -128,7 +128,7 @@ namespace NBitcoin.Tests
         //{
         //    if (RPCClientTests_pos.noClient) return;
 
-        //    using (var builder = NodeBuilderStratis.Create())
+        //    using (var builder = NodeBuilderDeStream.Create())
         //    {
         //        var node = builder.CreateNode();
         //        node.Start();
@@ -143,7 +143,7 @@ namespace NBitcoin.Tests
         //{
         //    if (RPCClientTests_pos.noClient) return;
 
-        //    using (var builder = NodeBuilderStratis.Create())
+        //    using (var builder = NodeBuilderDeStream.Create())
         //    {
         //        var node = builder.CreateNode();
         //        node.Start();
@@ -158,7 +158,7 @@ namespace NBitcoin.Tests
         {
             if (noClient) return;
 
-            using (var builder = NodeBuilderStratis.Create())
+            using (var builder = NodeBuilderDeStream.Create())
             {
                 RPCClient rpc = builder.CreateNode().CreateRPCClient();
                 builder.StartAll();
@@ -173,12 +173,12 @@ namespace NBitcoin.Tests
         //{
         //    if (RPCClientTests_pos.noClient) return;
 
-        //    using (var builder = NodeBuilderStratis.Create())
+        //    using (var builder = NodeBuilderDeStream.Create())
         //    {
         //        var rpc = builder.CreateNode().CreateRPCClient();
         //        builder.StartAll();
         //        Key key = new Key();
-        //        rpc.ImportAddress(key.PubKey.GetAddress(Network.StratisMain), TestAccount, false);
+        //        rpc.ImportAddress(key.PubKey.GetAddress(Network.DeStreamMain), TestAccount, false);
         //        BitcoinAddress address = rpc.GetAccountAddress(TestAccount);
         //        BitcoinSecret secret = rpc.DumpPrivKey(address);
         //        BitcoinSecret secret2 = rpc.GetAccountSecret(TestAccount);
@@ -196,7 +196,7 @@ namespace NBitcoin.Tests
         //    foreach(var test in tests)
         //    {
         //        var format = (RawFormat)Enum.Parse(typeof(RawFormat), (string)test[0], true);
-        //        var network = ((string)test[1]) == "Main" ? Network.StratisMain : Network.StratisMain;
+        //        var network = ((string)test[1]) == "Main" ? Network.DeStreamMain : Network.DeStreamMain;
         //        var testData = ((JObject)test[2]).ToString();
 
         //        Transaction raw = Transaction.Parse(testData, format, network);
@@ -277,9 +277,9 @@ namespace NBitcoin.Tests
         {
             if (noClient) return;
 
-            using (var builder = NodeBuilderStratis.Create())
+            using (var builder = NodeBuilderDeStream.Create())
             {
-                CoreNodeStratis node = builder.CreateNode();
+                CoreNodeDeStream node = builder.CreateNode();
                 builder.StartAll();
 
                 RPCClient rpc = node.CreateRPCClient();
@@ -299,7 +299,7 @@ namespace NBitcoin.Tests
 
             if (pos_RPCClientTests.noClient) return;
 
-            using (var builder = NodeBuilderStratis.Create())
+            using (var builder = NodeBuilderDeStream.Create())
             {
                 var nodeA = builder.CreateNode();
                 builder.StartAll();
@@ -307,7 +307,7 @@ namespace NBitcoin.Tests
                 using(var node = nodeA.CreateNodeClient())
                 {
                     node.VersionHandshake();
-                    var peers = rpc.GetStratisPeersInfoAsync().Result;
+                    var peers = rpc.GetDeStreamPeersInfoAsync().Result;
                     Assert.NotEmpty(peers);
                 }
             }
@@ -348,9 +348,9 @@ namespace NBitcoin.Tests
         {
             if (noClient) return;
 
-            using (var builder = NodeBuilderStratis.Create())
+            using (var builder = NodeBuilderDeStream.Create())
             {
-                CoreNodeStratis node = builder.CreateNode();
+                CoreNodeDeStream node = builder.CreateNode();
                 builder.StartAll();
                 RPCClient rpcClient = node.CreateRPCClient();
                 try
@@ -373,10 +373,10 @@ namespace NBitcoin.Tests
         {
             if (noClient) return;
 
-            using (var builder = NodeBuilderStratis.Create())
+            using (var builder = NodeBuilderDeStream.Create())
             {
-                CoreNodeStratis nodeA = builder.CreateNode();
-                CoreNodeStratis nodeB = builder.CreateNode();
+                CoreNodeDeStream nodeA = builder.CreateNode();
+                CoreNodeDeStream nodeB = builder.CreateNode();
                 builder.StartAll();
 
                 RPCClient rpc = nodeA.CreateRPCClient();
@@ -409,7 +409,7 @@ namespace NBitcoin.Tests
         //{
         //    if (RPCClientTests_pos.noClient) return;
 
-        //    using (var builder = NodeBuilderStratis.Create())
+        //    using (var builder = NodeBuilderDeStream.Create())
         //    {
         //        var node = builder.CreateNode();
         //        node.Start();
@@ -434,7 +434,7 @@ namespace NBitcoin.Tests
         //{
         //    if (RPCClientTests_pos.noClient) return;
 
-        //    using (var builder = NodeBuilderStratis.Create())
+        //    using (var builder = NodeBuilderDeStream.Create())
         //    {
         //        var node = builder.CreateNode();
         //        node.Start();

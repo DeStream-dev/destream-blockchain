@@ -20,9 +20,9 @@ namespace NBitcoin.Tests
         //rpcallowip=*
         //txindex=1 
 
-    public class NodeBuilderStratis : IDisposable
+    public class NodeBuilderDeStream : IDisposable
     {
-        public static NodeBuilderStratis Create([CallerMemberName]string caller = null, string version = "0.12.1")
+        public static NodeBuilderDeStream Create([CallerMemberName]string caller = null, string version = "0.12.1")
         {
             //version = version ?? "0.12.1";
             var path = string.Empty;//EnsureDownloaded(version);
@@ -34,7 +34,7 @@ namespace NBitcoin.Tests
             //{
             //}
             //Directory.CreateDirectory(caller);
-            return new NodeBuilderStratis(caller, path);
+            return new NodeBuilderDeStream(caller, path);
         }
 
         //private static string EnsureDownloaded(string version)
@@ -59,7 +59,7 @@ namespace NBitcoin.Tests
         int last = 0;
         private string _Root;
         private string _Bitcoind;
-        public NodeBuilderStratis(string root, string bitcoindPath)
+        public NodeBuilderDeStream(string root, string bitcoindPath)
         {
             this._Root = root;
             this._Bitcoind = bitcoindPath;
@@ -74,8 +74,8 @@ namespace NBitcoin.Tests
         }
 
 
-        private readonly List<CoreNodeStratis> _Nodes = new List<CoreNodeStratis>();
-        public List<CoreNodeStratis> Nodes
+        private readonly List<CoreNodeDeStream> _Nodes = new List<CoreNodeDeStream>();
+        public List<CoreNodeDeStream> Nodes
         {
             get
             {
@@ -93,7 +93,7 @@ namespace NBitcoin.Tests
             }
         }
 
-        public CoreNodeStratis CreateNode(bool start = false)
+        public CoreNodeDeStream CreateNode(bool start = false)
         {
             var child = Path.Combine(_Root, last.ToString());
             last++;
@@ -104,7 +104,7 @@ namespace NBitcoin.Tests
             //catch(DirectoryNotFoundException)
             //{
             //}
-            var node = new CoreNodeStratis(child, this);
+            var node = new CoreNodeDeStream(child, this);
             Nodes.Add(node);
             return node;
         }
@@ -131,9 +131,9 @@ namespace NBitcoin.Tests
         }
     }
 
-    public class CoreNodeStratis
+    public class CoreNodeDeStream
     {
-        private readonly NodeBuilderStratis _Builder;
+        private readonly NodeBuilderDeStream _Builder;
         private string _Folder;
         public string Folder
         {
@@ -161,7 +161,7 @@ namespace NBitcoin.Tests
             }
         }
 
-        public CoreNodeStratis(string folder, NodeBuilderStratis builder)
+        public CoreNodeDeStream(string folder, NodeBuilderDeStream builder)
         {
             this._Builder = builder;
             this._Folder = folder;
@@ -176,8 +176,8 @@ namespace NBitcoin.Tests
             //ConfigParameters.Import(builder.ConfigParameters);
             ports = new int[2];
             FindPorts(ports);
-            //ports[1] = Network.StratisMain.RPCPort;
-            //ports[0] = Network.StratisMain.DefaultPort;
+            //ports[1] = Network.DeStreamMain.RPCPort;
+            //ports[0] = Network.DeStreamMain.DefaultPort;
         }
 
         private void CleanFolder()
@@ -226,7 +226,7 @@ namespace NBitcoin.Tests
             //return new RPCClient(creds, new Uri("http://127.0.0.1:" + ports[1].ToString() + "/"), Network.RegTest);
             // currently only use mainnet
             // credentials should be set in advance
-            return new RPCClient(new NetworkCredential("rpcuser", "rpcpassword"), new Uri("http://127.0.0.1:" + Network.StratisMain.RPCPort + "/"), Network.StratisMain);
+            return new RPCClient(new NetworkCredential("rpcuser", "rpcpassword"), new Uri("http://127.0.0.1:" + Network.DeStreamMain.RPCPort + "/"), Network.DeStreamMain);
         }
 
         public RestClient CreateRESTClient()
@@ -238,7 +238,7 @@ namespace NBitcoin.Tests
          * TODO: Consider importing to FN.
         public Node CreateNodeClient()
         {
-            return Node.Connect(Network.StratisMain, "127.0.0.1:" + Network.StratisMain.DefaultPort); //ports[0].ToString());
+            return Node.Connect(Network.DeStreamMain, "127.0.0.1:" + Network.DeStreamMain.DefaultPort); //ports[0].ToString());
         }
         public Node CreateNodeClient(NodeConnectionParameters parameters)
         {
