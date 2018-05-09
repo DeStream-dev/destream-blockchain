@@ -11,7 +11,7 @@ using Stratis.Bitcoin.Features.LightWallet;
 using Stratis.Bitcoin.Features.Notifications;
 using Stratis.Bitcoin.Utilities;
 
-namespace Stratis.BreezeD
+namespace DeStream.BreezeD
 {
     public class Program
     {

@@ -15,7 +15,7 @@ using Stratis.Bitcoin.Features.RPC;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Utilities;
 
-namespace Stratis.StratisD
+namespace DeStream.DeStreamD
 {
     public class Program
     {
