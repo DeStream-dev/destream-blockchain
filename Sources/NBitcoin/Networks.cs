@@ -70,11 +70,11 @@ namespace NBitcoin
         /// <summary> The default name used for the Stratis configuration file. </summary>
         public const string DeStreamDefaultConfigFilename = "destream.conf";
 
-        public static Network DeStreamMain => Network.GetNetwork("StratisMain") ?? InitDeStreamMain();
+        public static Network DeStreamMain => Network.GetNetwork("DeStreamMain") ?? InitDeStreamMain();
 
         public static Network DeStreamTest => Network.GetNetwork("DeStreamTest") ?? InitDeStreamTest();
 
-        public static Network DeStreamRegTest => Network.GetNetwork("StratisRegTest") ?? InitDeStreamRegTest();
+        public static Network DeStreamRegTest => Network.GetNetwork("DeStreamRegTest") ?? InitDeStreamRegTest();
         
         #endregion
 
