@@ -11,6 +11,8 @@ using Stratis.Bitcoin.Features.LightWallet;
 using Stratis.Bitcoin.Features.Notifications;
 using Stratis.Bitcoin.Utilities;
 
+using DeStream.Stratis.Bitcoin.Configuration;
+
 namespace DeStream.BreezeD
 {
     public class Program
@@ -30,16 +32,16 @@ namespace DeStream.BreezeD
 
                 var agent = "Breeze";
 
-                NodeSettings nodeSettings;
+                DeStreamNodeSettings nodeSettings;
 
                 if (isDeStream)
                 {
                     Network network = isTestNet ? Network.DeStreamTest : Network.DeStreamMain;
-                    nodeSettings = new NodeSettings(network, ProtocolVersion.ALT_PROTOCOL_VERSION, agent, args:args, loadConfiguration:false);
+                    nodeSettings = new DeStreamNodeSettings(network, ProtocolVersion.ALT_PROTOCOL_VERSION, agent, args:args, loadConfiguration:false);
                 }
                 else
                 {
-                    nodeSettings = new NodeSettings(agent: agent, args: args, loadConfiguration:false);
+                    nodeSettings = new DeStreamNodeSettings(agent: agent, args: args, loadConfiguration:false);
                 }
 
                 IFullNodeBuilder fullNodeBuilder = new FullNodeBuilder()

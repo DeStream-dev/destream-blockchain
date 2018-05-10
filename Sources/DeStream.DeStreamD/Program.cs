@@ -15,6 +15,8 @@ using Stratis.Bitcoin.Features.RPC;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Utilities;
 
+using DeStream.Stratis.Bitcoin.Configuration;
+
 namespace DeStream.DeStreamD
 {
     public class Program
@@ -33,7 +35,7 @@ namespace DeStream.DeStreamD
                     network = Network.DeStreamTest;
                 else
                     network = Network.DeStreamMain;
-                NodeSettings nodeSettings = new NodeSettings(network, ProtocolVersion.ALT_PROTOCOL_VERSION, args:args, loadConfiguration:false);
+                DeStreamNodeSettings nodeSettings = new DeStreamNodeSettings(network, ProtocolVersion.ALT_PROTOCOL_VERSION, args:args, loadConfiguration:false);
 
                 Console.WriteLine($"current network: {network.Name}");
 

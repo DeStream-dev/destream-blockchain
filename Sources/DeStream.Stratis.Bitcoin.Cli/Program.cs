@@ -11,6 +11,8 @@ using Stratis.Bitcoin.Configuration;
 using Stratis.Bitcoin.Features.RPC;
 using Stratis.Bitcoin.Utilities.Extensions;
 
+using DeStream.Stratis.Bitcoin.Configuration;
+
 namespace Stratis.Bitcoin.Cli
 {
     public class Program
@@ -61,11 +63,11 @@ namespace Stratis.Bitcoin.Cli
                 {
                     var builder = new StringBuilder();
                     builder.AppendLine("Usage:");
-                    builder.AppendLine(" dotnet run <Stratis.Bitcoin.Cli/Stratis.Bitcoin.Cli.dll> [network-name] [options] <command> [arguments]");
+                    builder.AppendLine(" dotnet run <DeStream.Stratis.Bitcoin.Cli/DeStream.Stratis.Bitcoin.Cli.dll> [network-name] [options] <command> [arguments]");
                     builder.AppendLine();
                     builder.AppendLine("Command line arguments:");
                     builder.AppendLine();
-                    builder.AppendLine("[network-name]                     Name of the network - e.g. \"stratis\", \"stratismain\", \"stratistest\", \"bitcoinmain\", \"bitcointest\".");
+                    builder.AppendLine("[network-name]                     Name of the network - e.g. \"destream\", \"destreammain\", \"destreamtest\", \"bitcoinmain\", \"bitcointest\".");
                     builder.AppendLine("[options]                          Options for the CLI (optional) - e.g. -help, -rpcuser, see below.");
                     builder.AppendLine("[command]                          Name of RPC method or API <controller>/<method>.");
                     builder.AppendLine("[arguments]                        Argument by position (RPC) or Name = Value pairs (API) (optional).");
@@ -73,14 +75,14 @@ namespace Stratis.Bitcoin.Cli
                     builder.AppendLine("Options:");
                     builder.AppendLine("-help                              This help message");
                     builder.AppendLine("-rpcconnect=<ip>                   Send commands to node running on <ip> (default: 127.0.0.1)");
-                    builder.AppendLine("-rpcport=<port>                    Connect to JSON-RPC on <port> (default for Stratis: 26174 or default for Bitcoin: 8332)");
+                    builder.AppendLine("-rpcport=<port>                    Connect to JSON-RPC on <port> (default for destream: 26174 or default for Bitcoin: 8332)");
                     builder.AppendLine("-rpcuser=<user>                    Username for JSON-RPC connections");
                     builder.AppendLine("-rpcpassword=<pw>                  Password for JSON-RPC connections");
                     builder.AppendLine();
                     builder.AppendLine("Examples:");
                     builder.AppendLine();
-                    builder.AppendLine("dotnet run stratis Wallet/history WalletName=testwallet - Lists all the historical transactions of the wallet called 'testwallet'.");
-                    builder.AppendLine("dotnet run stratis getinfo -rpcuser=stratistestuser -rpcpassword=stratistestpassword -rpcconnect=127.0.0.3 -rpcport=26174 - Displays general information about the Stratis node on the 127.0.0.3:26174, authenticating with the RPC specified user.");
+                    builder.AppendLine("dotnet run destream Wallet/history WalletName=testwallet - Lists all the historical transactions of the wallet called 'testwallet'.");
+                    builder.AppendLine("dotnet run destream getinfo -rpcuser=destreamtestuser -rpcpassword=destreamtestpassword -rpcconnect=127.0.0.3 -rpcport=26174 - Displays general information about the destream node on the 127.0.0.3:26174, authenticating with the RPC specified user.");
                     builder.AppendLine("dotnet run bitcoin getbalance -rpcuser=btctestuser -rpcpassword=btctestpass - Displays the current balance of the opened wallet on the 127.0.0.1:8332 node, authenticating with the RPC specified user.");
                     Console.WriteLine(builder);
                     return;
@@ -90,10 +92,10 @@ namespace Stratis.Bitcoin.Cli
                 int defaultRestApiPort = 0;
                 Network network = null;
 
-                if (networkName.Contains("stratis"))
+                if (networkName.Contains("destream"))
                 {
                     defaultRestApiPort = 37221;
-                    network = Network.StratisMain;
+                    network = Network.DeStreamMain;
                 }
                 else
                 {
@@ -112,7 +114,7 @@ namespace Stratis.Bitcoin.Cli
                     {
                         var options = optionList.ToArray();
 
-                        NodeSettings nodeSettings = new NodeSettings(network, args:options);
+                        DeStreamNodeSettings nodeSettings = new DeStreamNodeSettings(network, args:options);
 
                         var rpcSettings = new RpcSettings();
 

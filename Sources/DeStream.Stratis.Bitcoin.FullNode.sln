@@ -93,6 +93,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeStream.DeStreamD", "DeStr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeStream.BreezeD", "DeStream.BreezeD\DeStream.BreezeD.csproj", "{5303E8B0-C422-4D1C-8096-24DF6AF75E31}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeStream.Stratis.Bitcoin", "DeStream.Stratis.Bitcoin\DeStream.Stratis.Bitcoin.csproj", "{CFE3D6A4-8B4F-4466-984B-74909ED2DA20}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeStream.Stratis.Bitcoin.Cli", "DeStream.Stratis.Bitcoin.Cli\DeStream.Stratis.Bitcoin.Cli.csproj", "{79B71F10-9B43-45C2-ADA4-A84324810D5C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -235,6 +239,14 @@ Global
 		{5303E8B0-C422-4D1C-8096-24DF6AF75E31}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5303E8B0-C422-4D1C-8096-24DF6AF75E31}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5303E8B0-C422-4D1C-8096-24DF6AF75E31}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CFE3D6A4-8B4F-4466-984B-74909ED2DA20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CFE3D6A4-8B4F-4466-984B-74909ED2DA20}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CFE3D6A4-8B4F-4466-984B-74909ED2DA20}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CFE3D6A4-8B4F-4466-984B-74909ED2DA20}.Release|Any CPU.Build.0 = Release|Any CPU
+		{79B71F10-9B43-45C2-ADA4-A84324810D5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79B71F10-9B43-45C2-ADA4-A84324810D5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79B71F10-9B43-45C2-ADA4-A84324810D5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79B71F10-9B43-45C2-ADA4-A84324810D5C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

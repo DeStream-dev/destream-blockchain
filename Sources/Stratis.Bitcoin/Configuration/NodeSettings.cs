@@ -160,7 +160,7 @@ namespace Stratis.Bitcoin.Configuration
         /// <summary>Minimum relay transaction fee for network.</summary>
         public FeeRate MinRelayTxFeeRate { get; set; }
 
-        public TextFileConfiguration ConfigReader { get; private set; }
+        public TextFileConfiguration ConfigReader { get; protected set; }
 
         /// <summary><c>true</c> to sync time with other peers and calculate adjusted time, <c>false</c> to use our system clock only.</summary>
         public bool SyncTimeEnabled { get; set; }
@@ -181,7 +181,7 @@ namespace Stratis.Bitcoin.Configuration
         /// </summary>
         /// <returns>Initialized node configuration.</returns>
         /// <exception cref="ConfigurationException">Thrown in case of any problems with the configuration file or command line arguments.</exception>
-        public NodeSettings LoadConfiguration()
+        public virtual NodeSettings LoadConfiguration()
         {
             // Configuration already loaded?
             if (this.ConfigReader != null)
@@ -301,7 +301,7 @@ namespace Stratis.Bitcoin.Configuration
         /// Creates a default configuration file if no configuration file is found.
         /// </summary>
         /// <returns>Path to the configuration file.</returns>
-        private string CreateDefaultConfigurationFile()
+        protected string CreateDefaultConfigurationFile()
         {
             string configFilePath = Path.Combine(this.DataDir, this.Network.DefaultConfigFilename);
             this.Logger.LogDebug("Configuration file set to '{0}'.", configFilePath);
@@ -330,7 +330,7 @@ namespace Stratis.Bitcoin.Configuration
         /// <param name="appName">Name of the node, which will be reflected in the name of the data directory.</param>
         /// <param name="network">Specification of the network the node runs on - regtest/testnet/mainnet.</param>
         /// <returns>The top-level data directory path.</returns>
-        private string CreateDefaultDataDirectories(string appName, Network network)
+        protected string CreateDefaultDataDirectories(string appName, Network network)
         {
             string directoryPath;
 
