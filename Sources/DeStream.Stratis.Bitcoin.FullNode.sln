@@ -95,7 +95,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeStream.BreezeD", "DeStrea
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeStream.Stratis.Bitcoin", "DeStream.Stratis.Bitcoin\DeStream.Stratis.Bitcoin.csproj", "{CFE3D6A4-8B4F-4466-984B-74909ED2DA20}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeStream.Stratis.Bitcoin.Cli", "DeStream.Stratis.Bitcoin.Cli\DeStream.Stratis.Bitcoin.Cli.csproj", "{79B71F10-9B43-45C2-ADA4-A84324810D5C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeStream.Bitcoin.Cli", "DeStream.Bitcoin.Cli\DeStream.Bitcoin.Cli.csproj", "{79B71F10-9B43-45C2-ADA4-A84324810D5C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

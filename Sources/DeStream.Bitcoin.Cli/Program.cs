@@ -13,7 +13,7 @@ using Stratis.Bitcoin.Utilities.Extensions;
 
 using DeStream.Stratis.Bitcoin.Configuration;
 
-namespace Stratis.Bitcoin.Cli
+namespace DeStream.Bitcoin.Cli
 {
     public class Program
     {
