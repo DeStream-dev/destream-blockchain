@@ -28,14 +28,7 @@ namespace Stratis.StratisD
         {
             try
             {
-                Network network = null;
-                if (args.Contains("-testnet"))
-                    network = Network.StratisTest;
-                else
-                    network = Network.StratisMain;
-                NodeSettings nodeSettings = new NodeSettings(network, ProtocolVersion.ALT_PROTOCOL_VERSION, args:args, loadConfiguration:false);
-
-                Console.WriteLine($"current network: {network.Name}");
+                NodeSettings nodeSettings = new NodeSettings(protocolVersion:ProtocolVersion.ALT_PROTOCOL_VERSION, args:args, loadConfiguration:false);
 
                 // NOTES: running BTC and STRAT side by side is not possible yet as the flags for serialization are static
                 var node = new FullNodeBuilder()

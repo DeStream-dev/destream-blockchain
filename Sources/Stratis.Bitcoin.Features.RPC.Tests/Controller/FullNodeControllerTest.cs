@@ -14,16 +14,16 @@ using Stratis.Bitcoin.Connection;
 using Stratis.Bitcoin.Features.Consensus.Interfaces;
 using Stratis.Bitcoin.Features.RPC.Controllers;
 using Stratis.Bitcoin.Features.RPC.Models;
-using Stratis.Bitcoin.Features.Wallet.Tests;
 using Stratis.Bitcoin.Interfaces;
 using Stratis.Bitcoin.P2P.Peer;
-using Stratis.Bitcoin.Tests.Logging;
+using Stratis.Bitcoin.Tests.Common.Logging;
+using Stratis.Bitcoin.Tests.Wallet.Common;
 using Stratis.Bitcoin.Utilities;
 using Xunit;
 
 namespace Stratis.Bitcoin.Features.RPC.Tests.Controller
 {
-    public class FullNodeControllerTest : LogsTestBase, IDisposable
+    public class FullNodeControllerTest : LogsTestBase
     {
         private ConcurrentChain chain;
         private readonly Mock<IFullNode> fullNode;
@@ -41,10 +41,6 @@ namespace Stratis.Bitcoin.Features.RPC.Tests.Controller
 
         public FullNodeControllerTest()
         {
-            this.initialBlockSignature = Block.BlockSignature;
-
-            Block.BlockSignature = false;
-
             this.fullNode = new Mock<IFullNode>();
             this.chainState = new Mock<IChainState>();
             this.connectionManager = new Mock<IConnectionManager>();
@@ -58,11 +54,6 @@ namespace Stratis.Bitcoin.Features.RPC.Tests.Controller
             this.networkDifficulty = new Mock<INetworkDifficulty>();
             this.controller = new FullNodeController(this.LoggerFactory.Object, this.pooledTransaction.Object, this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object,
                 this.consensusLoop.Object, this.fullNode.Object, this.nodeSettings, this.network, this.chain, this.chainState.Object, this.connectionManager.Object);
-        }
-
-        public void Dispose()
-        {
-            Block.BlockSignature = this.initialBlockSignature;
         }
 
         [Fact]
@@ -489,7 +480,7 @@ namespace Stratis.Bitcoin.Features.RPC.Tests.Controller
         public void GetInfo_NoChainTip_ReturnsModel()
         {
             this.chainState.Setup(c => c.ConsensusTip)
-                .Returns((ChainedBlock)null);
+                .Returns((ChainedHeader)null);
 
             this.controller = new FullNodeController(this.LoggerFactory.Object, this.pooledTransaction.Object, this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object,
                 this.consensusLoop.Object, this.fullNode.Object, this.nodeSettings, this.network, this.chain, this.chainState.Object, this.connectionManager.Object);
@@ -686,6 +677,53 @@ namespace Stratis.Bitcoin.Features.RPC.Tests.Controller
                 (byte)(compact >> 8),
                 (byte)(compact)
             };
+        }
+
+        public class TestReadOnlyNetworkPeerCollection : IReadOnlyNetworkPeerCollection
+        {
+            public event EventHandler<NetworkPeerEventArgs> Added;
+            public event EventHandler<NetworkPeerEventArgs> Removed;
+
+            private List<INetworkPeer> networkPeers;
+
+            public TestReadOnlyNetworkPeerCollection()
+            {
+                this.Added = new EventHandler<NetworkPeerEventArgs>((obj, eventArgs) => { });
+                this.Removed = new EventHandler<NetworkPeerEventArgs>((obj, eventArgs) => { });
+                this.networkPeers = new List<INetworkPeer>();
+            }
+
+            public TestReadOnlyNetworkPeerCollection(List<INetworkPeer> peers)
+            {
+                this.Added = new EventHandler<NetworkPeerEventArgs>((obj, eventArgs) => { });
+                this.Removed = new EventHandler<NetworkPeerEventArgs>((obj, eventArgs) => { });
+                this.networkPeers = peers;
+            }
+
+            public INetworkPeer FindByEndpoint(IPEndPoint endpoint)
+            {
+                return null;
+            }
+
+            public INetworkPeer FindByIp(IPAddress ip)
+            {
+                return null;
+            }
+
+            public INetworkPeer FindLocal()
+            {
+                return null;
+            }
+
+            public IEnumerator<INetworkPeer> GetEnumerator()
+            {
+                return this.networkPeers.GetEnumerator();
+            }
+
+            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+            {
+                return this.GetEnumerator();
+            }
         }
     }
 }

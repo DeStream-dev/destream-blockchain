@@ -1,16 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using NBitcoin;
 using Stratis.Bitcoin.Configuration;
-using Stratis.Bitcoin.Tests;
+using Stratis.Bitcoin.Tests.Common;
 using Xunit;
 
 namespace Stratis.Bitcoin.Features.RPC.Tests
 {
     public class RPCSettingsTest : TestBase
     {
+        public RPCSettingsTest() : base(Network.TestNet)
+        {
+        }
+
         [Fact]
         public void Load_ValidNodeSettings_UpdatesRpcSettingsFromNodeSettings()
         {

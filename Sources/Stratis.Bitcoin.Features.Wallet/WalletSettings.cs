@@ -13,9 +13,14 @@ namespace Stratis.Bitcoin.Features.Wallet
     public class WalletSettings
     {
         /// <summary>
-        /// Enable the node to stake.
+        /// A value indicating whether the transactions hex representations should be saved in the wallet file.
         /// </summary>
-        public bool SaveTransactionHex { get; private set; }
+        public bool SaveTransactionHex { get; set; }
+
+        /// <summary>
+        /// A value indicating whether the wallet being run is the light wallet or the full wallet.
+        /// </summary>
+        public bool IsLightWallet { get; set; }
 
         /// <summary>
         /// A callback allow changing the default settings.
@@ -34,7 +39,7 @@ namespace Stratis.Bitcoin.Features.Wallet
         /// </summary>
         /// <param name="callback">Callback routine to be called once the wallet settings are loaded.</param>
         public WalletSettings(Action<WalletSettings> callback = null)
-        {        
+        {
             this.callback = callback;
         }
 
@@ -60,8 +65,20 @@ namespace Stratis.Bitcoin.Features.Wallet
             var defaults = NodeSettings.Default();
             var builder = new StringBuilder();
 
-            builder.AppendLine("-savetrxhex=<0 or 1>            Save the hex of transactions in the wallet file.");
+            builder.AppendLine("-savetrxhex=<0 or 1>            Save the hex of transactions in the wallet file. Default: false.");
             defaults.Logger.LogInformation(builder.ToString());
+        }
+
+        /// <summary>
+        /// Get the default configuration.
+        /// </summary>
+        /// <param name="builder">The string builder to add the settings to.</param>
+        /// <param name="network">The network to base the defaults off.</param>
+        public static void BuildDefaultConfigurationFile(StringBuilder builder, Network network)
+        {
+            builder.AppendLine("####Wallet Settings####");
+            builder.AppendLine("#Save the hex of transactions in the wallet file. Default: 0.");
+            builder.AppendLine("#savetrxhex=0");
         }
     }
 }

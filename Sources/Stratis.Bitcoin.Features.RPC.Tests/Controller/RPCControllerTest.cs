@@ -20,13 +20,13 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Stratis.Bitcoin.Features.RPC.Controllers;
 using Stratis.Bitcoin.Features.RPC.Models;
-using Stratis.Bitcoin.Tests.Logging;
+using Stratis.Bitcoin.Tests.Common.Logging;
 using Stratis.Bitcoin.Utilities.JsonErrors;
 using Xunit;
 
 namespace Stratis.Bitcoin.Features.RPC.Tests.Controller
 {
-    public class RPCControllerTest : LogsTestBase, IDisposable
+    public class RPCControllerTest : LogsTestBase
     {
         private readonly Network network;
         private readonly Mock<IFullNode> fullNode;
@@ -38,13 +38,9 @@ namespace Stratis.Bitcoin.Features.RPC.Tests.Controller
         private readonly Mock<IActionDescriptorCollectionProvider> actionDescriptorCollectionProvider;
         private readonly Mock<IRPCClient> rpcClient;
         private readonly List<ActionDescriptor> descriptors;
-        private readonly bool initialBlockSignature;
 
         public RPCControllerTest()
         {
-            this.initialBlockSignature = Block.BlockSignature;
-
-            Block.BlockSignature = false;
             this.network = Network.TestNet;
             this.fullNode = new Mock<IFullNode>();
             this.fullNode.Setup(f => f.Network)
@@ -75,11 +71,6 @@ namespace Stratis.Bitcoin.Features.RPC.Tests.Controller
                 });
 
             this.controller = new RPCController(this.fullNode.Object, this.LoggerFactory.Object, this.rpcSettings, this.rpcClientFactory.Object);
-        }
-
-        public void Dispose()
-        {
-            Block.BlockSignature = this.initialBlockSignature;
         }
 
         [Fact]

@@ -1,12 +1,17 @@
-﻿using Stratis.Bitcoin.Builder;
+﻿using NBitcoin;
+using Stratis.Bitcoin.Builder;
 using Stratis.Bitcoin.Configuration;
-using Stratis.Bitcoin.Tests;
+using Stratis.Bitcoin.Tests.Common;
 using Xunit;
 
 namespace Stratis.Bitcoin.Features.BlockStore.Tests
 {
     public class StoreSettingsTest : TestBase
     {
+        public StoreSettingsTest() : base(Network.Main)
+        {
+        }
+
         [Fact]
         public void CanSpecifyStoreSettings()
         {

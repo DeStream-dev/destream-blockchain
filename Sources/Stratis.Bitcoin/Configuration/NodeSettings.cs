@@ -1,13 +1,16 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NLog.Extensions.Logging;
+using Stratis.Bitcoin.Builder.Feature;
 using Stratis.Bitcoin.Configuration.Logging;
 using Stratis.Bitcoin.Configuration.Settings;
 using Stratis.Bitcoin.Utilities;
@@ -41,6 +44,8 @@ namespace Stratis.Bitcoin.Configuration
         /// <param name="innerNetwork">Specification of the network the node runs on - regtest/testnet/mainnet.</param>
         /// <param name="protocolVersion">Supported protocol version for which to create the configuration.</param>
         /// <param name="agent">The nodes user agent that will be shared with peers.</param>
+        /// <param name="args">The command-line arguments.</param>
+        /// <param name="loadConfiguration">Determines whether to load the configuration file.</param>
         public NodeSettings(Network innerNetwork = null, ProtocolVersion protocolVersion = SupportedProtocolVersion, 
             string agent = "StratisBitcoin", string[] args = null, bool loadConfiguration = true)
         {
@@ -96,8 +101,26 @@ namespace Stratis.Bitcoin.Configuration
                 if (testNet && regTest)
                     throw new ConfigurationException("Invalid combination of -regtest and -testnet.");
 
-                this.Network = testNet ? Network.TestNet : regTest ? Network.RegTest : Network.Main;
+                if (protocolVersion == ProtocolVersion.ALT_PROTOCOL_VERSION)
+                    this.Network = testNet ? Network.StratisTest : regTest ? Network.StratisRegTest : Network.StratisMain;
+                else
+                    this.Network = testNet ? Network.TestNet : regTest ? Network.RegTest : Network.Main;
             }
+
+            // Setting the data directory.
+            if (this.DataDir == null)
+            {
+                this.DataDir = this.CreateDefaultDataDirectories(Path.Combine("StratisNode", this.Network.RootFolderName), this.Network);
+            }
+            else
+            {
+                // Create the data directories if they don't exist.
+                string directoryPath = Path.Combine(this.DataDir, this.Network.RootFolderName, this.Network.Name);
+                this.DataDir = Directory.CreateDirectory(directoryPath).FullName;
+                this.Logger.LogDebug("Data directory initialized with path {0}.", this.DataDir);
+            }
+
+            this.DataFolder = new DataFolder(this.DataDir);
 
             // Load configuration from .ctor?
             if (loadConfiguration)
@@ -119,10 +142,10 @@ namespace Stratis.Bitcoin.Configuration
         /// <summary>List of paths to important files and folders.</summary>
         public DataFolder DataFolder { get; set; }
 
-        /// <summary>Path to the data directory.</summary>
+        /// <summary>Path to the data directory. This value is read-only and is set in the constructor's args.</summary>
         public string DataDir { get; set; }
 
-        /// <summary>Path to the configuration file.</summary>
+        /// <summary>Path to the configuration file. This value is read-only and is set in the constructor's args.</summary>
         public string ConfigurationFile { get; set; }
 
         /// <summary>Option to skip (most) non-standard transaction checks, for testnet/regtest only.</summary>
@@ -179,9 +202,10 @@ namespace Stratis.Bitcoin.Configuration
         /// <summary>
         /// Loads the configuration file.
         /// </summary>
+        /// <param name="features">The features to include in the configuration file if a default file has to be created.</param>
         /// <returns>Initialized node configuration.</returns>
         /// <exception cref="ConfigurationException">Thrown in case of any problems with the configuration file or command line arguments.</exception>
-        public virtual NodeSettings LoadConfiguration()
+        public virtual NodeSettings LoadConfiguration(List<IFeatureRegistration> features = null)
         {
             // Configuration already loaded?
             if (this.ConfigReader != null)
@@ -190,34 +214,17 @@ namespace Stratis.Bitcoin.Configuration
             // Get the arguments set previously
             var args = this.LoadArgs;
 
-            // Setting the data directory.
-            if (this.DataDir == null)
-            {
-                this.DataDir = this.CreateDefaultDataDirectories(Path.Combine("StratisNode", this.Network.RootFolderName), this.Network);
-            }
-            else
-            {
-                // Create the data directories if they don't exist.
-                string directoryPath = Path.Combine(this.DataDir, this.Network.RootFolderName, this.Network.Name);
-                Directory.CreateDirectory(directoryPath);
-                this.DataDir = directoryPath;
-                this.Logger.LogDebug("Data directory initialized with path {0}.", directoryPath);
-            }
-
             // If no configuration file path is passed in the args, load the default file.
             if (this.ConfigurationFile == null)
             {
-                this.ConfigurationFile = this.CreateDefaultConfigurationFile();
+                this.ConfigurationFile = this.CreateDefaultConfigurationFile(features);
             }
 
-            var consoleConfig = new TextFileConfiguration(args);
-            var config = new TextFileConfiguration(File.ReadAllText(this.ConfigurationFile));
+            // Add the file configuration to the command-line configuration.
+            var fileConfig = new TextFileConfiguration(File.ReadAllText(this.ConfigurationFile));
+            var config = new TextFileConfiguration(args);
             this.ConfigReader = config;
-            consoleConfig.MergeInto(config);
-
-            this.DataFolder = new DataFolder(this.DataDir);
-            if (!Directory.Exists(this.DataFolder.CoinViewPath))
-                Directory.CreateDirectory(this.DataFolder.CoinViewPath);
+            fileConfig.MergeInto(config);
 
             // Set the configuration filter and file path.
             this.Log.Load(config);
@@ -300,8 +307,9 @@ namespace Stratis.Bitcoin.Configuration
         /// <summary>
         /// Creates a default configuration file if no configuration file is found.
         /// </summary>
+        /// <param name="features">The features to include in the configuration file if a default file has to be created.</param>
         /// <returns>Path to the configuration file.</returns>
-        protected string CreateDefaultConfigurationFile()
+        protected string CreateDefaultConfigurationFile(List<IFeatureRegistration> features = null)
         {
             string configFilePath = Path.Combine(this.DataDir, this.Network.DefaultConfigFilename);
             this.Logger.LogDebug("Configuration file set to '{0}'.", configFilePath);
@@ -312,13 +320,20 @@ namespace Stratis.Bitcoin.Configuration
                 this.Logger.LogDebug("Creating configuration file...");
 
                 StringBuilder builder = new StringBuilder();
-                builder.AppendLine("####RPC Settings####");
-                builder.AppendLine("#Activate RPC Server (default: 0)");
-                builder.AppendLine("#server=0");
-                builder.AppendLine("#Where the RPC Server binds (default: 127.0.0.1 and ::1)");
-                builder.AppendLine("#rpcbind=127.0.0.1");
-                builder.AppendLine("#Ip address allowed to connect to RPC (default all: 0.0.0.0 and ::)");
-                builder.AppendLine("#rpcallowip=127.0.0.1");
+
+                if (features != null)
+                {
+                    foreach (var featureRegistration in features)
+                    {
+                        MethodInfo getDefaultConfiguration = featureRegistration.FeatureType.GetMethod("BuildDefaultConfigurationFile", BindingFlags.Public | BindingFlags.Static);
+                        if (getDefaultConfiguration != null)
+                        {
+                            getDefaultConfiguration.Invoke(null, new object[] { builder, this.Network });
+                            builder.AppendLine();
+                        }
+                    }
+                }
+
                 File.WriteAllText(configFilePath, builder.ToString());
             }
             return configFilePath;
@@ -402,9 +417,46 @@ namespace Stratis.Bitcoin.Configuration
             builder.AppendLine($"-mintxfee=<number>        Minimum fee rate. Defaults to network specific value.");
             builder.AppendLine($"-fallbackfee=<number>     Fallback fee rate. Defaults to network specific value.");
             builder.AppendLine($"-minrelaytxfee=<number>   Minimum relay fee rate. Defaults to network specific value.");
-            builder.AppendLine($"-bantime=<number>         Number of seconds to keep misbehaving peers from reconnecting (Default 24-hour ban).");
+            builder.AppendLine($"-bantime=<number>         Number of seconds to keep misbehaving peers from reconnecting. Default {ConnectionManagerSettings.DefaultMisbehavingBantimeSeconds}.");
+            builder.AppendLine($"-maxoutboundconnections=<number> The maximum number of outbound connections. Default {ConnectionManagerSettings.DefaultMaxOutboundConnections}.");
 
             defaults.Logger.LogInformation(builder.ToString());
+        }
+        
+        /// <summary>
+        /// Get the default configuration.
+        /// </summary>
+        /// <param name="builder">The string builder to add the settings to.</param>
+        /// <param name="network">The network to base the defaults off.</param>
+        public static void BuildDefaultConfigurationFile(StringBuilder builder, Network network)
+        {
+            var defaults = Default();
+
+            builder.AppendLine("####Node Settings####");
+            builder.AppendLine($"#Accept non-standard transactions. Default {(defaults.RequireStandard?1:0)}.");
+            builder.AppendLine($"#acceptnonstdtxn={(defaults.RequireStandard?1:0)}");
+            builder.AppendLine($"#Max tip age. Default {network.MaxTipAge}.");
+            builder.AppendLine($"#maxtipage={network.MaxTipAge}");
+            builder.AppendLine($"#Specified node to connect to. Can be specified multiple times.");
+            builder.AppendLine($"#connect=<ip:port>");
+            builder.AppendLine($"#Add a node to connect to and attempt to keep the connection open. Can be specified multiple times.");
+            builder.AppendLine($"#addnode=<ip:port>");
+            builder.AppendLine($"#Bind to given address and whitelist peers connecting to it. Use [host]:port notation for IPv6. Can be specified multiple times.");
+            builder.AppendLine($"#whitebind=<ip:port>");
+            builder.AppendLine($"#Specify your own public address.");
+            builder.AppendLine($"#externalip=<ip>");
+            builder.AppendLine($"#Sync with peers. Default 1.");
+            builder.AppendLine($"#synctime=1");
+            builder.AppendLine($"#Minimum fee rate. Defaults to {network.MinTxFee}.");
+            builder.AppendLine($"#mintxfee={network.MinTxFee}");
+            builder.AppendLine($"#Fallback fee rate. Defaults to {network.FallbackFee}.");
+            builder.AppendLine($"#fallbackfee={network.FallbackFee}");
+            builder.AppendLine($"#Minimum relay fee rate. Defaults to {network.MinRelayTxFee}.");
+            builder.AppendLine($"#minrelaytxfee={network.MinRelayTxFee}");
+            builder.AppendLine($"#Number of seconds to keep misbehaving peers from reconnecting. Default {ConnectionManagerSettings.DefaultMisbehavingBantimeSeconds}.");
+            builder.AppendLine($"#bantime=<number>");
+            builder.AppendLine($"#The maximum number of outbound connections. Default {ConnectionManagerSettings.DefaultMaxOutboundConnections}.");
+            builder.AppendLine($"#maxoutboundconnections=<number>");
         }
     }
 }

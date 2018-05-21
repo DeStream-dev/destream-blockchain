@@ -6,6 +6,8 @@ using NBitcoin.Protocol;
 using Stratis.Bitcoin.Configuration.Logging;
 using Stratis.Bitcoin.Utilities;
 using Stratis.Bitcoin.Configuration;
+using System.Collections.Generic;
+using Stratis.Bitcoin.Builder.Feature;
 
 namespace DeStream.Stratis.Bitcoin.Configuration
 {
@@ -31,7 +33,7 @@ namespace DeStream.Stratis.Bitcoin.Configuration
         /// </summary>
         /// <returns>Initialized node configuration.</returns>
         /// <exception cref="ConfigurationException">Thrown in case of any problems with the configuration file or command line arguments.</exception>
-        public override NodeSettings LoadConfiguration()
+        public override NodeSettings LoadConfiguration(List<IFeatureRegistration> features = null)
         {
             // Configuration already loaded?
             if (this.ConfigReader != null)
