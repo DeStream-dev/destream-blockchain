@@ -1,0 +1,20 @@
+﻿[Unit]
+Description=DeStream node
+
+[Service]
+User=destream
+Type=simple
+TimeoutSec=0
+PIDFile=/var/run/destream.pid
+ExecStart=/usr/bin/dotnet /home/destream/node/DeStream.DeStreamD.dll -testnet 2>&1> /dev/null
+ExecStop=/bin/kill -INT $MAINPID
+#ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+
+Restart=on-failure
+RestartSec=42s
+
+StandardOutput=null
+StandardError=/var/log/destream/destream-error.log
+[Install]
+WantedBy=default.target
