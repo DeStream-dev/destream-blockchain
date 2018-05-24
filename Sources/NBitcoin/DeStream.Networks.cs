@@ -235,7 +235,8 @@ namespace NBitcoin
 
             network.SeedNodes.AddRange(new[]
             {
-                new NetworkAddress(IPAddress.Parse("95.128.181.196"), network.DefaultPort)    //peak-srv-12
+                new NetworkAddress(IPAddress.Parse("95.128.181.196"), network.DefaultPort),    //peak-srv-12
+                new NetworkAddress(IPAddress.Parse("40.121.9.206"), network.DefaultPort)
             });
 
             Network.Register(network);
