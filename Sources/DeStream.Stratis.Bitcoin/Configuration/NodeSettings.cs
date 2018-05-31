@@ -8,6 +8,7 @@ using Stratis.Bitcoin.Utilities;
 using Stratis.Bitcoin.Configuration;
 using System.Collections.Generic;
 using Stratis.Bitcoin.Builder.Feature;
+using Stratis.Bitcoin.Utilities.Extensions;
 
 namespace DeStream.Stratis.Bitcoin.Configuration
 {
@@ -25,7 +26,7 @@ namespace DeStream.Stratis.Bitcoin.Configuration
         public DeStreamNodeSettings(Network innerNetwork = null, ProtocolVersion protocolVersion = SupportedProtocolVersion, 
             string agent = "DeStream", string[] args = null, bool loadConfiguration = true) 
             : base (innerNetwork, protocolVersion, agent, args, loadConfiguration)
-        {
+        {            
         }
 
         /// <summary>
@@ -43,7 +44,7 @@ namespace DeStream.Stratis.Bitcoin.Configuration
             var args = this.LoadArgs;
 
             // Setting the data directory.
-            if (this.DataDir == null)
+            if (this.LoadArgs.GetValueOf("-datadir") == null || this.DataDir == null)
             {
                 this.DataDir = this.CreateDefaultDataDirectories(Path.Combine("DeStreamNode", this.Network.RootFolderName), this.Network);
             }

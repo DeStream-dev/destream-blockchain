@@ -37,7 +37,7 @@ namespace NBitcoin
             Network network = new Network
             {
                 Name = "DeStreamMain",
-                RootFolderName = StratisRootFolderName,
+                RootFolderName = DeStreamRootFolderName,
                 DefaultConfigFilename = StratisDefaultConfigFilename,
                 Magic = magic,
                 DefaultPort = 0xDE01, // 56833,
@@ -158,7 +158,7 @@ namespace NBitcoin
             Network network = new Network
             {
                 Name = "DeStreamTest",
-                RootFolderName = StratisRootFolderName,
+                RootFolderName = DeStreamRootFolderName,
                 DefaultConfigFilename = StratisDefaultConfigFilename,
                 Magic = magic,
                 DefaultPort = 0xDE11, //56849,
@@ -256,7 +256,7 @@ namespace NBitcoin
             Network network = new Network
             {
                 Name = "DeStreamRegTest",
-                RootFolderName = StratisRootFolderName,
+                RootFolderName = DeStreamRootFolderName,
                 DefaultConfigFilename = StratisDefaultConfigFilename,
                 Magic = magic,
                 DefaultPort = 18444,
