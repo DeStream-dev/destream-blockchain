@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.IO;
 using Microsoft.CodeAnalysis.CSharp;
 using NBitcoin;
 using NBitcoin.Protocol;
@@ -14,6 +15,8 @@ using Stratis.Bitcoin.Features.Miner;
 using Stratis.Bitcoin.Features.RPC;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Utilities;
+using Stratis.Bitcoin.Utilities.Extensions;
+
 
 using DeStream.Stratis.Bitcoin.Configuration;
 
@@ -35,6 +38,7 @@ namespace DeStream.DeStreamD
                     network = Network.DeStreamTest;
                 else
                     network = Network.DeStreamMain;
+
                 DeStreamNodeSettings nodeSettings = new DeStreamNodeSettings(network, ProtocolVersion.ALT_PROTOCOL_VERSION, args:args, loadConfiguration:false);
 
                 Console.WriteLine($"current network: {network.Name}");

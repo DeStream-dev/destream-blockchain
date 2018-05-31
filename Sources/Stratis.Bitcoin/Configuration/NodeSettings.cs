@@ -39,6 +39,14 @@ namespace Stratis.Bitcoin.Configuration
         public const ProtocolVersion SupportedProtocolVersion = ProtocolVersion.SENDHEADERS_VERSION;
 
         /// <summary>
+        /// Returns default data root directory name
+        /// </summary>
+        protected virtual string DataRootDirName
+        {
+            get { return "StratisNode";  }
+        }
+            
+        /// <summary>
         /// Initializes a new instance of the object.
         /// </summary>
         /// <param name="innerNetwork">Specification of the network the node runs on - regtest/testnet/mainnet.</param>
@@ -110,7 +118,7 @@ namespace Stratis.Bitcoin.Configuration
             // Setting the data directory.
             if (this.DataDir == null)
             {
-                this.DataDir = this.CreateDefaultDataDirectories(Path.Combine("StratisNode", this.Network.RootFolderName), this.Network);
+                this.DataDir = this.CreateDefaultDataDirectories(Path.Combine(this.DataRootDirName, this.Network.RootFolderName), this.Network);
             }
             else
             {
@@ -183,7 +191,7 @@ namespace Stratis.Bitcoin.Configuration
         /// <summary>Minimum relay transaction fee for network.</summary>
         public FeeRate MinRelayTxFeeRate { get; set; }
 
-        public TextFileConfiguration ConfigReader { get; protected set; }
+        public TextFileConfiguration ConfigReader { get; private set; }
 
         /// <summary><c>true</c> to sync time with other peers and calculate adjusted time, <c>false</c> to use our system clock only.</summary>
         public bool SyncTimeEnabled { get; set; }
@@ -205,7 +213,7 @@ namespace Stratis.Bitcoin.Configuration
         /// <param name="features">The features to include in the configuration file if a default file has to be created.</param>
         /// <returns>Initialized node configuration.</returns>
         /// <exception cref="ConfigurationException">Thrown in case of any problems with the configuration file or command line arguments.</exception>
-        public virtual NodeSettings LoadConfiguration(List<IFeatureRegistration> features = null)
+        public NodeSettings LoadConfiguration(List<IFeatureRegistration> features = null)
         {
             // Configuration already loaded?
             if (this.ConfigReader != null)
