@@ -38,7 +38,7 @@ namespace NBitcoin
             {
                 Name = "DeStreamMain",
                 RootFolderName = DeStreamRootFolderName,
-                DefaultConfigFilename = StratisDefaultConfigFilename,
+                DefaultConfigFilename = DeStreamDefaultConfigFilename,
                 Magic = magic,
                 DefaultPort = 0xDE01, // 56833,
                 RPCPort = 0xDE00, // 56832,
@@ -159,7 +159,7 @@ namespace NBitcoin
             {
                 Name = "DeStreamTest",
                 RootFolderName = DeStreamRootFolderName,
-                DefaultConfigFilename = StratisDefaultConfigFilename,
+                DefaultConfigFilename = DeStreamDefaultConfigFilename,
                 Magic = magic,
                 DefaultPort = 0xDE11, //56849,
                 RPCPort = 0xDE10, //56848,
@@ -257,7 +257,7 @@ namespace NBitcoin
             {
                 Name = "DeStreamRegTest",
                 RootFolderName = DeStreamRootFolderName,
-                DefaultConfigFilename = StratisDefaultConfigFilename,
+                DefaultConfigFilename = DeStreamDefaultConfigFilename,
                 Magic = magic,
                 DefaultPort = 18444,
                 RPCPort = 18442,
