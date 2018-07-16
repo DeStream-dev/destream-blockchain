@@ -9,6 +9,7 @@ using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading.Tasks;
 using NBitcoin.DataEncoders;
+using NBitcoin.RPC.Exceptions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -183,7 +184,7 @@ namespace NBitcoin.RPC
 
             if (address != null && network == null)
             {
-                network = Network.GetNetworks().FirstOrDefault(n => n.RPCPort == address.Port);
+                network = NetworksContainer.GetNetworks().FirstOrDefault(n => n.RPCPort == address.Port);
                 if (network == null)
                     throw new ArgumentNullException("network");
             }
@@ -219,40 +220,38 @@ namespace NBitcoin.RPC
 
         static RPCClient()
         {
-#if !NOFILEIO
-            var home = Environment.GetEnvironmentVariable("HOME");
-            var localAppData = Environment.GetEnvironmentVariable("APPDATA");
+            string home = Environment.GetEnvironmentVariable("HOME");
+            string localAppData = Environment.GetEnvironmentVariable("APPDATA");
 
             if (string.IsNullOrEmpty(home) && string.IsNullOrEmpty(localAppData))
                 return;
 
             if (!string.IsNullOrEmpty(home))
             {
-                var bitcoinFolder = Path.Combine(home, ".bitcoin");
+                string bitcoinFolder = Path.Combine(home, ".bitcoin");
 
-                var mainnet = Path.Combine(bitcoinFolder, ".cookie");
+                string mainnet = Path.Combine(bitcoinFolder, ".cookie");
                 RegisterDefaultCookiePath(Network.Main, mainnet);
 
-                var testnet = Path.Combine(bitcoinFolder, "testnet3", ".cookie");
+                string testnet = Path.Combine(bitcoinFolder, "testnet3", ".cookie");
                 RegisterDefaultCookiePath(Network.TestNet, testnet);
 
-                var regtest = Path.Combine(bitcoinFolder, "regtest", ".cookie");
+                string regtest = Path.Combine(bitcoinFolder, "regtest", ".cookie");
                 RegisterDefaultCookiePath(Network.RegTest, regtest);
             }
             else if (!string.IsNullOrEmpty(localAppData))
             {
-                var bitcoinFolder = Path.Combine(localAppData, "Bitcoin");
+                string bitcoinFolder = Path.Combine(localAppData, "Bitcoin");
 
-                var mainnet = Path.Combine(bitcoinFolder, ".cookie");
+                string mainnet = Path.Combine(bitcoinFolder, ".cookie");
                 RegisterDefaultCookiePath(Network.Main, mainnet);
 
-                var testnet = Path.Combine(bitcoinFolder, "testnet3", ".cookie");
+                string testnet = Path.Combine(bitcoinFolder, "testnet3", ".cookie");
                 RegisterDefaultCookiePath(Network.TestNet, testnet);
 
-                var regtest = Path.Combine(bitcoinFolder, "regtest", ".cookie");
+                string regtest = Path.Combine(bitcoinFolder, "regtest", ".cookie");
                 RegisterDefaultCookiePath(Network.RegTest, regtest);
             }
-#endif
         }
 
         public static void RegisterDefaultCookiePath(Network network, string path)
@@ -313,14 +312,14 @@ namespace NBitcoin.RPC
             }
 
             hostOrUri = hostOrUri ?? "127.0.0.1";
-            var indexOfPort = hostOrUri.IndexOf(":");
+            int indexOfPort = hostOrUri.IndexOf(":");
             if (indexOfPort != -1)
             {
                 port = int.Parse(hostOrUri.Substring(indexOfPort + 1));
                 hostOrUri = hostOrUri.Substring(0, indexOfPort);
             }
 
-            UriBuilder builder = new UriBuilder();
+            var builder = new UriBuilder();
             builder.Host = hostOrUri;
             builder.Scheme = "http";
             builder.Port = port;
@@ -474,7 +473,7 @@ namespace NBitcoin.RPC
         }
 
         private async Task SendBatchAsyncCoreAsync(List<Tuple<RPCRequest, TaskCompletionSource<RPCResponse>>> requests)
-        {           
+        {
             var writer = new StringWriter();
             writer.Write("[");
 
@@ -492,12 +491,12 @@ namespace NBitcoin.RPC
             writer.Write("]");
             writer.Flush();
 
-            var json = writer.ToString();
+            string json = writer.ToString();
             byte[] bytes = Encoding.UTF8.GetBytes(json);
 
             HttpWebRequest webRequest = CreateWebRequest();
 
-#if !(PORTABLE || NETCORE)
+#if !NETCORE
             webRequest.ContentLength = bytes.Length;
 #endif
 
@@ -525,10 +524,10 @@ namespace NBitcoin.RPC
                 {
                     try
                     {
-                        RPCResponse rpcResponse = new RPCResponse(jobj);
+                        var rpcResponse = new RPCResponse(jobj);
                         requests[responseIndex].Item2.TrySetResult(rpcResponse);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         requests[responseIndex].Item2.TrySetException(ex);
                     }
@@ -588,7 +587,7 @@ namespace NBitcoin.RPC
         private static bool IsUnauthorized(WebException ex)
         {
             var httpResp = ex.Response as HttpWebResponse;
-            var isUnauthorized = httpResp != null && httpResp.StatusCode == HttpStatusCode.Unauthorized;
+            bool isUnauthorized = httpResp != null && httpResp.StatusCode == HttpStatusCode.Unauthorized;
             return isUnauthorized;
         }
 
@@ -598,7 +597,7 @@ namespace NBitcoin.RPC
             {
                 return await SendCommandAsyncCoreAsync(request, throwIfRPCError).ConfigureAwait(false);
             }
-            catch(WebException ex)
+            catch (WebException ex)
             {
                 if (!IsUnauthorized(ex))
                     throw;
@@ -616,15 +615,12 @@ namespace NBitcoin.RPC
         {
             if (GetCookiePath() == null)
                 throw new InvalidOperationException("Bug in NBitcoin notify the developers");
-#if !NOFILEIO
-            var auth = File.ReadAllText(GetCookiePath());
+
+            string auth = File.ReadAllText(GetCookiePath());
             if (!auth.StartsWith("__cookie__:", StringComparison.OrdinalIgnoreCase))
                 throw new ArgumentException("The authentication string to RPC is not provided and can't be inferred");
 
             this.authentication = auth;
-#else
-            throw new NotSupportedException("Cookie authentication is not supported for this plateform");
-#endif
         }
 
         private void TryRenewCookie(WebException ex)
@@ -632,7 +628,6 @@ namespace NBitcoin.RPC
             if (GetCookiePath() == null)
                 throw new InvalidOperationException("Bug in NBitcoin notify the developers");
 
-#if !NOFILEIO
             try
             {
                 this.authentication = File.ReadAllText(GetCookiePath());
@@ -642,9 +637,6 @@ namespace NBitcoin.RPC
             {
                 ExceptionDispatchInfo.Capture(ex).Throw();
             }
-#else
-            throw new NotSupportedException("Cookie authentication is not supported for this plateform");
-#endif
         }
 
         private async Task<RPCResponse> SendCommandAsyncCoreAsync(RPCRequest request, bool throwIfRPCError)
@@ -654,7 +646,7 @@ namespace NBitcoin.RPC
 
             if (batches != null)
             {
-                TaskCompletionSource<RPCResponse> source = new TaskCompletionSource<RPCResponse>();
+                var source = new TaskCompletionSource<RPCResponse>();
                 batches.Enqueue(Tuple.Create(request, source));
                 response = await source.Task.ConfigureAwait(false);
             }
@@ -666,9 +658,9 @@ namespace NBitcoin.RPC
                 var writer = new StringWriter();
                 request.WriteJSON(writer);
                 writer.Flush();
-                var json = writer.ToString();
+                string json = writer.ToString();
                 byte[] bytes = Encoding.UTF8.GetBytes(json);
-#if !(PORTABLE || NETCORE)
+#if !NETCORE
                 webRequest.ContentLength = bytes.Length;
 #endif
                 Stream dataStream = await webRequest.GetRequestStreamAsync().ConfigureAwait(false);
@@ -728,14 +720,13 @@ namespace NBitcoin.RPC
 
         private async Task<Stream> ToMemoryStreamAsync(Stream stream)
         {
-            MemoryStream ms = new MemoryStream();
+            var ms = new MemoryStream();
             await stream.CopyToAsync(ms).ConfigureAwait(false);
             ms.Position = 0;
             return ms;
         }
 
-#region P2P Networking
-#if !NOSOCKET
+        #region P2P Networking
         public PeerInfo[] GetPeersInfo()
         {
             PeerInfo[] peers = null;
@@ -749,12 +740,12 @@ namespace NBitcoin.RPC
             RPCResponse resp = await SendCommandAsync(RPCOperations.getpeerinfo).ConfigureAwait(false);
             var peers = resp.Result as JArray;
             var result = new PeerInfo[peers.Count];
-            var i = 0;
+            int i = 0;
 
             foreach (JToken peer in peers)
             {
-                var localAddr = (string)peer["addrlocal"];
-                var pingWait = peer["pingwait"] != null ? (double)peer["pingwait"] : 0;
+                string localAddr = (string)peer["addrlocal"];
+                double pingWait = peer["pingwait"] != null ? (double)peer["pingwait"] : 0;
 
                 localAddr = string.IsNullOrEmpty(localAddr) ? "127.0.0.1:8333" : localAddr;
 
@@ -784,7 +775,7 @@ namespace NBitcoin.RPC
                     Inflight = peer["inflight"].Select(x => uint.Parse((string)x)).ToArray()
                 };
             }
-        
+
             return result;
         }
 
@@ -793,12 +784,12 @@ namespace NBitcoin.RPC
             RPCResponse resp = await SendCommandAsync(RPCOperations.getpeerinfo).ConfigureAwait(false);
             var peers = resp.Result as JArray;
             var result = new PeerInfo[peers.Count];
-            var i = 0;
+            int i = 0;
 
             foreach (JToken peer in peers)
             {
-                var localAddr = (string)peer["addrlocal"];
-                var pingWait = peer["pingwait"] != null ? (double)peer["pingwait"] : 0;
+                string localAddr = (string)peer["addrlocal"];
+                double pingWait = peer["pingwait"] != null ? (double)peer["pingwait"] : 0;
 
                 localAddr = string.IsNullOrEmpty(localAddr) ? "127.0.0.1:8333" : localAddr;
 
@@ -920,16 +911,15 @@ namespace NBitcoin.RPC
             }
             catch (RPCException ex)
             {
-                if(ex.RPCCode == RPCErrorCode.RPC_CLIENT_NODE_NOT_ADDED)
+                if (ex.RPCCode == RPCErrorCode.RPC_CLIENT_NODE_NOT_ADDED)
                     return null;
                 throw;
             }
         }
-#endif
 
-#endregion
+        #endregion
 
-#region Block chain and UTXO
+        #region Block chain and UTXO
 
         public uint256 GetBestBlockHash()
         {
@@ -999,7 +989,7 @@ namespace NBitcoin.RPC
 
         private static BlockHeader ParseBlockHeader(RPCResponse resp, Network network)
         {
-            var header = network.Consensus.ConsensusFactory.CreateBlockHeader();
+            BlockHeader header = network.Consensus.ConsensusFactory.CreateBlockHeader();
             header.Version = (int)resp.Result["version"];
             header.Nonce = (uint)resp.Result["nonce"];
             header.Bits = new Target(Encoders.Hex.DecodeData((string)resp.Result["bits"]));
@@ -1084,7 +1074,7 @@ namespace NBitcoin.RPC
 
             RPCResponse resp = SendCommand(RPCOperations.getblock, blockHash.ToString());
 
-            JArray tx = resp.Result["tx"] as JArray;
+            var tx = resp.Result["tx"] as JArray;
             if (tx != null)
             {
                 foreach (JToken item in tx)
@@ -1101,13 +1091,13 @@ namespace NBitcoin.RPC
             return GetTransactions(GetBlockHash(height));
         }
 
-#endregion
+        #endregion
 
-#region Coin generation
+        #region Coin generation
 
-#endregion
+        #endregion
 
-#region Raw Transaction
+        #region Raw Transaction
 
         public Transaction DecodeRawTransaction(string rawHex)
         {
@@ -1153,8 +1143,8 @@ namespace NBitcoin.RPC
 
             response.ThrowIfError();
 
-            var tx = new Transaction();
-            tx.ReadWrite(Encoders.Hex.DecodeData(response.Result.ToString()));
+            Transaction tx = this.network.CreateTransaction();
+            tx.ReadWrite(Encoders.Hex.DecodeData(response.Result.ToString()), this.network.Consensus.ConsensusFactory);
             return tx;
         }
 
@@ -1178,9 +1168,9 @@ namespace NBitcoin.RPC
             return SendCommandAsync(RPCOperations.sendrawtransaction, Encoders.Hex.EncodeData(bytes));
         }
 
-#endregion
+        #endregion
 
-#region Utility functions
+        #region Utility functions
         /// <summary>
         /// Returns information about a base58 or bech32 Bitcoin address
         /// </summary>
@@ -1190,7 +1180,7 @@ namespace NBitcoin.RPC
         {
             RPCResponse res = SendCommand(RPCOperations.validateaddress, address.ToString());
             return JsonConvert.DeserializeObject<ValidatedAddress>(res.Result.ToString());
-       }
+        }
 
         /// <summary>
         /// Get the estimated fee per kb for being confirmed in nblock
@@ -1201,8 +1191,8 @@ namespace NBitcoin.RPC
         public FeeRate EstimateFee(int nblock)
         {
             RPCResponse response = SendCommand(RPCOperations.estimatefee, nblock);
-            var result = response.Result.Value<decimal>();
-            var money = Money.Coins(result);
+            decimal result = response.Result.Value<decimal>();
+            Money money = Money.Coins(result);
             if (money.Satoshi < 0)
                 money = Money.Zero;
             return new FeeRate(money);
@@ -1269,8 +1259,8 @@ namespace NBitcoin.RPC
         private async Task<FeeRate> EstimateFeeRateImplAsync(int nblock)
         {
             RPCResponse response = await SendCommandAsync(RPCOperations.estimatefee, nblock).ConfigureAwait(false);
-            var result = response.Result.Value<decimal>();
-            var money = Money.Coins(result);
+            decimal result = response.Result.Value<decimal>();
+            Money money = Money.Coins(result);
             if (money.Satoshi < 0)
                 return null;
 
@@ -1322,7 +1312,7 @@ namespace NBitcoin.RPC
         /// <returns>The TXID of the sent transaction</returns>
         public async Task<uint256> SendToAddressAsync(BitcoinAddress address, Money amount, string commentTx = null, string commentDest = null)
         {
-            List<object> parameters = new List<object>();
+            var parameters = new List<object>();
             parameters.Add(address.ToString());
             parameters.Add(amount.ToString());
 
@@ -1341,7 +1331,7 @@ namespace NBitcoin.RPC
             return SendCommand(RPCOperations.settxfee, new[] { feeRate.FeePerK.ToString() }).Result.ToString() == "true";
         }
 
-#endregion
+        #endregion
 
         public async Task<uint256[]> GenerateAsync(int nBlocks)
         {
@@ -1359,53 +1349,6 @@ namespace NBitcoin.RPC
         }
     }
 
-#if !NOSOCKET
-    public class PeerInfo
-    {
-        public int Id { get; internal set; }
-        public IPEndPoint Address { get; internal set; }
-        public IPEndPoint LocalAddress { get; internal set; }
-        public ulong Services { get; internal set; }
-        public DateTimeOffset LastSend { get; internal set; }
-        public DateTimeOffset LastReceive { get; internal set; }
-        public long BytesSent { get; internal set; }
-        public long BytesReceived { get; internal set; }
-        public DateTimeOffset ConnectionTime { get; internal set; }
-        public TimeSpan? PingTime { get; internal set; }
-        public int Version { get; internal set; }
-        public string SubVersion { get; internal set; }
-        public bool Inbound { get; internal set; }
-        public int StartingHeight { get; internal set; }
-        public int BanScore { get; internal set; }
-        public int SynchronizedHeaders { get; internal set; }
-        public int SynchronizedBlocks { get; internal set; }
-        public uint[] Inflight { get; internal set; }
-        public bool IsWhiteListed { get; internal set; }
-        public TimeSpan PingWait { get; internal set; }
-        public int Blocks { get; internal set; }
-        public TimeSpan TimeOffset { get; internal set; }
-    }
 
-    public class AddedNodeInfo
-    {
-        public EndPoint AddedNode { get; internal set; }
-        public bool Connected { get; internal set; }
-        public IEnumerable<NodeAddressInfo> Addresses { get; internal set; }
-    }
-
-    public class NodeAddressInfo
-    {
-        public IPEndPoint Address { get; internal set; }
-        public bool Connected { get; internal set; }
-    }
-#endif
-
-    public class NoEstimationException : Exception
-    {
-        public NoEstimationException(int nblock)
-            : base("The FeeRate couldn't be estimated because of insufficient data from Bitcoin Core. Try to use smaller nBlock, or wait Bitcoin Core to gather more data.")
-        {
-        }
-    }
 }
 #endif
