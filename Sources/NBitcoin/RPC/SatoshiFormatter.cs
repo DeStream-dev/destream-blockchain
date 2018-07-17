@@ -8,13 +8,10 @@ using Newtonsoft.Json.Linq;
 
 namespace NBitcoin.RPC
 {
-    class SatoshiFormatter : RawFormatter
+    internal class SatoshiFormatter : RawFormatter
     {
-        private readonly Network network;
-
-        public SatoshiFormatter(Network network)
+        public SatoshiFormatter(Network network) : base(network)
         {
-            this.network = network;
         }
 
         protected override void BuildTransaction(JObject json, Transaction tx)
@@ -23,14 +20,14 @@ namespace NBitcoin.RPC
             tx.LockTime = (uint)json.GetValue("locktime");
 
             var vin = (JArray)json.GetValue("vin");
-            for(int i = 0; i < vin.Count; i++)
+            for (int i = 0; i < vin.Count; i++)
             {
                 var jsonIn = (JObject)vin[i];
                 var txin = new TxIn();
                 tx.Inputs.Add(txin);
 
                 var script = (JObject)jsonIn.GetValue("scriptSig");
-                if(script != null)
+                if (script != null)
                 {
                     txin.ScriptSig = new Script(Encoders.Hex.DecodeData((string)script.GetValue("hex")));
                     txin.PrevOut.Hash = uint256.Parse((string)jsonIn.GetValue("txid"));
@@ -38,7 +35,7 @@ namespace NBitcoin.RPC
                 }
                 else
                 {
-                    var coinbase = (string)jsonIn.GetValue("coinbase");
+                    string coinbase = (string)jsonIn.GetValue("coinbase");
                     txin.ScriptSig = new Script(Encoders.Hex.DecodeData(coinbase));
                 }
 
@@ -47,14 +44,14 @@ namespace NBitcoin.RPC
             }
 
             var vout = (JArray)json.GetValue("vout");
-            for(int i = 0; i < vout.Count; i++)
+            for (int i = 0; i < vout.Count; i++)
             {
                 var jsonOut = (JObject)vout[i];
                 var txout = new TxOut();
                 tx.Outputs.Add(txout);
 
-                var btc = (decimal)jsonOut.GetValue("value");
-                var satoshis = btc * Money.COIN;
+                decimal btc = (decimal)jsonOut.GetValue("value");
+                decimal satoshis = btc * Money.COIN;
                 txout.Value = new Money((long)(satoshis));
 
                 var script = (JObject)jsonOut.GetValue("scriptPubKey");
@@ -70,11 +67,11 @@ namespace NBitcoin.RPC
 
             writer.WritePropertyName("vin");
             writer.WriteStartArray();
-            foreach(var txin in tx.Inputs)
+            foreach (TxIn txin in tx.Inputs)
             {
                 writer.WriteStartObject();
 
-                if(txin.PrevOut.Hash == uint256.Zero)
+                if (txin.PrevOut.Hash == uint256.Zero)
                 {
                     WritePropertyValue(writer, "coinbase", Encoders.Hex.EncodeData(txin.ScriptSig.ToBytes()));
                 }
@@ -99,7 +96,7 @@ namespace NBitcoin.RPC
             writer.WriteStartArray();
 
             int i = 0;
-            foreach(var txout in tx.Outputs)
+            foreach (TxOut txout in tx.Outputs)
             {
                 writer.WriteStartObject();
                 writer.WritePropertyName("value");
@@ -112,28 +109,28 @@ namespace NBitcoin.RPC
                 WritePropertyValue(writer, "asm", txout.ScriptPubKey.ToString());
                 WritePropertyValue(writer, "hex", Encoders.Hex.EncodeData(txout.ScriptPubKey.ToBytes()));
 
-                var destinations = new List<TxDestination>() { txout.ScriptPubKey.GetDestination(this.network) };
-                if(destinations[0] == null)
+                var destinations = new List<TxDestination>() { txout.ScriptPubKey.GetDestination(this.Network) };
+                if (destinations[0] == null)
                 {
-                    destinations = txout.ScriptPubKey.GetDestinationPublicKeys(this.network)
+                    destinations = txout.ScriptPubKey.GetDestinationPublicKeys(this.Network)
                                                         .Select(p => p.Hash)
                                                         .ToList<TxDestination>();
                 }
-                if(destinations.Count == 1)
+                if (destinations.Count == 1)
                 {
                     WritePropertyValue(writer, "reqSigs", 1);
-                    WritePropertyValue(writer, "type", GetScriptType(txout.ScriptPubKey.FindTemplate(this.network)));
+                    WritePropertyValue(writer, "type", GetScriptType(txout.ScriptPubKey.FindTemplate(this.Network)));
                     writer.WritePropertyName("addresses");
                     writer.WriteStartArray();
-                    writer.WriteValue(destinations[0].GetAddress(Network).ToString());
+                    writer.WriteValue(destinations[0].GetAddress(this.Network).ToString());
                     writer.WriteEndArray();
                 }
                 else
                 {
-                    var multi = PayToMultiSigTemplate.Instance.ExtractScriptPubKeyParameters(this.network, txout.ScriptPubKey);
+                    PayToMultiSigTemplateParameters multi = PayToMultiSigTemplate.Instance.ExtractScriptPubKeyParameters(txout.ScriptPubKey);
                     if (multi != null)
                         WritePropertyValue(writer, "reqSigs", multi.SignatureCount);
-                    WritePropertyValue(writer, "type", GetScriptType(txout.ScriptPubKey.FindTemplate(this.network)));
+                    WritePropertyValue(writer, "type", GetScriptType(txout.ScriptPubKey.FindTemplate(this.Network)));
                     if (multi != null)
                     {
                         writer.WritePropertyName("addresses");
@@ -155,20 +152,20 @@ namespace NBitcoin.RPC
 
         private string ValueFromAmount(Money money)
         {
-            var satoshis = (decimal)money.Satoshi;
-            var btc = satoshis / Money.COIN;
+            decimal satoshis = (decimal)money.Satoshi;
+            decimal btc = satoshis / Money.COIN;
             //return btc.ToString("0.###E+00", CultureInfo.InvariantCulture);
-            var result = ((double)btc).ToString(CultureInfo.InvariantCulture);
-            if(!result.ToCharArray().Contains('.'))
+            string result = ((double)btc).ToString(CultureInfo.InvariantCulture);
+            if (!result.ToCharArray().Contains('.'))
                 result = result + ".0";
             return result;
         }
 
         private string GetScriptType(ScriptTemplate template)
         {
-            if(template == null)
+            if (template == null)
                 return "nonstandard";
-            switch(template.Type)
+            switch (template.Type)
             {
                 case TxOutType.TX_PUBKEY:
                     return "pubkey";

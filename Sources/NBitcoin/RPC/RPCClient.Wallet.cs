@@ -8,31 +8,6 @@ using Newtonsoft.Json.Linq;
 
 namespace NBitcoin.RPC
 {
-    public class RPCAccount
-    {
-        public Money Amount { get; set; }
-        public string AccountName { get; set; }
-    }
-
-    public class ChangeAddress
-    {
-        public Money Amount { get; set; }
-        public BitcoinAddress Address { get; set; }
-    }
-
-    public class AddressGrouping
-    {
-        public AddressGrouping()
-        {
-            this.ChangeAddresses = new List<ChangeAddress>();
-        }
-
-        public BitcoinAddress PublicAddress { get; set; }
-        public Money Amount { get; set; }
-        public string Account { get; set; }
-        public List<ChangeAddress> ChangeAddresses { get; set; }
-    }
-
     /*
         Category            Name                        Implemented 
         ------------------ --------------------------- -----------------------
@@ -214,8 +189,8 @@ namespace NBitcoin.RPC
 
                 if (options.SubtractFeeFromOutputs != null)
                 {
-                    JArray array = new JArray();
-                    foreach(var v in options.SubtractFeeFromOutputs)
+                    var array = new JArray();
+                    foreach (int v in options.SubtractFeeFromOutputs)
                     {
                         array.Add(new JValue(v));
                     }
@@ -232,7 +207,7 @@ namespace NBitcoin.RPC
             var r = (JObject)response.Result;
             return new FundRawTransactionResponse()
             {
-                Transaction = new Transaction(r["hex"].Value<string>()),
+                Transaction = this.network.CreateTransaction(r["hex"].Value<string>()),
                 Fee = Money.Coins(r["fee"].Value<decimal>()),
                 ChangePos = r["changepos"].Value<int>()
             };
@@ -246,7 +221,7 @@ namespace NBitcoin.RPC
                 return tx.ToHex();
 
             // if there is, do this ACK so that NBitcoin does not change the version number
-            return Encoders.Hex.EncodeData(tx.ToBytes(NBitcoin.Protocol.ProtocolVersion.WITNESS_VERSION - 1));
+            return Encoders.Hex.EncodeData(tx.ToBytes(version: NBitcoin.Protocol.ProtocolVersion.WITNESS_VERSION - 1));
         }
 
         // getreceivedbyaddress
@@ -587,7 +562,7 @@ namespace NBitcoin.RPC
             parameters.Add(timeout);
             await SendCommandAsync(RPCOperations.walletpassphrase, parameters.ToArray()).ConfigureAwait(false);
         }
-    
+
         /// <summary>
         /// Sign a transaction
         /// </summary>
@@ -609,7 +584,7 @@ namespace NBitcoin.RPC
         public async Task<Transaction> SignRawTransactionAsync(Transaction tx)
         {
             RPCResponse result = await SendCommandAsync(RPCOperations.signrawtransaction, tx.ToHex()).ConfigureAwait(false);
-            return new Transaction(result.Result["hex"].Value<string>());
+            return this.network.CreateTransaction(result.Result["hex"].Value<string>());
         }
     }
 }

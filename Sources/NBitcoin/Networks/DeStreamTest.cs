@@ -34,7 +34,7 @@ namespace NBitcoin.Networks
             this.FallbackFee = 60000;
             this.MinRelayTxFee = 10000;
 
-            this..Consensus.SubsidyHalvingInterval = 210000;
+            this.Consensus.SubsidyHalvingInterval = 210000;
             this.Consensus.MajorityEnforceBlockUpgrade = 750;
             this.Consensus.MajorityRejectBlockOutdated = 950;
             this.Consensus.MajorityWindow = 1000;
@@ -51,7 +51,7 @@ namespace NBitcoin.Networks
             this.Consensus.MinerConfirmationWindow = 2016; // nPowTargetTimespan / nPowTargetSpacing
             this.Consensus.LastPOWBlock = 12500;
             this.Consensus.IsProofOfStake = true;
-            this.Consensus.ConsensusFactory = new PosConsensusFactory() { Consensus = network.Consensus };
+            this.Consensus.ConsensusFactory = new PosConsensusFactory() { Consensus = this.Consensus };
             this.Consensus.ProofOfStakeLimit = new BigInteger(uint256.Parse("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").ToBytes(false));
             this.Consensus.ProofOfStakeLimitV2 = new BigInteger(uint256.Parse("000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffff").ToBytes(false));
             this.Consensus.CoinType = 105;

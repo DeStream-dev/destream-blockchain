@@ -6,13 +6,13 @@ using Newtonsoft.Json.Linq;
 
 namespace NBitcoin.RPC
 {
-    abstract class RawFormatter
+    internal abstract class RawFormatter
     {
         public Network Network { get; set; }
 
-        protected RawFormatter()
+        protected RawFormatter(Network network)
         {
-            this.Network = Network.Main;
+            this.Network = network;
         }
 
         protected abstract void BuildTransaction(JObject json, Transaction tx);
@@ -34,7 +34,7 @@ namespace NBitcoin.RPC
 
         public Transaction Parse(JObject obj)
         {
-            Transaction tx = new Transaction();
+            var tx = new Transaction();
             BuildTransaction(obj, tx);
             return tx;
         }
@@ -44,7 +44,7 @@ namespace NBitcoin.RPC
             writer.WritePropertyName(name);
             writer.WriteValue(value);
         }
-        
+
         public string ToString(Transaction transaction)
         {
             var strWriter = new StringWriter();
@@ -57,7 +57,7 @@ namespace NBitcoin.RPC
 
             jsonWriter.Flush();
             return strWriter.ToString();
-        }     
+        }
     }
 }
 #endif

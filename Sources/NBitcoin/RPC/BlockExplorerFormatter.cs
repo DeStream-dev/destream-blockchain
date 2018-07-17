@@ -5,8 +5,12 @@ using Newtonsoft.Json.Linq;
 
 namespace NBitcoin.RPC
 {
-    class BlockExplorerFormatter : RawFormatter
+    internal class BlockExplorerFormatter : RawFormatter
     {
+        internal BlockExplorerFormatter(Network network) : base(network)
+        {
+        }
+
         protected override void BuildTransaction(JObject json, Transaction tx)
         {
             tx.Version = (uint)json.GetValue("ver");
@@ -14,7 +18,7 @@ namespace NBitcoin.RPC
 
             var vin = (JArray)json.GetValue("in");
             int vinCount = (int)json.GetValue("vin_sz");
-            for(int i = 0; i < vinCount; i++)
+            for (int i = 0; i < vinCount; i++)
             {
                 var jsonIn = (JObject)vin[i];
                 var txin = new TxIn();
@@ -25,19 +29,19 @@ namespace NBitcoin.RPC
                 txin.PrevOut.N = (uint)prevout.GetValue("n");
 
 
-                var script = (string)jsonIn.GetValue("scriptSig");
-                if(script != null)
+                string script = (string)jsonIn.GetValue("scriptSig");
+                if (script != null)
                 {
                     txin.ScriptSig = new Script(script);
                 }
                 else
                 {
-                    var coinbase = (string)jsonIn.GetValue("coinbase");
+                    string coinbase = (string)jsonIn.GetValue("coinbase");
                     txin.ScriptSig = new Script(Encoders.Hex.DecodeData(coinbase));
                 }
 
-                var seq = jsonIn.GetValue("sequence");
-                if(seq != null)
+                JToken seq = jsonIn.GetValue("sequence");
+                if (seq != null)
                 {
                     txin.Sequence = (uint)seq;
                 }
@@ -45,10 +49,10 @@ namespace NBitcoin.RPC
 
             var vout = (JArray)json.GetValue("out");
             int voutCount = (int)json.GetValue("vout_sz");
-            for(int i = 0; i < voutCount; i++)
+            for (int i = 0; i < voutCount; i++)
             {
                 var jsonOut = (JObject)vout[i];
-                var txout = new NBitcoin.TxOut();
+                var txout = new TxOut();
                 tx.Outputs.Add(txout);
 
                 txout.Value = Money.Parse((string)jsonOut.GetValue("value"));
@@ -70,9 +74,9 @@ namespace NBitcoin.RPC
 
             writer.WritePropertyName("in");
             writer.WriteStartArray();
-            foreach(var input in tx.Inputs.AsIndexedInputs())
+            foreach (IndexedTxIn input in tx.Inputs.AsIndexedInputs())
             {
-                var txin = input.TxIn;
+                TxIn txin = input.TxIn;
                 writer.WriteStartObject();
                 writer.WritePropertyName("prev_out");
                 writer.WriteStartObject();
@@ -80,7 +84,7 @@ namespace NBitcoin.RPC
                 WritePropertyValue(writer, "n", txin.PrevOut.N);
                 writer.WriteEndObject();
 
-                if(txin.PrevOut.Hash == uint256.Zero)
+                if (txin.PrevOut.Hash == uint256.Zero)
                 {
                     WritePropertyValue(writer, "coinbase", Encoders.Hex.EncodeData(txin.ScriptSig.ToBytes()));
                 }
@@ -88,11 +92,11 @@ namespace NBitcoin.RPC
                 {
                     WritePropertyValue(writer, "scriptSig", txin.ScriptSig.ToString());
                 }
-                if(input.WitScript != WitScript.Empty)
+                if (input.WitScript != WitScript.Empty)
                 {
                     WritePropertyValue(writer, "witness", input.WitScript.ToString());
                 }
-                if(txin.Sequence != uint.MaxValue)
+                if (txin.Sequence != uint.MaxValue)
                 {
                     WritePropertyValue(writer, "sequence", (uint)txin.Sequence);
                 }
@@ -102,7 +106,7 @@ namespace NBitcoin.RPC
             writer.WritePropertyName("out");
             writer.WriteStartArray();
 
-            foreach(var txout in tx.Outputs)
+            foreach (TxOut txout in tx.Outputs)
             {
                 writer.WriteStartObject();
                 WritePropertyValue(writer, "value", txout.Value.ToString(false, false));

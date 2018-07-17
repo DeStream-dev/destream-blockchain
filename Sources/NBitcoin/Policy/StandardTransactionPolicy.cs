@@ -11,13 +11,13 @@ namespace NBitcoin.Policy
         public StandardTransactionPolicy(Network network)
         {
             this.network = network;
-            ScriptVerify = NBitcoin.ScriptVerify.Standard;
-            MaxTransactionSize = 100000;
+            this.ScriptVerify = NBitcoin.ScriptVerify.Standard;
+            this.MaxTransactionSize = 100000;
             // TODO: replace fee params with whats in Network.
-            MaxTxFee = new FeeRate(Money.Coins(0.1m));
-            MinRelayTxFee = new FeeRate(Money.Satoshis(5000)); // TODO: new FeeRate(Money.Satoshis(network.MinRelayTxFee));
-            CheckFee = true;
-            CheckScriptPubKey = true;
+            this.MaxTxFee = new FeeRate(Money.Coins(0.1m));
+            this.MinRelayTxFee = new FeeRate(Money.Satoshis(5000)); // TODO: new FeeRate(Money.Satoshis(network.MinRelayTxFee));
+            this.CheckFee = true;
+            this.CheckScriptPubKey = true;
         }
 
         public int? MaxTransactionSize
@@ -56,118 +56,118 @@ namespace NBitcoin.Policy
             get;
             set;
         }
-#if !NOCONSENSUSLIB
+
         public bool UseConsensusLib
         {
             get;
             set;
         }
-#endif
+
         public const int MaxScriptSigLength = 1650;
         #region ITransactionPolicy Members
 
         public TransactionPolicyError[] Check(Transaction transaction, ICoin[] spentCoins)
         {
-            if(transaction == null)
+            if (transaction == null)
                 throw new ArgumentNullException("transaction");
 
             spentCoins = spentCoins ?? new ICoin[0];
 
-            List<TransactionPolicyError> errors = new List<TransactionPolicyError>();
+            var errors = new List<TransactionPolicyError>();
 
 
 
-            foreach(var input in transaction.Inputs.AsIndexedInputs())
+            foreach (IndexedTxIn input in transaction.Inputs.AsIndexedInputs())
             {
-                var coin = spentCoins.FirstOrDefault(s => s.Outpoint == input.PrevOut);
-                if(coin != null)
+                ICoin coin = spentCoins.FirstOrDefault(s => s.Outpoint == input.PrevOut);
+                if (coin != null)
                 {
-                    if(ScriptVerify != null)
+                    if (this.ScriptVerify != null)
                     {
                         ScriptError error;
-                        if(!this.VerifyScript(input, coin.TxOut.ScriptPubKey, coin.TxOut.Value, ScriptVerify.Value, out error))
+                        if (!VerifyScript(input, coin.TxOut.ScriptPubKey, coin.TxOut.Value, this.ScriptVerify.Value, out error))
                         {
-                            errors.Add(new ScriptPolicyError(input, error, ScriptVerify.Value, coin.TxOut.ScriptPubKey));
+                            errors.Add(new ScriptPolicyError(input, error, this.ScriptVerify.Value, coin.TxOut.ScriptPubKey));
                         }
                     }
                 }
 
-                var txin = input.TxIn;
-                if(txin.ScriptSig.Length > MaxScriptSigLength)
+                TxIn txin = input.TxIn;
+                if (txin.ScriptSig.Length > MaxScriptSigLength)
                 {
                     errors.Add(new InputPolicyError("Max scriptSig length exceeded actual is " + txin.ScriptSig.Length + ", max is " + MaxScriptSigLength, input));
                 }
-                if(!txin.ScriptSig.IsPushOnly)
+                if (!txin.ScriptSig.IsPushOnly)
                 {
                     errors.Add(new InputPolicyError("All operation should be push", input));
                 }
-                if(!txin.ScriptSig.HasCanonicalPushes)
+                if (!txin.ScriptSig.HasCanonicalPushes)
                 {
                     errors.Add(new InputPolicyError("All operation should be canonical push", input));
                 }
             }
 
-            if(CheckMalleabilitySafe)
+            if (this.CheckMalleabilitySafe)
             {
-                foreach(var input in transaction.Inputs.AsIndexedInputs())
+                foreach (IndexedTxIn input in transaction.Inputs.AsIndexedInputs())
                 {
-                    var coin = spentCoins.FirstOrDefault(s => s.Outpoint == input.PrevOut);
-                    if(coin != null && coin.GetHashVersion(this.network) != HashVersion.Witness)
+                    ICoin coin = spentCoins.FirstOrDefault(s => s.Outpoint == input.PrevOut);
+                    if (coin != null && coin.GetHashVersion(this.network) != HashVersion.Witness)
                         errors.Add(new InputPolicyError("Malleable input detected", input));
                 }
             }
 
-            if(CheckScriptPubKey)
+            if (this.CheckScriptPubKey)
             {
-                foreach(var txout in transaction.Outputs.AsCoins())
+                foreach (Coin txout in transaction.Outputs.AsCoins())
                 {
-                    var template = StandardScripts.GetTemplateFromScriptPubKey(this.network, txout.ScriptPubKey);
-                    if(template == null)
+                    ScriptTemplate template = StandardScripts.GetTemplateFromScriptPubKey(txout.ScriptPubKey);
+                    if (template == null)
                         errors.Add(new OutputPolicyError("Non-Standard scriptPubKey", (int)txout.Outpoint.N));
                 }
             }
 
             int txSize = transaction.GetSerializedSize();
-            if(MaxTransactionSize != null)
+            if (this.MaxTransactionSize != null)
             {
-                if(txSize >= MaxTransactionSize.Value)
-                    errors.Add(new TransactionSizePolicyError(txSize, MaxTransactionSize.Value));
+                if (txSize >= this.MaxTransactionSize.Value)
+                    errors.Add(new TransactionSizePolicyError(txSize, this.MaxTransactionSize.Value));
             }
 
-            var fees = transaction.GetFee(spentCoins);
-            if(fees != null)
+            Money fees = transaction.GetFee(spentCoins);
+            if (fees != null)
             {
-                if(CheckFee)
+                if (this.CheckFee)
                 {
-                    if(MaxTxFee != null)
+                    if (this.MaxTxFee != null)
                     {
-                        var max = MaxTxFee.GetFee(txSize);
-                        if(fees > max)
+                        Money max = this.MaxTxFee.GetFee(txSize);
+                        if (fees > max)
                             errors.Add(new FeeTooHighPolicyError(fees, max));
                     }
 
-                    if(MinRelayTxFee != null)
+                    if (this.MinRelayTxFee != null)
                     {
-                        if(MinRelayTxFee != null)
+                        if (this.MinRelayTxFee != null)
                         {
-                            var min = MinRelayTxFee.GetFee(txSize);
-                            if(fees < min)
+                            Money min = this.MinRelayTxFee.GetFee(txSize);
+                            if (fees < min)
                                 errors.Add(new FeeTooLowPolicyError(fees, min));
                         }
                     }
                 }
             }
-            if(MinRelayTxFee != null)
+            if (this.MinRelayTxFee != null)
             {
-                foreach(var output in transaction.Outputs)
+                foreach (TxOut output in transaction.Outputs)
                 {
-                    var bytes = output.ScriptPubKey.ToBytes(true);
-                    if(output.IsDust(MinRelayTxFee) && !IsOpReturn(bytes))
-                        errors.Add(new DustPolicyError(output.Value, output.GetDustThreshold(MinRelayTxFee)));
+                    byte[] bytes = output.ScriptPubKey.ToBytes(true);
+                    if (output.IsDust(this.MinRelayTxFee) && !IsOpReturn(bytes))
+                        errors.Add(new DustPolicyError(output.Value, output.GetDustThreshold(this.MinRelayTxFee)));
                 }
             }
-            var opReturnCount = transaction.Outputs.Select(o => o.ScriptPubKey.ToBytes(true)).Count(b => IsOpReturn(b));
-            if(opReturnCount > 1)
+            int opReturnCount = transaction.Outputs.Select(o => o.ScriptPubKey.ToBytes(true)).Count(b => IsOpReturn(b));
+            if (opReturnCount > 1)
                 errors.Add(new TransactionPolicyError("More than one op return detected"));
             return errors.ToArray();
         }
@@ -179,17 +179,14 @@ namespace NBitcoin.Policy
 
         private bool VerifyScript(IndexedTxIn input, Script scriptPubKey, Money value, ScriptVerify scriptVerify, out ScriptError error)
         {
-#if !NOCONSENSUSLIB
-            if(!UseConsensusLib)
-#endif
+            if (!this.UseConsensusLib)
                 return input.VerifyScript(this.network, scriptPubKey, value, scriptVerify, out error);
-#if !NOCONSENSUSLIB
             else
             {
-                var ok = Script.VerifyScriptConsensus(scriptPubKey, input.Transaction, input.Index, scriptVerify);
-                if(!ok)
+                bool ok = Script.VerifyScriptConsensus(scriptPubKey, input.Transaction, input.Index, scriptVerify);
+                if (!ok)
                 {
-                    if(input.VerifyScript(this.network, scriptPubKey, scriptVerify, out error))
+                    if (input.VerifyScript(this.network, scriptPubKey, scriptVerify, out error))
                         error = ScriptError.UnknownError;
                     return false;
                 }
@@ -199,7 +196,6 @@ namespace NBitcoin.Policy
                 }
                 return true;
             }
-#endif
         }
 
         #endregion
@@ -208,16 +204,14 @@ namespace NBitcoin.Policy
         {
             return new StandardTransactionPolicy(this.network)
             {
-                MaxTransactionSize = MaxTransactionSize,
-                MaxTxFee = MaxTxFee,
-                MinRelayTxFee = MinRelayTxFee,
-                ScriptVerify = ScriptVerify,
-#if !NOCONSENSUSLIB
-                UseConsensusLib = UseConsensusLib,
-#endif
-                CheckMalleabilitySafe = CheckMalleabilitySafe,
-                CheckScriptPubKey = CheckScriptPubKey,
-                CheckFee = CheckFee
+                MaxTransactionSize = this.MaxTransactionSize,
+                MaxTxFee = this.MaxTxFee,
+                MinRelayTxFee = this.MinRelayTxFee,
+                ScriptVerify = this.ScriptVerify,
+                UseConsensusLib = this.UseConsensusLib,
+                CheckMalleabilitySafe = this.CheckMalleabilitySafe,
+                CheckScriptPubKey = this.CheckScriptPubKey,
+                CheckFee = this.CheckFee
             };
         }
 
