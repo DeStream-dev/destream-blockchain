@@ -5,7 +5,6 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using NBitcoin;
-using NBitcoin.RPC;
 using Newtonsoft.Json;
 using Stratis.Bitcoin.Configuration;
 using Stratis.Bitcoin.Features.RPC;
@@ -110,18 +109,15 @@ namespace Stratis.Bitcoin.Cli
                     // Process RPC call.
                     try
                     {
-                        var options = optionList.Append("-server").ToArray();
+                        string[] options = optionList.Append("-server").ToArray();
 
-                        NodeSettings nodeSettings = new NodeSettings(network, args:options);
+                        var nodeSettings = new NodeSettings(network, args:options);
 
-                        var rpcSettings = new RpcSettings();
-
-                        // read the values from the configuration file
-                        rpcSettings.Load(nodeSettings);
+                        var rpcSettings = new RpcSettings(nodeSettings);
 
                         // Find the binding to 127.0.0.1 or the first available. The logic in RPC settings ensures there will be at least 1.
                         System.Net.IPEndPoint nodeEndPoint = rpcSettings.Bind.FirstOrDefault(b => b.Address.ToString() == "127.0.0.1") ?? rpcSettings.Bind[0];
-                        Uri rpcUri = new Uri($"http://{nodeEndPoint}");
+                        var rpcUri = new Uri($"http://{nodeEndPoint}");
 
                         // Process the command line RPC arguments
                         // TODO: this should probably be moved to the NodeSettings.FromArguments
@@ -166,13 +162,13 @@ namespace Stratis.Bitcoin.Cli
                     {
                         client.DefaultRequestHeaders.Accept.Clear();
                         client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                        var url = $"http://localhost:{defaultRestApiPort}/api/{command}";
+                        string url = $"http://localhost:{defaultRestApiPort}/api/{command}";
                         if (commandArgList.Any()) url += $"?{string.Join("&", commandArgList)}";
                         try
                         {
                             // Get the response.
                             Console.WriteLine($"Sending API command to {url}...");
-                            var response = client.GetStringAsync(url).GetAwaiter().GetResult();
+                            string response = client.GetStringAsync(url).GetAwaiter().GetResult();
 
                             // Format and return the result as a string to the console.
                             Console.WriteLine(JsonConvert.SerializeObject(JsonConvert.DeserializeObject<object>(response), Formatting.Indented));
@@ -203,7 +199,7 @@ namespace Stratis.Bitcoin.Cli
             isDebugMode = true;
 #endif
             Exception ex = exception;
-            StringBuilder stringBuilder = new StringBuilder(128);
+            var stringBuilder = new StringBuilder(128);
             while (ex != null)
             {
                 if (isDebugMode)

@@ -1,5 +1,4 @@
-﻿#if !NOSOCKET
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +7,7 @@ namespace NBitcoin
 {
     public class ThreadSafeCollection<T> : IEnumerable<T>
     {
-        ConcurrentDictionary<T, T> _Behaviors = new ConcurrentDictionary<T, T>();
+        private ConcurrentDictionary<T, T> _Behaviors = new ConcurrentDictionary<T, T>();
 
         /// <summary>
         /// Add an item to the collection
@@ -20,7 +19,7 @@ namespace NBitcoin
             if(item == null)
                 throw new ArgumentNullException("item");
             OnAdding(item);
-            _Behaviors.TryAdd(item, item);
+            this._Behaviors.TryAdd(item, item);
             return new ActionDisposable(() =>
             {
             }, () => Remove(item));
@@ -36,7 +35,7 @@ namespace NBitcoin
         public bool Remove(T item)
         {
             T old;
-            var removed = _Behaviors.TryRemove(item, out old);
+            bool removed = this._Behaviors.TryRemove(item, out old);
             if(removed)
                 OnRemoved(old);
             return removed;
@@ -46,7 +45,7 @@ namespace NBitcoin
 
         public void Clear()
         {
-            foreach(var behavior in this)
+            foreach(T behavior in this)
                 Remove(behavior);
         }
 
@@ -56,7 +55,7 @@ namespace NBitcoin
         }
         public U FindOrCreate<U>(Func<U> create) where U : T
         {
-            var result = this.OfType<U>().FirstOrDefault();
+            U result = this.OfType<U>().FirstOrDefault();
             if(result == null)
             {
                 result = create();
@@ -71,10 +70,10 @@ namespace NBitcoin
 
         public void Remove<U>() where U : T
         {
-            foreach(var b in this.OfType<U>())
+            foreach(U b in this.OfType<U>())
             {
                 T behavior;
-                _Behaviors.TryRemove(b, out behavior);
+                this._Behaviors.TryRemove(b, out behavior);
             }
         }
 
@@ -82,7 +81,7 @@ namespace NBitcoin
 
         public IEnumerator<T> GetEnumerator()
         {
-            return _Behaviors.Select(k => k.Key).GetEnumerator();
+            return this._Behaviors.Select(k => k.Key).GetEnumerator();
         }
 
         #endregion
@@ -98,4 +97,3 @@ namespace NBitcoin
 
     }
 }
-#endif

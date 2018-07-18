@@ -11,16 +11,6 @@ namespace Stratis.Bitcoin.Utilities
         public const int MempoolHeight = 0x7FFFFFFF;
 
         /// <summary>
-        /// Determines whether this network is a Stratis-network.
-        /// </summary>
-        /// <param name="network">The network.</param>
-        /// <returns><c>true</c> if the specified network is Stratis, <c>false</c> otherwise.</returns>
-        public static bool IsStratis(this Network network)
-        {
-            return network.Name.ToLowerInvariant().Contains("stratis");
-        }
-
-        /// <summary>
         /// Determines whether this network is a test network.
         /// </summary>
         /// <param name="network">The network.</param>
@@ -29,15 +19,15 @@ namespace Stratis.Bitcoin.Utilities
         {
             return network.Name.ToLowerInvariant().Contains("test");
         }
-
+        
         /// <summary>
-        /// Determines whether this network is a DeStream-network.
+        /// Determines whether this network is a regtest network.
         /// </summary>
         /// <param name="network">The network.</param>
-        /// <returns><c>true</c> if the specified network is DeStream, <c>false</c> otherwise.</returns>
-        public static bool IsDeStream(this Network network)
+        /// <returns><c>true</c> if the specified network is test, <c>false</c> otherwise.</returns>
+        public static bool IsRegTest(this Network network)
         {
-            return network.Name.ToLowerInvariant().Contains("destream");
+            return network.Name.ToLowerInvariant().Contains("regtest");
         }
 
         /// <summary>
@@ -47,9 +37,7 @@ namespace Stratis.Bitcoin.Utilities
         /// <returns><c>true</c> if the specified network is bitcoin, <c>false</c> otherwise.</returns>
         public static bool IsBitcoin(this Network network)
         {
-            //return !(new string[] { "stratis", "destream" }.Any(s => network.Name.ToLowerInvariant().Contains(s)));
-
-            return !IsStratis(network) && !IsDeStream(network);
+            return !network.Name.ToLowerInvariant().Contains("stratis");
         }
     }
 }

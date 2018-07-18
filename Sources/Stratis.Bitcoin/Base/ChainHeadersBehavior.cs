@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
 using Stratis.Bitcoin.Connection;
+using Stratis.Bitcoin.Consensus;
 using Stratis.Bitcoin.Interfaces;
 using Stratis.Bitcoin.P2P.Peer;
 using Stratis.Bitcoin.P2P.Protocol;
@@ -83,6 +85,15 @@ namespace Stratis.Bitcoin.Base
             }
         }
 
+        public ConnectNewHeadersResult ConsensusTipChanged(ChainedHeader chainedHeader)
+        {
+            // TODO async lock has to be obtained before calling CM.HeadersPresented
+            //TODO Call CM.HeadersPresented with (false) and return ConnectNewHeadersResult
+            // TODO clear the cached when peer disconnects
+
+            throw new NotImplementedException();
+        }
+
         public bool InvalidHeaderReceived { get; private set; }
 
         /// <summary>Selects the best available chain based on tips provided by the peers and switches to it.</summary>
@@ -131,8 +142,7 @@ namespace Stratis.Bitcoin.Base
 
                 this.logger.LogTrace("(-)");
             }, null, 0, (int)TimeSpan.FromMinutes(10).TotalMilliseconds);
-
-            this.RegisterDisposable(this.refreshTimer);
+            
             if (this.AttachedPeer.State == NetworkPeerState.Connected)
             {
                 ChainedHeader highPoW = this.chainState.ConsensusTip;
@@ -155,6 +165,14 @@ namespace Stratis.Bitcoin.Base
             this.bestChainSelector.RemoveAvailableTip(this.AttachedPeer.Connection.Id);
 
             this.logger.LogTrace("(-)");
+        }
+
+        ///  <inheritdoc />
+        public override void Dispose()
+        {
+            this.refreshTimer?.Dispose();
+
+            base.Dispose();
         }
 
         /// <summary>
@@ -243,7 +261,7 @@ namespace Stratis.Bitcoin.Base
                 return;
             }
 
-            HeadersPayload headers = new HeadersPayload();
+            var headers = new HeadersPayload();
             ChainedHeader consensusTip = this.chainState.ConsensusTip;
             consensusTip = this.Chain.GetBlock(consensusTip.HashBlock);
 
@@ -414,6 +432,17 @@ namespace Stratis.Bitcoin.Base
             catch (OperationCanceledException)
             {
             }
+
+            this.logger.LogTrace("(-)");
+        }
+
+        public async Task ResetPendingTipAndSyncAsync()
+        {
+            this.logger.LogTrace("()");
+
+            this.pendingTip = null;
+
+            await this.TrySyncAsync().ConfigureAwait(false);
 
             this.logger.LogTrace("(-)");
         }

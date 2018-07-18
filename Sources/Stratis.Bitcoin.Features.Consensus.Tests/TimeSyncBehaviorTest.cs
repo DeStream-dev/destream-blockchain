@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
+using NBitcoin.Networks;
 using Stratis.Bitcoin.Base;
 using Stratis.Bitcoin.Utilities;
 using Xunit;
@@ -98,7 +99,7 @@ namespace Stratis.Bitcoin.Features.Consensus.Tests
             int offsetAboveWarningLevelSeconds = TimeSyncBehaviorState.TimeOffsetWarningThresholdSeconds + 1;
             int offsetAboveWarningLevelMs = offsetAboveWarningLevelSeconds * 1000;
 
-            int offsetAbovSwitchOffLevel = Network.BitcoinMaxTimeOffsetSeconds + 1;
+            int offsetAbovSwitchOffLevel = BitcoinMain.BitcoinMaxTimeOffsetSeconds + 1;
             int offsetAbovSwitchOffLevelMs = offsetAbovSwitchOffLevel * 1000;
 
             // Samples to be inserted to the state.
@@ -164,7 +165,7 @@ namespace Stratis.Bitcoin.Features.Consensus.Tests
             // Add max outbound.
             for (int i = 0; i < TimeSyncBehaviorState.MaxOutboundSamples; i++)
             {
-                IPAddress peerAddress = new IPAddress(i);
+                var peerAddress = new IPAddress(i);
                 bool used = state.AddTimeData(peerAddress, TimeSpan.FromSeconds(400), false);
                 Assert.True(used);
             }
@@ -175,7 +176,7 @@ namespace Stratis.Bitcoin.Features.Consensus.Tests
             // Add another batch of outbounds with a different offset.
             for (int i = TimeSyncBehaviorState.MaxOutboundSamples; i < TimeSyncBehaviorState.MaxOutboundSamples * 2; i++)
             {
-                IPAddress peerAddress = new IPAddress(i * 2);
+                var peerAddress = new IPAddress(i * 2);
                 bool used = state.AddTimeData(peerAddress, TimeSpan.FromSeconds(800), false);
                 Assert.True(used, $"index: {i}");
             }

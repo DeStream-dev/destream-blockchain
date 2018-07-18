@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
 using Stratis.Bitcoin.Configuration;
@@ -71,7 +70,7 @@ namespace Stratis.Bitcoin.Features.WatchOnlyWallet
         /// <inheritdoc />
         public void WatchAddress(string address)
         {
-            var script = BitcoinAddress.Create(address, this.network).ScriptPubKey;
+            Script script = BitcoinAddress.Create(address, this.network).ScriptPubKey;
 
             if (this.Wallet.WatchedAddresses.ContainsKey(script.ToString()))
             {
@@ -124,21 +123,23 @@ namespace Stratis.Bitcoin.Features.WatchOnlyWallet
         /// <inheritdoc />
         public void ProcessTransaction(Transaction transaction, Block block = null)
         {
-            var transactionHash = transaction.GetHash();
+            uint256 transactionHash = transaction.GetHash();
             this.logger.LogDebug($"watch only wallet received transaction - hash: {transactionHash}, coin: {this.coinType}");
 
             // Check the transaction inputs to see if a watched address is affected.
             foreach (TxIn input in transaction.Inputs)
             {
                 // See if the previous transaction is in the watch-only wallet.
-                this.txLookup.TryGetValue(input.PrevOut.Hash, out TransactionData prevTransaction);
+                this.txLookup.TryGetValue(input.PrevOut.Hash, out TransactionData prevTransactionData);
 
                 // If it is null, it can't be related to one of the watched addresses (or it is the very first watched transaction)
-                if (prevTransaction == null)
+                if (prevTransactionData == null)
                     continue;
 
+                var prevTransaction = this.network.CreateTransaction(prevTransactionData.Hex);
+
                 // Check if the previous transaction's outputs contain one of our addresses.
-                foreach (TxOut prevOutput in prevTransaction.Transaction.Outputs)
+                foreach (TxOut prevOutput in prevTransaction.Outputs)
                 {
                     this.Wallet.WatchedAddresses.TryGetValue(prevOutput.ScriptPubKey.ToString(), out WatchedAddress addressInWallet);
 
@@ -149,7 +150,7 @@ namespace Stratis.Bitcoin.Features.WatchOnlyWallet
 
                         if (existingTransaction == null)
                         {
-                            TransactionData newTransaction = new TransactionData
+                            var newTransaction = new TransactionData
                             {
                                 Id = transactionHash,
                                 Hex = transaction.ToHex(),
@@ -207,11 +208,11 @@ namespace Stratis.Bitcoin.Features.WatchOnlyWallet
 
                     if (existingTransaction == null)
                     {
-                        TransactionData newTransaction = new TransactionData
+                        var newTransaction = new TransactionData
                         {
                             Id = transactionHash,
                             Hex = transaction.ToHex(),
-                            BlockHash = block?.GetHash(),
+                            BlockHash = block?.GetHash()
                         };
 
                         // Add the Merkle proof to the (non-spending) transaction.
@@ -292,7 +293,7 @@ namespace Stratis.Bitcoin.Features.WatchOnlyWallet
                 return this.fileStorage.LoadByFileName(WalletFileName);
             }
 
-            WatchOnlyWallet watchOnlyWallet = new WatchOnlyWallet
+            var watchOnlyWallet = new WatchOnlyWallet
             {
                 Network = this.network,
                 CoinType = this.coinType,
@@ -348,25 +349,29 @@ namespace Stratis.Bitcoin.Features.WatchOnlyWallet
         {
             Script scriptToCheck = BitcoinAddress.Create(address, this.network).ScriptPubKey;
 
-            Money balance = new Money(0);
+            var balance = new Money(0);
 
             if (!this.Wallet.WatchedAddresses.ContainsKey(scriptToCheck.ToString()))
                 // Returning zero would be misleading.
                 return null;
 
-            foreach (TransactionData transaction in this.Wallet.WatchedAddresses[scriptToCheck.ToString()].Transactions.Values)
+            foreach (TransactionData transactionData in this.Wallet.WatchedAddresses[scriptToCheck.ToString()].Transactions.Values)
             {
-                foreach (TxIn input in transaction.Transaction.Inputs)
+                var transaction = this.network.CreateTransaction(transactionData.Hex);
+
+                foreach (TxIn input in transaction.Inputs)
                 {
                     // See if the previous transaction is in the watch-only wallet.
-                    this.txLookup.TryGetValue(input.PrevOut.Hash, out TransactionData prevTransaction);
+                    this.txLookup.TryGetValue(input.PrevOut.Hash, out TransactionData prevTransactionData);
 
                     // If it is null, it can't be related to the watched addresses (or it is the very first watched transaction)
-                    if (prevTransaction == null)
+                    if (prevTransactionData == null)
                         continue;
 
+                    var prevTransaction = this.network.CreateTransaction(prevTransactionData.Hex);
+
                     // A sanity check to ensure the referenced output affects the desired address
-                    if (prevTransaction.Transaction.Outputs[input.PrevOut.N].ScriptPubKey == scriptToCheck)
+                    if (prevTransaction.Outputs[input.PrevOut.N].ScriptPubKey == scriptToCheck)
                     {
                         // Input = funds are being paid 'out of' the address in question
 
@@ -379,12 +384,12 @@ namespace Stratis.Bitcoin.Features.WatchOnlyWallet
                         // have full previous transaction information stored. Therefore we can only reason about the address
                         // balance after a given block height; any prior transactions are ignored.
 
-                        balance -= prevTransaction.Transaction.Outputs[input.PrevOut.N].Value;
+                        balance -= prevTransaction.Outputs[input.PrevOut.N].Value;
                     }
                 }
 
                 // Check if the outputs contain the watched address
-                foreach (TxOut output in transaction.Transaction.Outputs)
+                foreach (TxOut output in transaction.Outputs)
                 {
                     if (output.ScriptPubKey == scriptToCheck)
                     {

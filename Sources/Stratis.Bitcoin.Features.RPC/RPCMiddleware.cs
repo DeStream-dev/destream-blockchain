@@ -4,10 +4,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using NBitcoin.DataEncoders;
-using NBitcoin.RPC;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Stratis.Bitcoin.Configuration;
+using Stratis.Bitcoin.Features.RPC.Exceptions;
 using Stratis.Bitcoin.Utilities;
 
 namespace Stratis.Bitcoin.Features.RPC
@@ -104,14 +104,14 @@ namespace Stratis.Bitcoin.Features.RPC
             StringValues auth;
             if (!httpContext.Request.Headers.TryGetValue("Authorization", out auth) || auth.Count != 1)
                 return false;
-            var splittedAuth = auth[0].Split(' ');
+            string[] splittedAuth = auth[0].Split(' ');
             if (splittedAuth.Length != 2 ||
                splittedAuth[0] != "Basic")
                 return false;
 
             try
             {
-                var user = Encoders.ASCII.EncodeData(Encoders.Base64.DecodeData(splittedAuth[1]));
+                string user = Encoders.ASCII.EncodeData(Encoders.Base64.DecodeData(splittedAuth[1]));
                 if (!this.authorization.IsAuthorized(user))
                     return false;
             }
@@ -124,9 +124,9 @@ namespace Stratis.Bitcoin.Features.RPC
 
         private static JObject CreateError(RPCErrorCode code, string message)
         {
-            JObject response = new JObject();
+            var response = new JObject();
             response.Add("result", null);
-            JObject error = new JObject();
+            var error = new JObject();
             response.Add("error", error);
             error.Add("code", (int)code);
             error.Add("message", message);

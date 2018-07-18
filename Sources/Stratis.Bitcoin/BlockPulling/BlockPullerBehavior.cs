@@ -27,7 +27,7 @@ namespace Stratis.Bitcoin.BlockPulling
         double QualityScore { get; }
     }
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IBlockPullerBehavior"/>
     public class BlockPullerBehavior : NetworkPeerBehavior, IBlockPullerBehavior
     {
         /// <summary>Logger factory to create loggers.</summary>
@@ -130,7 +130,7 @@ namespace Stratis.Bitcoin.BlockPulling
                     foreach (Transaction tx in block.Obj.Transactions)
                         tx.CacheHashes();
 
-                    DownloadedBlock downloadedBlock = new DownloadedBlock
+                    var downloadedBlock = new DownloadedBlock
                     {
                         Block = block.Obj,
                         Length = (int)message.Length,

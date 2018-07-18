@@ -96,7 +96,7 @@ namespace Stratis.Bitcoin.P2P
             if (!connectionManager.Parameters.PeerAddressManagerBehaviour().Mode.HasFlag(PeerAddressManagerBehaviourMode.Discover))
                 return;
 
-            this.currentParameters = connectionManager.Parameters.Clone();
+            this.currentParameters = connectionManager.Parameters.Clone(); //TODO we shouldn't add all the behaviors, only those that we need.
             this.currentParameters.TemplateBehaviors.Add(new ConnectionManagerBehavior(false, connectionManager, this.loggerFactory));
 
             this.peersToFind = this.currentParameters.PeerAddressManagerBehaviour().PeersToDiscover;
@@ -120,7 +120,7 @@ namespace Stratis.Bitcoin.P2P
             this.logger.LogTrace("()");
 
             var peersToDiscover = new List<IPEndPoint>();
-            var foundPeers = this.peerAddressManager.PeerSelector.SelectPeersForDiscovery(1000).ToList();
+            List<PeerAddress> foundPeers = this.peerAddressManager.PeerSelector.SelectPeersForDiscovery(1000).ToList();
             peersToDiscover.AddRange(foundPeers.Select(p => p.Endpoint));
 
             if (peersToDiscover.Count == 0)
@@ -204,11 +204,11 @@ namespace Stratis.Bitcoin.P2P
         /// </summary>
         private void AddDNSSeedNodes(List<IPEndPoint> endPoints)
         {
-            foreach (var seed in this.network.DNSSeeds)
+            foreach (DNSSeedData seed in this.network.DNSSeeds)
             {
                 try
                 {
-                    var ipAddresses = seed.GetAddressNodes();
+                    IPAddress[] ipAddresses = seed.GetAddressNodes();
                     endPoints.AddRange(ipAddresses.Select(ip => new IPEndPoint(ip, this.network.DefaultPort)));
                 }
                 catch (Exception)

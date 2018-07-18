@@ -1,13 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using FluentAssertions;
 using NBitcoin;
-using Stratis.Bitcoin.Features.Consensus;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.Wallet.Controllers;
 using Stratis.Bitcoin.Features.Wallet.Models;
-using Stratis.Bitcoin.IntegrationTests.Builders;
-using Stratis.Bitcoin.IntegrationTests.EnvironmentMockUpHelpers;
+using Stratis.Bitcoin.IntegrationTests.Common;
+using Stratis.Bitcoin.IntegrationTests.Common.Builders;
+using Stratis.Bitcoin.IntegrationTests.Common.EnvironmentMockUpHelpers;
 using Xunit.Abstractions;
 
 namespace Stratis.Bitcoin.IntegrationTests.BlockStore
@@ -32,7 +34,7 @@ namespace Stratis.Bitcoin.IntegrationTests.BlockStore
 
         protected override void BeforeTest()
         {
-            this.nodeGroupBuilder = new NodeGroupBuilder(this.CurrentTest.DisplayName);
+            this.nodeGroupBuilder = new NodeGroupBuilder(Path.Combine(this.GetType().Name, this.CurrentTest.DisplayName));
             this.sharedSteps = new SharedSteps();
         }
 
@@ -41,9 +43,9 @@ namespace Stratis.Bitcoin.IntegrationTests.BlockStore
             this.nodeGroupBuilder.Dispose();
         }
 
-        private void a_sending_and_receiving_stratis_bitcoin_node_and_wallet()
+        protected void a_sending_and_receiving_stratis_bitcoin_node_and_wallet()
         {
-            var nodeGroup = this.nodeGroupBuilder
+            IDictionary<string, CoreNode> nodeGroup = this.nodeGroupBuilder
                 .StratisPowNode("sending").Start().NotInIBD()
                 .WithWallet(SendingWalletName, WalletPassword)
                 .StratisPowNode("receiving").Start().NotInIBD()
@@ -53,14 +55,15 @@ namespace Stratis.Bitcoin.IntegrationTests.BlockStore
                 .AndNoMoreConnections()
                 .Build();
 
+
             this.sendingStratisBitcoinNode = nodeGroup["sending"];
             this.receivingStratisBitcoinNode = nodeGroup["receiving"];
 
             this.coinbaseMaturity = (int)this.sendingStratisBitcoinNode.FullNode
-                .Network.Consensus.Option<PowConsensusOptions>().CoinbaseMaturity;
+                .Network.Consensus.CoinbaseMaturity;
         }
 
-        private void a_block_is_mined_creating_spendable_coins()
+        protected void a_block_is_mined_creating_spendable_coins()
         {
             this.sharedSteps.MineBlocks(1, this.sendingStratisBitcoinNode, AccountName, SendingWalletName, WalletPassword);
         }
@@ -70,7 +73,7 @@ namespace Stratis.Bitcoin.IntegrationTests.BlockStore
             this.sharedSteps.MineBlocks(this.coinbaseMaturity - 1, this.sendingStratisBitcoinNode, AccountName, SendingWalletName, WalletPassword);
         }
 
-        private void more_blocks_mined_to_just_AFTER_maturity_of_original_block()
+        protected void more_blocks_mined_to_just_AFTER_maturity_of_original_block()
         {
             this.sharedSteps.MineBlocks(this.coinbaseMaturity, this.sendingStratisBitcoinNode, AccountName, SendingWalletName, WalletPassword);
 
@@ -78,12 +81,12 @@ namespace Stratis.Bitcoin.IntegrationTests.BlockStore
 
         private void spending_the_coins_from_original_block()
         {
-            var sendtoAddress = this.receivingStratisBitcoinNode.FullNode.WalletManager()
+            HdAddress sendtoAddress = this.receivingStratisBitcoinNode.FullNode.WalletManager()
                 .GetUnusedAddresses(new WalletAccountReference(ReceivingWalletName, AccountName), 2).ElementAt(1);
 
             try
             {
-                var transactionBuildContext = SharedSteps.CreateTransactionBuildContext(
+                TransactionBuildContext transactionBuildContext = SharedSteps.CreateTransactionBuildContext(
                     SendingWalletName,
                     AccountName,
                     WalletPassword,
@@ -119,7 +122,7 @@ namespace Stratis.Bitcoin.IntegrationTests.BlockStore
 
         private void the_transaction_is_put_in_the_mempool()
         {
-            var tx = this.sendingStratisBitcoinNode.FullNode.MempoolManager().GetTransaction(this.lastTransaction.GetHash()).GetAwaiter().GetResult();
+            Transaction tx = this.sendingStratisBitcoinNode.FullNode.MempoolManager().GetTransaction(this.lastTransaction.GetHash()).GetAwaiter().GetResult();
             tx.GetHash().Should().Be(this.lastTransaction.GetHash());
             this.caughtException.Should().BeNull();
         }

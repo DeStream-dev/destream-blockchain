@@ -50,6 +50,8 @@ namespace Stratis.Bitcoin.Connection
 
         INetworkPeer FindNodeByIp(IPAddress ipAddress);
 
+        INetworkPeer FindNodeById(int peerId);
+
         string GetNodeStats();
 
         string GetStats();
@@ -167,12 +169,10 @@ namespace Stratis.Bitcoin.Connection
 
             this.Parameters = parameters;
             this.Parameters.ConnectCancellation = this.nodeLifetime.ApplicationStopping;
-            this.Parameters.UserAgent = $"{this.NodeSettings.Agent}:{this.GetVersion()}";
+            this.Parameters.UserAgent = $"{this.ConnectionSettings.Agent}:{this.GetVersion()}";
             this.Parameters.Version = this.NodeSettings.ProtocolVersion;
 
             this.downloads = new Dictionary<INetworkPeer, PerformanceSnapshot>();
-
-            this.ConnectionSettings.Load(this.NodeSettings);
         }
 
         /// <inheritdoc />
@@ -252,10 +252,10 @@ namespace Stratis.Bitcoin.Connection
 
         public string GetStats()
         {
-            StringBuilder builder = new StringBuilder();
+            var builder = new StringBuilder();
             lock (this.downloads)
             {
-                PerformanceSnapshot diffTotal = new PerformanceSnapshot(0, 0);
+                var diffTotal = new PerformanceSnapshot(0, 0);
                 builder.AppendLine("=======Connections=======");
                 foreach (INetworkPeer peer in this.ConnectedPeers)
                 {
@@ -293,14 +293,15 @@ namespace Stratis.Bitcoin.Connection
             return builder.ToString();
         }
 
+
         public string GetNodeStats()
         {
             var builder = new StringBuilder();
 
             foreach (INetworkPeer peer in this.ConnectedPeers)
             {
-                ConnectionManagerBehavior connectionManagerBehavior = peer.Behavior<ConnectionManagerBehavior>();
-                ChainHeadersBehavior chainHeadersBehavior = peer.Behavior<ChainHeadersBehavior>();
+                var connectionManagerBehavior = peer.Behavior<ConnectionManagerBehavior>();
+                var chainHeadersBehavior = peer.Behavior<ChainHeadersBehavior>();
 
                 string agent = peer.PeerVersion != null ? peer.PeerVersion.UserAgent : "[Unknown]";
                 builder.AppendLine(
@@ -376,6 +377,11 @@ namespace Stratis.Bitcoin.Connection
         public INetworkPeer FindLocalNode()
         {
             return this.connectedPeers.FindLocal();
+        }
+
+        public INetworkPeer FindNodeById(int peerId)
+        {
+            return this.connectedPeers.FindById(peerId);
         }
 
         /// <summary>
