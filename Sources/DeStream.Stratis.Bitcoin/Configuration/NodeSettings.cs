@@ -20,7 +20,7 @@ namespace DeStream.Stratis.Bitcoin.Configuration
         /// <summary>
         /// Returns default data root directory name
         /// </summary>
-        protected override string DataRootDirName
+        protected string DataRootDirName
         {
             get { return "DeStreamNode"; }
         }
@@ -33,7 +33,7 @@ namespace DeStream.Stratis.Bitcoin.Configuration
         /// <param name="agent">The nodes user agent that will be shared with peers.</param>
         public DeStreamNodeSettings(Network innerNetwork = null, ProtocolVersion protocolVersion = SupportedProtocolVersion, 
             string agent = "DeStream", string[] args = null, bool loadConfiguration = true) 
-            : base (innerNetwork, protocolVersion, agent, args, loadConfiguration)
+            : base (innerNetwork, protocolVersion, agent, args)
         {            
         }
     }

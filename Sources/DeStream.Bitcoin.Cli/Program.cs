@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using DeStream.Stratis.Bitcoin.Configuration;
 using NBitcoin;
 
 using Newtonsoft.Json;
@@ -116,10 +117,7 @@ namespace DeStream.Bitcoin.Cli
 
                         DeStreamNodeSettings nodeSettings = new DeStreamNodeSettings(network, args:options);
 
-                        var rpcSettings = new RpcSettings();
-
-                        // read the values from the configuration file
-                        rpcSettings.Load(nodeSettings);
+                        var rpcSettings = new RpcSettings(nodeSettings);
 
                         // Find the binding to 127.0.0.1 or the first available. The logic in RPC settings ensures there will be at least 1.
                         System.Net.IPEndPoint nodeEndPoint = rpcSettings.Bind.FirstOrDefault(b => b.Address.ToString() == "127.0.0.1") ?? rpcSettings.Bind[0];
