@@ -10,8 +10,14 @@ namespace NBitcoin.Networks
 {
     public class DeStreamTest : Network
     {
-        public DeStreamTest()
+        public DeStreamTest() : base()
         {
+            this.DNSSeeds = new List<DNSSeedData>();
+            this.SeedNodes = new List<NetworkAddress>();
+            this.Checkpoints = new Dictionary<int, CheckpointInfo>();
+            this.Consensus = new Consensus();
+            this.Base58Prefixes = new byte[12][];
+            this.Bech32Encoders = new Bech32Encoder[2];
             //The message start string is designed to be unlikely to occur in normal data.
             // The characters are rarely used upper ASCII, not valid as UTF - 8, and produce
             // a large 4 - byte int at any alignment.
@@ -74,7 +80,7 @@ namespace NBitcoin.Networks
                 { 115000, new CheckpointInfo(new uint256("0x8496c77060c8a2b5c9a888ade991f25aa33c232b4413594d556daf9043fad400"), new uint256("0x1886430484a9a36b56a7eb8bd25e9ebe4fc8eec8f9a84f5073f71e08f2feac90")) },
                 { 163000, new CheckpointInfo(new uint256("0x4e44a9e0119a2e7cbf15e570a3c649a5605baa601d953a465b5ebd1c1982212a"), new uint256("0x0646fc7db8f3426eb209e1228c7d82724faa46a060f5bbbd546683ef30be245c")) },
             };
-
+           
             this.Base58Prefixes[(int)Base58Type.PUBKEY_ADDRESS] = new byte[] { (65) };
             this.Base58Prefixes[(int)Base58Type.SCRIPT_ADDRESS] = new byte[] { (196) };
             this.Base58Prefixes[(int)Base58Type.SECRET_KEY] = new byte[] { (65 + 128) };
