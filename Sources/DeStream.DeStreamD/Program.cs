@@ -40,7 +40,7 @@ namespace DeStream.DeStreamD
                     network = Network.DeStreamMain;
 
                 DeStreamNodeSettings nodeSettings = new DeStreamNodeSettings(network, ProtocolVersion.ALT_PROTOCOL_VERSION, args:args, loadConfiguration:false);
-
+                
                 Console.WriteLine($"current network: {network.Name}");
 
                 // NOTES: running BTC and STRAT side by side is not possible yet as the flags for serialization are static

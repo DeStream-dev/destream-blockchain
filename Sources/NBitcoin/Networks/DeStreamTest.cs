@@ -10,7 +10,7 @@ namespace NBitcoin.Networks
 {
     public class DeStreamTest : Network
     {
-        public DeStreamTest() : base()
+        public DeStreamTest() //: base()
         {
             this.DNSSeeds = new List<DNSSeedData>();
             this.SeedNodes = new List<NetworkAddress>();

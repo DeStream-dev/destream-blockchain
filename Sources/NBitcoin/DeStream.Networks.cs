@@ -42,7 +42,7 @@ namespace NBitcoin
             {
                 ScriptSig = new Script(Op.GetPushOp(0), new Op()
                 {
-                    Code = (OpcodeType)0x1,
+                    Code = (OpcodeType)0x1, 
                     PushData = new[] { (byte)42 }
                 }, Op.GetPushOp(Encoders.ASCII.DecodeData(pszTimestamp)))
             });

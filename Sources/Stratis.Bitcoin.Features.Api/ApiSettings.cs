@@ -13,6 +13,12 @@ namespace Stratis.Bitcoin.Features.Api
     /// </summary>
     public class ApiSettings
     {
+        /// <summary>The default port used by the API when the node runs on the DeStream network.</summary>
+        public const int DefaultDeStreamApiPort = 0xDE20;
+
+        /// <summary>The default port used by the API when the node runs on the DeStream Test network.</summary>
+        public const int TestDeStreamApiPort = 0xDE21;
+
         /// <summary>The default port used by the API when the node runs on the bitcoin network.</summary>
         public const int DefaultBitcoinApiPort = 37220;
 
@@ -101,9 +107,16 @@ namespace Stratis.Bitcoin.Features.Api
         private static int GetDefaultPort(Network network)
         {
             if (network.IsBitcoin())
+            {
                 return network.IsTest() ? TestBitcoinApiPort : DefaultBitcoinApiPort;
-            
-            return network.IsTest() ? TestStratisApiPort : DefaultStratisApiPort;
+            }
+
+            if (network.IsStratis())
+            {
+                return network.IsTest() ? TestStratisApiPort : DefaultStratisApiPort;
+            }
+
+            return network.IsTest() ? TestDeStreamApiPort: DefaultDeStreamApiPort;
         }
 
         /// <summary>Prints the help information on how to configure the API settings to the logger.</summary>
