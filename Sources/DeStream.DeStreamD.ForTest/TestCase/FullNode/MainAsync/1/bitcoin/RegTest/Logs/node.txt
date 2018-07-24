@@ -1,0 +1,1445 @@
+[2018-07-24 17:02:56.4625 1] INFO: Stratis.Bitcoin.FullNode.Initialize Full node initialized on RegTest
+[2018-07-24 17:02:56.4625 1] INFO: Stratis.Bitcoin.FullNode.Start Starting node...
+[2018-07-24 17:02:56.8849 1] INFO: Stratis.Bitcoin.Base.BaseFeature+<StartChainAsync>d__26.MoveNext Loading finalized block height
+[2018-07-24 17:02:56.8849 6] INFO: Stratis.Bitcoin.Base.BaseFeature+<StartChainAsync>d__26.MoveNext Loading chain
+[2018-07-24 17:02:56.8849 6] INFO: Stratis.Bitcoin.Base.BaseFeature+<StartChainAsync>d__26.MoveNext Chain loaded at height 0
+[2018-07-24 17:02:56.8849 6] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext Periodic peer flush... starting
+[2018-07-24 17:02:56.9015 11] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext FlushChain starting
+[2018-07-24 17:02:58.9632 10] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext Consensus Loop starting
+[2018-07-24 17:02:58.9796 1] INFO: Stratis.Bitcoin.Features.MemoryPool.MempoolManager+<LoadPoolAsync>d__25.MoveNext Loading Memory Pool...
+[2018-07-24 17:02:58.9796 7] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext wallet persist job starting
+[2018-07-24 17:02:58.9796 6] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext MemoryPool.RelayWorker starting
+[2018-07-24 17:02:58.9943 1] INFO: Stratis.Bitcoin.Features.Wallet.WalletSyncManager.Start WalletSyncManager initialized. Wallet at block 0.
+[2018-07-24 17:02:59.0133 1] INFO: Stratis.Bitcoin.Features.RPC.RPCFeature.Initialize RPC Server listening on: 
+http://[::1]:10087/
+http://127.0.0.1:10087/
+[2018-07-24 17:02:59.0133 7] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext DiscoverPeersAsync starting
+[2018-07-24 17:02:59.0252 13] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext PeerConnectorAddNode.ConnectAsync starting
+[2018-07-24 17:02:59.0252 7] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext PeerConnectorDiscovery.ConnectAsync starting
+[2018-07-24 17:02:59.0577 1] INFO: Stratis.Bitcoin.Connection.ConnectionManager.StartNodeServer Node listening on:
+0.0.0.0:12728
+
+[2018-07-24 17:02:59.0577 11] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext PeriodicLog starting
+[2018-07-24 17:03:01.4626 6] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:03:01 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       No Wallet
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Connection======
+
+
+[2018-07-24 17:03:03.7807 13] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext WalletManager.DownloadChain starting
+[2018-07-24 17:03:04.8562 13] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:03:04 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       No Wallet
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Connection======
+
+
+[2018-07-24 17:03:06.7936 13] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:03:06 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:03:07.7779 12] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext WalletManager.DownloadChain starting
+[2018-07-24 17:03:09.8576 11] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:03:09 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:03:11.8066 13] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:03:11 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    1        Consensus.Hash:   150dcf5e9384d4024fc38d86b3028c7d0e3670a2d5dbd4dd6453dc6ad50870e4
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:03:13.8078 12] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext WalletManager.DownloadChain stopping
+[2018-07-24 17:03:14.8736 13] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:03:14 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:03:16.8223 11] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:03:16 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    6        Consensus.Hash:   2672dc3e4c1fec3de1e4ebc24b6b9fd3344dc10181f0c25b6e09377ac74c915b
+Wallet.Height:       5        Wallet.Hash:      68a14c8f1db4f8111eb87ca44cc7df9ad10a154c9d2d1bf427da33bd0b0ee783
+
+======BlockStore======
+Pending Blocks: 5
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 250.00000000
+
+======Connection======
+
+
+[2018-07-24 17:03:19.8850 11] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:03:19 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:03:21.8397 11] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:03:21 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    11       Consensus.Hash:   5fe2833f4ca724fafad4c6eca43f56cea08da76071e416600c4073ccfed2247f
+Wallet.Height:       10       Wallet.Hash:      3963554a7241be53565f691ed73df7485ff7e9b336dd27f34dc9d46a912ca930
+
+======BlockStore======
+Pending Blocks: 10
+Batch Size: 1 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 500.00000000
+
+======Connection======
+
+
+[2018-07-24 17:03:24.9026 11] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:03:24 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:03:26.8443 11] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:03:26 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    16       Consensus.Hash:   1f4741529ef055e844646fbd0278a4b8a2de673016e9cbe232a81be57fdc4374
+Wallet.Height:       15       Wallet.Hash:      3e0641e887adb6e18d39de52e53533a79ea4a0e34bfe34ba036534d45deb2d43
+
+======BlockStore======
+Pending Blocks: 15
+Batch Size: 2 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 750.00000000
+
+======Connection======
+
+
+[2018-07-24 17:03:29.9182 5] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:03:29 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:03:31.8570 5] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:03:31 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    22       Consensus.Hash:   45937da719398a71d080a3c413c2ae7fd39356aecace9556b4b370aee54ac7b0
+Wallet.Height:       21       Wallet.Hash:      44ecfeaf98d053c1e47bddabb142885ea14072f7acec31b151f7478f883fe372
+
+======BlockStore======
+Pending Blocks: 21
+Batch Size: 3 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 1050.00000000
+
+======Connection======
+
+
+[2018-07-24 17:03:34.9327 13] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:03:34 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:03:36.8685 13] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:03:36 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    27       Consensus.Hash:   4f5034215afac177e6f3e9739f422d83fdfe3dc3d2c9d14701ac72ba940aef4c
+Wallet.Height:       26       Wallet.Hash:      5bece17f32b2c32b4a42e5dc82f07f3d74ead4f38a0af3353ecc4a7e25771ad0
+
+======BlockStore======
+Pending Blocks: 26
+Batch Size: 4 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 1300.00000000
+
+======Connection======
+
+
+[2018-07-24 17:03:39.9473 11] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:03:39 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:03:41.8751 11] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:03:41 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    31       Consensus.Hash:   5fe9a671b58a7b877551caee7d76f6782dd736357b6ba0aa0ac1c1e3b901875a
+Wallet.Height:       30       Wallet.Hash:      2179f2280dab355a826d5f2bf8973e4fca4416c196dda4d77fd6b3b853449cc5
+
+======BlockStore======
+Pending Blocks: 30
+Batch Size: 5 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 1500.00000000
+
+======Connection======
+
+
+[2018-07-24 17:03:44.9628 12] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:03:44 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:03:46.8857 17] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:03:46 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    34       Consensus.Hash:   41cdd553f356adeab106ca1333e5a25892bad240b6ffc2087702bd6691d2211d
+Wallet.Height:       33       Wallet.Hash:      1322828e0b5344944f5ff2fbf116526071381e6245b5b9aa6ade7171fa53ac88
+
+======BlockStore======
+Pending Blocks: 33
+Batch Size: 5 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 1650.00000000
+
+======Connection======
+
+
+[2018-07-24 17:03:49.9820 5] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:03:49 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:03:51.9014 13] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:03:51 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    36       Consensus.Hash:   3671d90fba26dddbd7d4aeaf67aa68710eb612dee1323922c7b077b4c53f760c
+Wallet.Height:       35       Wallet.Hash:      161e73d4f18a7bcfd985e4da59287525cf0f2596fb3342192d077da874774409
+
+======BlockStore======
+Pending Blocks: 34
+Batch Size: 5 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 1750.00000000
+
+======Connection======
+
+
+[2018-07-24 17:03:54.9940 12] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:03:54 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:03:56.9178 12] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:03:56 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   34       BlockStore.Hash:  41cdd553f356adeab106ca1333e5a25892bad240b6ffc2087702bd6691d2211d
+Consensus.Height:    38       Consensus.Hash:   350fda7411a33c85aa52621e5ad9cd1d98485d32ca846329f48ac2926311b098
+Wallet.Height:       37       Wallet.Hash:      1fd0a17d083f2e7b9ce4229f95189b611f58f3ac9d4083f9bebdc386104208a4
+
+======BlockStore======
+Pending Blocks: 3
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 1850.00000000
+
+======Connection======
+
+
+[2018-07-24 17:04:00.0116 11] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:04:00 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:04:01.9355 5] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:04:01 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   34       BlockStore.Hash:  41cdd553f356adeab106ca1333e5a25892bad240b6ffc2087702bd6691d2211d
+Consensus.Height:    40       Consensus.Hash:   62531375816caa449cce0d9b59d1586010922e039278c6eab6ae59f642834322
+Wallet.Height:       39       Wallet.Hash:      136cabf84900d8fe6c0a36d92e3dd18907afc998833057110849354f87b51832
+
+======BlockStore======
+Pending Blocks: 5
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 1950.00000000
+
+======Connection======
+
+
+[2018-07-24 17:04:05.0254 13] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:04:05 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:04:06.9510 12] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:04:06 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   34       BlockStore.Hash:  41cdd553f356adeab106ca1333e5a25892bad240b6ffc2087702bd6691d2211d
+Consensus.Height:    42       Consensus.Hash:   2f75a7a11b9881bb3798abe4d56e34a5c88fd57fd77b6aca2f1d8a598d09c93b
+Wallet.Height:       41       Wallet.Hash:      7a3de383f9c1f0d57e9567829dcfa5ec4baa014d92ad3d64ae591de344595f9d
+
+======BlockStore======
+Pending Blocks: 7
+Batch Size: 1 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 2050.00000000
+
+======Connection======
+
+
+[2018-07-24 17:04:10.0487 13] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:04:10 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:04:11.9626 12] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:04:11 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   34       BlockStore.Hash:  41cdd553f356adeab106ca1333e5a25892bad240b6ffc2087702bd6691d2211d
+Consensus.Height:    44       Consensus.Hash:   7aa335dc77eacbab9d5a5217ca60a0d26b7f880b10af428def90b7227d08bb96
+Wallet.Height:       43       Wallet.Hash:      302a35cbb08e0701c7ba8c9682ac83172ecaa5107aa879b87b4ba50a63b50863
+
+======BlockStore======
+Pending Blocks: 9
+Batch Size: 1 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 2150.00000000
+
+======Connection======
+
+
+[2018-07-24 17:04:15.0673 5] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:04:15 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:04:16.9783 12] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:04:16 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   34       BlockStore.Hash:  41cdd553f356adeab106ca1333e5a25892bad240b6ffc2087702bd6691d2211d
+Consensus.Height:    47       Consensus.Hash:   2ca4a89680e7c7be6096552a924af52f6032eb426a52a5e188925a4249125d0d
+Wallet.Height:       46       Wallet.Hash:      3ca8e7ac381f1f945e4a5ff484d88fda6d9396c5ac1bc8440f2da5e7576357e8
+
+======BlockStore======
+Pending Blocks: 12
+Batch Size: 2 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 2300.00000000
+
+======Connection======
+
+
+[2018-07-24 17:04:20.0720 11] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:04:20 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:04:21.9967 12] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:04:21 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   34       BlockStore.Hash:  41cdd553f356adeab106ca1333e5a25892bad240b6ffc2087702bd6691d2211d
+Consensus.Height:    51       Consensus.Hash:   58ecad41f30397bb146b5cd7493df41653079aa17400b7e59cba3d18956b12f8
+Wallet.Height:       50       Wallet.Hash:      1bf09ed9d72ebeb11c24945e8f69e8e1dbe165863dc12ba60957d5dfac983e39
+
+======BlockStore======
+Pending Blocks: 16
+Batch Size: 2 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 2500.00000000
+
+======Connection======
+
+
+[2018-07-24 17:04:25.0885 12] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:04:25 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:04:27.0027 17] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:04:27 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   34       BlockStore.Hash:  41cdd553f356adeab106ca1333e5a25892bad240b6ffc2087702bd6691d2211d
+Consensus.Height:    54       Consensus.Hash:   073913dd227d0d0aa5d6ce0305f8b2112cfab525b25f740e16d1cf39cc002818
+Wallet.Height:       53       Wallet.Hash:      00bf645fc9f9d357a55cf16349d05ac857c8f4b7ab68d69b95475c4d8faae08d
+
+======BlockStore======
+Pending Blocks: 19
+Batch Size: 3 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 2650.00000000
+
+======Connection======
+
+
+[2018-07-24 17:04:30.1043 11] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:04:30 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:04:32.0179 11] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:04:32 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   34       BlockStore.Hash:  41cdd553f356adeab106ca1333e5a25892bad240b6ffc2087702bd6691d2211d
+Consensus.Height:    57       Consensus.Hash:   476a2f8c311fad2ea9c48c5545b70d4833ea78a059006feb981204dbb23461ed
+Wallet.Height:       56       Wallet.Hash:      7bcffcc92423daa1b9eb2dbcd21d7228fa8c176e1625dccf164f11a9f01d5129
+
+======BlockStore======
+Pending Blocks: 22
+Batch Size: 3 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 2800.00000000
+
+======Connection======
+
+
+[2018-07-24 17:04:35.1185 12] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:04:35 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:04:37.0354 13] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:04:37 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   56       BlockStore.Hash:  7bcffcc92423daa1b9eb2dbcd21d7228fa8c176e1625dccf164f11a9f01d5129
+Consensus.Height:    61       Consensus.Hash:   3de1ee688caf96ac5d7fee7b2a49a076549c0283d54bd6ed716138333975963f
+Wallet.Height:       60       Wallet.Hash:      412dc1bd1a3aaf28a70ab8f3e464e754afa29de45ab2381d55ecb59a9aaa5fa9
+
+======BlockStore======
+Pending Blocks: 4
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 3000.00000000
+
+======Connection======
+
+
+[2018-07-24 17:04:40.1221 12] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:04:40 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:04:42.0520 5] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:04:42 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   56       BlockStore.Hash:  7bcffcc92423daa1b9eb2dbcd21d7228fa8c176e1625dccf164f11a9f01d5129
+Consensus.Height:    64       Consensus.Hash:   7a8609e64d34b5e195989f38f84f0f8a5e3b9f2a0e60b08a0c71a3c1ddff99a9
+Wallet.Height:       63       Wallet.Hash:      7f51e837dcec3321e7bb289be5cb2470bb1b9870a771574a56839e416f674319
+
+======BlockStore======
+Pending Blocks: 7
+Batch Size: 1 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 3150.00000000
+
+======Connection======
+
+
+[2018-07-24 17:04:45.1367 12] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:04:45 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:04:47.0606 5] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:04:47 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   56       BlockStore.Hash:  7bcffcc92423daa1b9eb2dbcd21d7228fa8c176e1625dccf164f11a9f01d5129
+Consensus.Height:    66       Consensus.Hash:   5b92e89b4e5edf0cc6f6e1b231c900cc1cd83455f248accb2307a0e23495a501
+Wallet.Height:       65       Wallet.Hash:      4af0e0293b7a5f80a6fb882f4fa09e89b9c3d36b63db6bd0448f78719390ae53
+
+======BlockStore======
+Pending Blocks: 9
+Batch Size: 1 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 3250.00000000
+
+======Connection======
+
+
+[2018-07-24 17:04:50.1573 5] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:04:50 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:04:52.0723 12] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:04:52 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   56       BlockStore.Hash:  7bcffcc92423daa1b9eb2dbcd21d7228fa8c176e1625dccf164f11a9f01d5129
+Consensus.Height:    69       Consensus.Hash:   7c57b36b9f8a0cc54c822f258fc44721a477c6cb0ecf61489505b1523dd9dd65
+Wallet.Height:       68       Wallet.Hash:      7b4a4a87ce7732c5704f2cfadcec84ad14e16cf14318b26dd75106c3c8ecaed2
+
+======BlockStore======
+Pending Blocks: 12
+Batch Size: 2 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 3400.00000000
+
+======Connection======
+
+
+[2018-07-24 17:04:55.1708 12] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:04:55 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:04:57.0887 12] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:04:57 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   56       BlockStore.Hash:  7bcffcc92423daa1b9eb2dbcd21d7228fa8c176e1625dccf164f11a9f01d5129
+Consensus.Height:    72       Consensus.Hash:   2ce33c5dc1dc12da7c58fdb3dc3324a868a99f307d24a6e0c2eb82f97b082e36
+Wallet.Height:       71       Wallet.Hash:      515f48a11f6445efbdc253de72fe6522f3e9603363f165cbc1248d649b46350d
+
+======BlockStore======
+Pending Blocks: 15
+Batch Size: 2 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 3550.00000000
+
+======Connection======
+
+
+[2018-07-24 17:05:00.1877 13] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:05:00 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:05:02.1074 13] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:05:02 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   56       BlockStore.Hash:  7bcffcc92423daa1b9eb2dbcd21d7228fa8c176e1625dccf164f11a9f01d5129
+Consensus.Height:    74       Consensus.Hash:   7e1cce7b5352d2f8649fda76eb22a816d8acad16866e50cb637b0645a82dc05e
+Wallet.Height:       73       Wallet.Hash:      5273d19eda77c0a9bcad44587bb31b3c8db4c5d67de08062aadae770e24c55ef
+
+======BlockStore======
+Pending Blocks: 17
+Batch Size: 2 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 3650.00000000
+
+======Connection======
+
+
+[2018-07-24 17:05:05.2002 13] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:05:05 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:05:07.1199 12] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:05:07 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   56       BlockStore.Hash:  7bcffcc92423daa1b9eb2dbcd21d7228fa8c176e1625dccf164f11a9f01d5129
+Consensus.Height:    77       Consensus.Hash:   7085e5f24d8796e70faaa88bc5e4d98f38868c459a5c0d8feaeb57dc87d0b160
+Wallet.Height:       76       Wallet.Hash:      3c86ff2ed7300fbd5641f7d5a50c79fd9554cb44087e9698d713d6e44f8609bd
+
+======BlockStore======
+Pending Blocks: 20
+Batch Size: 3 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 3800.00000000
+
+======Connection======
+
+
+[2018-07-24 17:05:10.2126 11] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:05:10 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:05:12.1255 17] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:05:12 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   56       BlockStore.Hash:  7bcffcc92423daa1b9eb2dbcd21d7228fa8c176e1625dccf164f11a9f01d5129
+Consensus.Height:    78       Consensus.Hash:   3066d3eaf313769dc7a7288570ba0916135cc5749006a3c1eb449811d2cd5cd8
+Wallet.Height:       77       Wallet.Hash:      7085e5f24d8796e70faaa88bc5e4d98f38868c459a5c0d8feaeb57dc87d0b160
+
+======BlockStore======
+Pending Blocks: 21
+Batch Size: 3 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 3850.00000000
+
+======Connection======
+
+
+[2018-07-24 17:05:15.2332 5] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:05:15 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:05:17.1431 11] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:05:17 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   77       BlockStore.Hash:  7085e5f24d8796e70faaa88bc5e4d98f38868c459a5c0d8feaeb57dc87d0b160
+Consensus.Height:    81       Consensus.Hash:   655ccfca8b634b734179e0d19b899840d04d4b9895839cb23d1ab60e768e0059
+Wallet.Height:       80       Wallet.Hash:      5e1fc2910689d37a835100b78561152eb4a3f5037f63e8ed80ef9bf0541fff93
+
+======BlockStore======
+Pending Blocks: 3
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 4000.00000000
+
+======Connection======
+
+
+[2018-07-24 17:05:20.2398 13] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:05:20 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:05:22.1527 12] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:05:22 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   77       BlockStore.Hash:  7085e5f24d8796e70faaa88bc5e4d98f38868c459a5c0d8feaeb57dc87d0b160
+Consensus.Height:    84       Consensus.Hash:   441ee7d3b406f0933292d62d1fab7b3923ddd954c5b664da9e99c490aba3f68d
+Wallet.Height:       83       Wallet.Hash:      16961ecfce43f1422eb1f6cbbd3304399b07216e2aa964823314be31d9992845
+
+======BlockStore======
+Pending Blocks: 6
+Batch Size: 1 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 4150.00000000
+
+======Connection======
+
+
+[2018-07-24 17:05:25.2524 11] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:05:25 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:05:27.1603 11] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:05:27 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   77       BlockStore.Hash:  7085e5f24d8796e70faaa88bc5e4d98f38868c459a5c0d8feaeb57dc87d0b160
+Consensus.Height:    87       Consensus.Hash:   7b0e9fa908af290ab4d1bc3331ecf896c101ce9dfe6269955ed45e3923fbc0d1
+Wallet.Height:       86       Wallet.Hash:      585a919cd717dc5c1e7eb076c6a6e152b3e7f0a2986e49e0756d076964ac6475
+
+======BlockStore======
+Pending Blocks: 9
+Batch Size: 1 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 4300.00000000
+
+======Connection======
+
+
+[2018-07-24 17:05:30.2630 5] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:05:30 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:05:32.1699 5] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:05:32 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   77       BlockStore.Hash:  7085e5f24d8796e70faaa88bc5e4d98f38868c459a5c0d8feaeb57dc87d0b160
+Consensus.Height:    91       Consensus.Hash:   1c3c3582fadd9302ecb487e7d5fc7a762256e6c8236edf7834ad79e8e5e5f069
+Wallet.Height:       90       Wallet.Hash:      4d818feca6ac4e1e8650449f8cc6d72c80540d09eb06aa3c7972b8307e441594
+
+======BlockStore======
+Pending Blocks: 13
+Batch Size: 2 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 4500.00000000
+
+======Connection======
+
+
+[2018-07-24 17:05:35.2795 11] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:05:35 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:05:37.1826 13] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:05:37 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   77       BlockStore.Hash:  7085e5f24d8796e70faaa88bc5e4d98f38868c459a5c0d8feaeb57dc87d0b160
+Consensus.Height:    93       Consensus.Hash:   192c8b1f9eb47103066209384a09846490d6256c56cbec948db6862a90c717be
+Wallet.Height:       92       Wallet.Hash:      565564af4a769007553bc543f437eb945f3acde32f23dda9b2baacab4f4edd01
+
+======BlockStore======
+Pending Blocks: 15
+Batch Size: 2 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 4600.00000000
+
+======Connection======
+
+
+[2018-07-24 17:05:40.2931 11] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:05:40 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:05:42.2011 11] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:05:42 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   77       BlockStore.Hash:  7085e5f24d8796e70faaa88bc5e4d98f38868c459a5c0d8feaeb57dc87d0b160
+Consensus.Height:    96       Consensus.Hash:   022ddd360446e2bdcc8d430532794470e7a3590588559f582cb51fa3645fc678
+Wallet.Height:       95       Wallet.Hash:      784f18a42d01b4f27f1a8b03744e3aba151087416c27b3b267aeeea996b915fa
+
+======BlockStore======
+Pending Blocks: 18
+Batch Size: 3 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 4750.00000000
+
+======Connection======
+
+
+[2018-07-24 17:05:45.3068 12] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:05:45 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:05:47.2126 12] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:05:47 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   77       BlockStore.Hash:  7085e5f24d8796e70faaa88bc5e4d98f38868c459a5c0d8feaeb57dc87d0b160
+Consensus.Height:    99       Consensus.Hash:   1119efc1070763e9607f203c1c8b2ee1b72b0db9a35d88ec8debbbe69f5f5944
+Wallet.Height:       98       Wallet.Hash:      685f5d5f7112228f56ec218cfa1bb5cc4b536b0caeb461f5bfdc3d5fabe0c3d1
+
+======BlockStore======
+Pending Blocks: 21
+Batch Size: 3 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 4900.00000000
+
+======Connection======
+
+
+[2018-07-24 17:05:50.3223 13] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:05:50 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:05:52.2292 13] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:05:52 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   77       BlockStore.Hash:  7085e5f24d8796e70faaa88bc5e4d98f38868c459a5c0d8feaeb57dc87d0b160
+Consensus.Height:    102      Consensus.Hash:   32716f111e57fd6ee6a578345967baa8ea3d903694815bd5828e09c8aab648e5
+Wallet.Height:       101      Wallet.Hash:      78b4c6f4914fb5af0b6f0d208fb08598494770a1ebf9da6e88a89dc3657d56ba
+
+======BlockStore======
+Pending Blocks: 24
+Batch Size: 4 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 5050.00000000
+
+======Connection======
+
+
+[2018-07-24 17:05:55.3399 11] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:05:55 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:05:57.2438 12] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:05:57 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   101      BlockStore.Hash:  78b4c6f4914fb5af0b6f0d208fb08598494770a1ebf9da6e88a89dc3657d56ba
+Consensus.Height:    105      Consensus.Hash:   36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+Wallet.Height:       104      Wallet.Hash:      475a78bba3baf9581733cbde866583795d7410b2e523e87d8d450365eb999c02
+
+======BlockStore======
+Pending Blocks: 3
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 5200.00000000
+
+======Connection======
+
+
+[2018-07-24 17:06:00.8694 6] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:06:00 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-24 17:06:02.6564 13] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:06:02 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   105      BlockStore.Hash:  36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+Consensus.Height:    105      Consensus.Hash:   36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+Wallet.Height:       105      Wallet.Hash:      36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 5250.00000000
+
+======Connection======
+
+
+[2018-07-24 17:06:03.6364 12] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext WalletManager.DownloadChain starting
+[2018-07-24 17:06:08.8016 12] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:06:07 agent node10150-StratisBitcoin:1.1.2
+Headers.Height:      105      Headers.Hash:     36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+BlockStore.Height:   105      BlockStore.Hash:  36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+Consensus.Height:    105      Consensus.Hash:   36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+Wallet.Height:       105      Wallet.Hash:      36cf8cb4d867232d7026ab8a7e715552add44cd853017ae74859d05adbf9ef4f
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 5250.00000000
+
+======Connection======
+
+
+[2018-07-24 17:06:08.8016 6] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/24/2018 17:06:07 agent node12728-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
