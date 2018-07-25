@@ -19,7 +19,7 @@ namespace Stratis.Bitcoin.IntegrationTests.Common
             while (!act())
             {
                 cancel.Token.ThrowIfCancellationRequested();
-                Thread.Sleep(50);
+                //Thread.Sleep(50);
             }
         }
 

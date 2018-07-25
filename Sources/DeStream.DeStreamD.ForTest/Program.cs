@@ -16,6 +16,7 @@ using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.Wallet.Interfaces;
 using Stratis.Bitcoin.IntegrationTests.Common;
 using Stratis.Bitcoin.IntegrationTests.Common.EnvironmentMockUpHelpers;
+using Stratis.Bitcoin.Interfaces;
 using Stratis.Bitcoin.Utilities;
 
 namespace DeStream.DeStreamD.ForTest
@@ -42,7 +43,7 @@ namespace DeStream.DeStreamD.ForTest
                 Console.WriteLine($"current network: {network.Name}");
 
                 // NOTES: running BTC and STRAT side by side is not possible yet as the flags for serialization are static
-                var node = new FullNodeBuilder()
+                IFullNode node = new FullNodeBuilder()
                     .UseNodeSettings(nodeSettings)
                     .UseBlockStore()
                     .UsePosConsensus()
@@ -53,7 +54,39 @@ namespace DeStream.DeStreamD.ForTest
                     .AddRPC()
                     .Build();
 
+                //(node.NodeService<IInitialBlockDownloadState>() as InitialBlockDownloadStateMock).SetIsInitialBlockDownload(false, DateTime.UtcNow.AddMinutes(5));
 
+                //Mnemonic _mnemonic1 = node.NodeService<IWalletManager>().CreateWallet("123456", "mywallet");
+                //Mnemonic _mnemonic2 = node.NodeService<IWalletManager>().CreateWallet("123456", "mywallet");
+                //HdAddress _addr = node.NodeService<IWalletManager>().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
+                //Wallet _wallet = node.NodeService<IWalletManager>().GetWalletByName("mywallet");
+                //Key key = _wallet.GetExtendedPrivateKeyForAddress("123456", _addr).PrivateKey;
+
+                //stratisSender.SetDummyMinerSecret(new BitcoinSecret(key, stratisSender.FullNode.Network));
+                //int maturity = (int)stratisSender.FullNode.Network.Consensus.CoinbaseMaturity;
+                //stratisSender.GenerateStratis(maturity + 5);
+                //// wait for block repo for block sync to work
+
+                //TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(stratisSender));
+
+                //// the mining should add coins to the wallet
+                //long total = stratisSender.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount);
+
+                //var walletManager = ((FullNode)node).NodeService<IWalletManager>() as WalletManager;
+                ////HdAddress addr = ((FullNode)node).WalletManager().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
+                //walletManager.CreateWallet("123456", "mywallet");
+                //HdAddress sendto = walletManager.GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
+                //var walletTransactionHandler = ((FullNode)node).NodeService<IWalletTransactionHandler>() as WalletTransactionHandler;
+
+                //var transactionBuildContext = CreateContext(
+                //    new WalletAccountReference("mywallet", "account 0"), "123456", sendto.ScriptPubKey, Money.COIN * 100, FeeType.Medium, 101);
+
+                //Transaction trx = walletTransactionHandler.BuildTransaction(transactionBuildContext);
+
+
+
+                int qwe = 1;
+                
                 NodeBuilder builder = NodeBuilder.Create(node);
                 CoreNode stratisSender = builder.CreateStratisPowNode();
                 CoreNode stratisReceiver = builder.CreateStratisPowNode();
@@ -78,8 +111,10 @@ namespace DeStream.DeStreamD.ForTest
                 // the mining should add coins to the wallet
                 long total = stratisSender.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount);
 
+                var walletManager = stratisSender.FullNode.NodeService<IWalletManager>() as WalletManager;
 
-                var walletManager = ((FullNode)node).NodeService<IWalletManager>() as WalletManager;
+                //var walletManager1 = ((FullNode)node).NodeService<IWalletManager>() as WalletManager;
+
                 //HdAddress addr = ((FullNode)node).WalletManager().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
                 walletManager.CreateWallet("123456", "mywallet");
                 HdAddress sendto = walletManager.GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
