@@ -1,0 +1,136 @@
+[2018-07-27 13:23:57.6461 1] INFO: Stratis.Bitcoin.FullNode.Initialize Full node initialized on RegTest
+[2018-07-27 13:23:57.6461 1] INFO: Stratis.Bitcoin.FullNode.Start Starting node...
+[2018-07-27 13:23:57.9181 1] INFO: Stratis.Bitcoin.Base.BaseFeature+<StartChainAsync>d__26.MoveNext Loading finalized block height
+[2018-07-27 13:23:57.9274 5] INFO: Stratis.Bitcoin.Base.BaseFeature+<StartChainAsync>d__26.MoveNext Loading chain
+[2018-07-27 13:23:57.9274 12] INFO: Stratis.Bitcoin.Base.BaseFeature+<StartChainAsync>d__26.MoveNext Chain loaded at height 0
+[2018-07-27 13:23:57.9274 5] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext FlushChain starting
+[2018-07-27 13:23:57.9274 7] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext Periodic peer flush... starting
+[2018-07-27 13:23:58.7767 10] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext Consensus Loop starting
+[2018-07-27 13:23:58.7767 1] INFO: Stratis.Bitcoin.Features.MemoryPool.MempoolManager+<LoadPoolAsync>d__25.MoveNext Loading Memory Pool...
+[2018-07-27 13:23:58.7767 5] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext MemoryPool.RelayWorker starting
+[2018-07-27 13:23:58.7864 13] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext wallet persist job starting
+[2018-07-27 13:23:58.7864 1] INFO: Stratis.Bitcoin.Features.Wallet.WalletSyncManager.Start WalletSyncManager initialized. Wallet at block 0.
+[2018-07-27 13:23:58.7864 1] INFO: Stratis.Bitcoin.Features.RPC.RPCFeature.Initialize RPC Server listening on: 
+http://[::1]:12223/
+http://127.0.0.1:12223/
+[2018-07-27 13:23:58.8024 5] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext DiscoverPeersAsync starting
+[2018-07-27 13:23:58.8024 7] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext PeerConnectorAddNode.ConnectAsync starting
+[2018-07-27 13:23:58.8024 7] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext PeerConnectorDiscovery.ConnectAsync starting
+[2018-07-27 13:23:58.8024 1] INFO: Stratis.Bitcoin.Connection.ConnectionManager.StartNodeServer Node listening on:
+0.0.0.0:13329
+
+[2018-07-27 13:23:58.8024 13] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext PeriodicLog starting
+[2018-07-27 13:24:01.6791 5] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext WalletManager.DownloadChain starting
+[2018-07-27 13:24:02.6318 17] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/27/2018 13:24:02 agent node12655-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-27 13:24:03.8241 7] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/27/2018 13:24:03 agent node13329-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       No Wallet
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Connection======
+
+
+[2018-07-27 13:24:04.1655 5] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext WalletManager.DownloadChain starting
+[2018-07-27 13:24:06.6810 6] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext WalletManager.DownloadChain stopping
+[2018-07-27 13:24:07.6548 12] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/27/2018 13:24:07 agent node12655-StratisBitcoin:1.1.2
+Headers.Height:      3        Headers.Hash:     506f45284e3914812bfa4c3023a72926d04fcd0863bdb135d9b86659ab985060
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    3        Consensus.Hash:   506f45284e3914812bfa4c3023a72926d04fcd0863bdb135d9b86659ab985060
+Wallet.Height:       2        Wallet.Hash:      28d56e9fe90cbb3afbfd1525ddffca084e5f62a3a6dc7a59ca5a79e715eb3b4d
+
+======BlockStore======
+Pending Blocks: 2
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 100.00000000
+
+======Connection======
+
+
+[2018-07-27 13:24:08.8336 12] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/27/2018 13:24:08 agent node13329-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
+[2018-07-27 13:24:23.7374 5] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/27/2018 13:24:22 agent node12655-StratisBitcoin:1.1.2
+Headers.Height:      3        Headers.Hash:     506f45284e3914812bfa4c3023a72926d04fcd0863bdb135d9b86659ab985060
+BlockStore.Height:   3        BlockStore.Hash:  506f45284e3914812bfa4c3023a72926d04fcd0863bdb135d9b86659ab985060
+Consensus.Height:    3        Consensus.Hash:   506f45284e3914812bfa4c3023a72926d04fcd0863bdb135d9b86659ab985060
+Wallet.Height:       3        Wallet.Hash:      506f45284e3914812bfa4c3023a72926d04fcd0863bdb135d9b86659ab985060
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 150.00000000
+
+======Connection======
+
+
+[2018-07-27 13:24:23.7405 13] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/27/2018 13:24:22 agent node13329-StratisBitcoin:1.1.2
+Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+
+======BlockStore======
+Pending Blocks: 0
+Batch Size: 0 kb / 5000 kb
+
+=======Mempool=======
+MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
+
+======Wallets======
+Wallet: mywallet,            Confirmed balance: 0.00000000
+
+======Connection======
+
+
