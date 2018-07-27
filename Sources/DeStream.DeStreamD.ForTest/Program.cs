@@ -146,25 +146,34 @@ namespace DeStream.DeStreamD.ForTest
                     .UseApi()
                     .AddRPC()
                     .Build();
+                Mnemonic _mnemonic1 = node.NodeService<IWalletManager>().CreateWallet("123456", "mywallet");
+                Wallet _wallet = node.NodeService<IWalletManager>().GetWalletByName("mywallet");
+                HdAddress _addr = node.NodeService<IWalletManager>().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
+                Key _key = _wallet.GetExtendedPrivateKeyForAddress("123456", _addr).PrivateKey;
+                var _walletTransactionHandler = ((FullNode)node).NodeService<IWalletTransactionHandler>() as WalletTransactionHandler;
+                TransactionBuildContext context = CreateContext(new WalletAccountReference("mywallet", "account 0"), "password", _key.PubKey.ScriptPubKey, new Money(777), FeeType.Low, 0);
+                
+                Transaction transactionResult = _walletTransactionHandler.BuildTransaction(context);
+                int qwe = 1;
+
                 if (node != null)
                     await node.RunAsync();
 
-                (node.NodeService<IInitialBlockDownloadState>() as InitialBlockDownloadStateMock).SetIsInitialBlockDownload(false, DateTime.UtcNow.AddMinutes(5));
 
-                Mnemonic _mnemonic1 = node.NodeService<IWalletManager>().CreateWallet("123456", "mywallet");
                 //Mnemonic _mnemonic2 = node.NodeService<IWalletManager>().CreateWallet("123456", "mywallet");
-                HdAddress _addr = node.NodeService<IWalletManager>().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
-                Wallet _wallet = node.NodeService<IWalletManager>().GetWalletByName("mywallet");
-                Key _key = _wallet.GetExtendedPrivateKeyForAddress("123456", _addr).PrivateKey;
 
-                BitcoinSecret bitcoinSecret = new BitcoinSecret(_key, node.Network);
+                //Wallet _wallet = node.NodeService<IWalletManager>().GetWalletByName("mywallet");
 
 
-                int _maturity = (int)node.Network.Consensus.CoinbaseMaturity;
 
-                GenerateStratis(node, bitcoinSecret, 10);
+                //BitcoinSecret bitcoinSecret = new BitcoinSecret(_key, node.Network);
 
-                TestHelper.WaitLoop(() => TestHelper.IsNodeSynced((FullNode)node));
+
+                //int _maturity = (int)node.Network.Consensus.CoinbaseMaturity;
+
+                //GenerateStratis(node, bitcoinSecret, 10);
+
+                //TestHelper.WaitLoop(() => TestHelper.IsNodeSynced((FullNode)node));
                 //// wait for block repo for block sync to work
 
                 //TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(stratisSender));
@@ -184,8 +193,8 @@ namespace DeStream.DeStreamD.ForTest
                 //Transaction trx = walletTransactionHandler.BuildTransaction(transactionBuildContext);
 
 
-                int qwe = 1;
-                
+
+
                 NodeBuilder builder = NodeBuilder.Create(node);
                 CoreNode stratisSender = builder.CreateStratisPowNode();
                 CoreNode stratisReceiver = builder.CreateStratisPowNode();

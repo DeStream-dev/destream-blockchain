@@ -64,12 +64,15 @@ namespace NBitcoin.Networks
             this.Consensus.DefaultAssumeValid = new uint256("0x98fa6ef0bca5b431f15fd79dc6f879dc45b83ed4b1bbe933a383ef438321958e"); // 372652
 
             Block genesis = CreateStratisGenesisBlock(this.Consensus.ConsensusFactory, 1470467000, 1831645, 0x1e0fffff, 1, Money.Zero);
+            //Block genesis = CreateStratisGenesisBlock(this.Consensus.ConsensusFactory, 1470467000, 1831645, 0x1e0fffff, 1, Money.Coins(9000000000));
             genesis.Header.Time = 1493909211;
             genesis.Header.Nonce = 2433759;
             genesis.Header.Bits = this.Consensus.PowLimit;
             this.Genesis = genesis;
             this.Consensus.HashGenesisBlock = genesis.GetHash();
             Assert(this.Consensus.HashGenesisBlock == uint256.Parse("0x00000e246d7b73b88c9ab55f2e5e94d9e22d471def3df5ea448f5576b1d156b9"));
+
+            //Assert(this.Consensus.HashGenesisBlock == uint256.Parse("5c69790173d48daf2a2a111e0baafb0546ebbec9a831f890ff8c7e23fe119885"));
 
             this.Checkpoints = new Dictionary<int, CheckpointInfo>
             {
