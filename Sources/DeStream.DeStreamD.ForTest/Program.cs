@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DeStream.Stratis.Bitcoin.Configuration;
+using Moq;
 using NBitcoin;
 using NBitcoin.Protocol;
 using Stratis.Bitcoin;
 using Stratis.Bitcoin.Builder;
+using Stratis.Bitcoin.Configuration;
 using Stratis.Bitcoin.Features.Api;
 using Stratis.Bitcoin.Features.BlockStore;
 using Stratis.Bitcoin.Features.Consensus;
@@ -19,6 +22,7 @@ using Stratis.Bitcoin.Features.Wallet.Interfaces;
 using Stratis.Bitcoin.IntegrationTests.Common;
 using Stratis.Bitcoin.IntegrationTests.Common.EnvironmentMockUpHelpers;
 using Stratis.Bitcoin.Interfaces;
+using Stratis.Bitcoin.Tests.Wallet.Common;
 using Stratis.Bitcoin.Utilities;
 using static Stratis.Bitcoin.BlockPulling.BlockPuller;
 
@@ -121,6 +125,52 @@ namespace DeStream.DeStreamD.ForTest
 
             return blocks.ToArray();
         }
+
+        #region Test
+        public static List<Block> AddBlocksWithCoinbaseToChain(Network network, ConcurrentChain chain, HdAddress address, int blocks = 1)
+        {
+            //var chain = new ConcurrentChain(network.GetGenesis().Header);
+
+            var blockList = new List<Block>();
+
+            for (int i = 0; i < blocks; i++)
+            {
+                var block = new Block();
+                block.Header.HashPrevBlock = chain.Tip.HashBlock;
+                block.Header.Bits = block.Header.GetWorkRequired(network, chain.Tip);
+                block.Header.UpdateTime(DateTimeOffset.UtcNow, network, chain.Tip);
+
+                var coinbase = new Transaction();
+                coinbase.AddInput(TxIn.CreateCoinbase(chain.Height + 1));
+                coinbase.AddOutput(new TxOut(network.GetReward(chain.Height + 1), address.ScriptPubKey));
+
+                block.AddTransaction(coinbase);
+                block.Header.Nonce = 0;
+                block.UpdateMerkleRoot();
+                block.Header.PrecomputeHash();
+
+                chain.SetTip(block.Header);
+
+                var addressTransaction = new TransactionData
+                {
+                    Amount = coinbase.TotalOut,
+                    BlockHash = block.GetHash(),
+                    BlockHeight = chain.GetBlock(block.GetHash()).Height,
+                    CreationTime = DateTimeOffset.FromUnixTimeSeconds(block.Header.Time),
+                    Id = coinbase.GetHash(),
+                    Index = 0,
+                    ScriptPubKey = coinbase.Outputs[0].ScriptPubKey,
+                };
+
+                address.Transactions.Add(addressTransaction);
+
+                blockList.Add(block);
+            }
+
+            return blockList;
+        }
+        #endregion
+
         public static async Task MainAsync(string[] args)
         {
             try
@@ -146,51 +196,24 @@ namespace DeStream.DeStreamD.ForTest
                     .UseApi()
                     .AddRPC()
                     .Build();
-                Mnemonic _mnemonic1 = node.NodeService<IWalletManager>().CreateWallet("123456", "mywallet");
-                Wallet _wallet = node.NodeService<IWalletManager>().GetWalletByName("mywallet");
-                HdAddress _addr = node.NodeService<IWalletManager>().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
-                Key _key = _wallet.GetExtendedPrivateKeyForAddress("123456", _addr).PrivateKey;
-                var _walletTransactionHandler = ((FullNode)node).NodeService<IWalletTransactionHandler>() as WalletTransactionHandler;
-                TransactionBuildContext context = CreateContext(new WalletAccountReference("mywallet", "account 0"), "password", _key.PubKey.ScriptPubKey, new Money(777), FeeType.Low, 0);
-                
-                Transaction transactionResult = _walletTransactionHandler.BuildTransaction(context);
-                int qwe = 1;
-
-                if (node != null)
-                    await node.RunAsync();
 
 
-                //Mnemonic _mnemonic2 = node.NodeService<IWalletManager>().CreateWallet("123456", "mywallet");
-
+                //Mnemonic _mnemonic1 = node.NodeService<IWalletManager>().CreateWallet("123456", "mywallet");
                 //Wallet _wallet = node.NodeService<IWalletManager>().GetWalletByName("mywallet");
+                //HdAddress _addr = node.NodeService<IWalletManager>().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
+                //Key _key = _wallet.GetExtendedPrivateKeyForAddress("123456", _addr).PrivateKey;
+                //var _walletTransactionHandler = ((FullNode)node).NodeService<IWalletTransactionHandler>() as WalletTransactionHandler;
 
+                //var chain = new ConcurrentChain(_wallet.Network);
+                //WalletTestsHelpers.AddBlocksWithCoinbaseToChain(_wallet.Network, chain, _addr);
+                ////var walletAccountReference = new WalletAccountReference()
+                //var account = _wallet.AccountsRoot.FirstOrDefault();
+                //TransactionBuildContext context = CreateContext(new WalletAccountReference("mywallet", "account 0"), "123456", _key.PubKey.ScriptPubKey, new Money(777), FeeType.Low, 0);
+                //Transaction transactionResult = _walletTransactionHandler.BuildTransaction(context);
+                //int qwe = 1;
+                //if (node != null)
+                //    await node.RunAsync();
 
-
-                //BitcoinSecret bitcoinSecret = new BitcoinSecret(_key, node.Network);
-
-
-                //int _maturity = (int)node.Network.Consensus.CoinbaseMaturity;
-
-                //GenerateStratis(node, bitcoinSecret, 10);
-
-                //TestHelper.WaitLoop(() => TestHelper.IsNodeSynced((FullNode)node));
-                //// wait for block repo for block sync to work
-
-                //TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(stratisSender));
-
-                //// the mining should add coins to the wallet
-                //long total = stratisSender.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount);
-
-                //var walletManager = ((FullNode)node).NodeService<IWalletManager>() as WalletManager;
-                ////HdAddress addr = ((FullNode)node).WalletManager().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
-                //walletManager.CreateWallet("123456", "mywallet");
-                //HdAddress sendto = walletManager.GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
-                //var walletTransactionHandler = ((FullNode)node).NodeService<IWalletTransactionHandler>() as WalletTransactionHandler;
-
-                //var transactionBuildContext = CreateContext(
-                //    new WalletAccountReference("mywallet", "account 0"), "123456", sendto.ScriptPubKey, Money.COIN * 100, FeeType.Medium, 101);
-
-                //Transaction trx = walletTransactionHandler.BuildTransaction(transactionBuildContext);
 
 
 
@@ -221,9 +244,9 @@ namespace DeStream.DeStreamD.ForTest
 
                 var walletManager = stratisSender.FullNode.NodeService<IWalletManager>() as WalletManager;
 
-                //var walletManager1 = ((FullNode)node).NodeService<IWalletManager>() as WalletManager;
+                var walletManager1 = ((FullNode)node).NodeService<IWalletManager>() as WalletManager;
 
-                //HdAddress addr = ((FullNode)node).WalletManager().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
+                HdAddress addr1= ((FullNode)node).WalletManager().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
                 walletManager.CreateWallet("123456", "mywallet");
                 HdAddress sendto = walletManager.GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
                 var walletTransactionHandler = ((FullNode)node).NodeService<IWalletTransactionHandler>() as WalletTransactionHandler;
@@ -233,8 +256,8 @@ namespace DeStream.DeStreamD.ForTest
 
                 Transaction trx = walletTransactionHandler.BuildTransaction(transactionBuildContext);
 
-                if (node != null)
-                    await node.RunAsync();
+                //if (node != null)
+                //    await node.RunAsync();
             }
             catch (Exception ex)
             {
