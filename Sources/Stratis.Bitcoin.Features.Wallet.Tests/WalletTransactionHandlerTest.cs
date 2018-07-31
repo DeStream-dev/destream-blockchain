@@ -138,6 +138,7 @@ namespace Stratis.Bitcoin.Features.Wallet.Tests
                 };
 
                 walletTransactionHandler.BuildTransaction(CreateContext(walletReference, "password", destinationKeys.PubKey.ScriptPubKey, new Money(7500), FeeType.Low, 0));
+                int qwe = 1;
             });
         }
 

@@ -23,6 +23,17 @@ namespace Stratis.Bitcoin.IntegrationTests.Common
             }
         }
 
+        public static bool AreNodesSyncedTemp(CoreNode node1, FullNode node2)
+        {
+            if (node1.FullNode.Chain.Tip.HashBlock != node2.Chain.Tip.HashBlock) return false;
+            if (node1.FullNode.ChainBehaviorState.ConsensusTip.HashBlock != node2.ChainBehaviorState.ConsensusTip.HashBlock) return false;
+            if (node1.FullNode.GetBlockStoreTip().HashBlock != node2.GetBlockStoreTip().HashBlock) return false;
+            if (node1.FullNode.MempoolManager().InfoAll().Count != node2.MempoolManager().InfoAll().Count) return false;
+            if (node1.FullNode.WalletManager().WalletTipHash != node2.WalletManager().WalletTipHash) return false;
+            //if (node1.CreateRPCClient().GetBestBlockHash() != node2.CreateRPCClient().GetBestBlockHash()) return false;
+            return true;
+        }
+
         public static bool AreNodesSynced(CoreNode node1, CoreNode node2)
         {
             if (node1.FullNode.Chain.Tip.HashBlock != node2.FullNode.Chain.Tip.HashBlock) return false;

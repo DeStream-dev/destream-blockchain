@@ -10,6 +10,8 @@ namespace NBitcoin.Networks
 {
     public class DeStreamTest : Network
     {
+        public IPEndPoint Endpoint { get { return new IPEndPoint(IPAddress.Parse("127.0.0.1"), 50861); } }
+
         public DeStreamTest() //: base()
         {
             this.DNSSeeds = new List<DNSSeedData>();

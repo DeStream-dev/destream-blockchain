@@ -1,82 +1,49 @@
-[2018-07-30 19:40:22.5092 1] INFO: Stratis.Bitcoin.FullNode.Initialize Full node initialized on RegTest
-[2018-07-30 19:40:22.5092 1] INFO: Stratis.Bitcoin.FullNode.Start Starting node...
-[2018-07-30 19:40:23.1318 1] INFO: Stratis.Bitcoin.Base.BaseFeature+<StartChainAsync>d__26.MoveNext Loading finalized block height
-[2018-07-30 19:40:23.1495 5] INFO: Stratis.Bitcoin.Base.BaseFeature+<StartChainAsync>d__26.MoveNext Loading chain
-[2018-07-30 19:40:23.1495 4] INFO: Stratis.Bitcoin.Base.BaseFeature+<StartChainAsync>d__26.MoveNext Chain loaded at height 0
-[2018-07-30 19:40:23.1706 5] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext FlushChain starting
-[2018-07-30 19:40:23.1706 4] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext Periodic peer flush... starting
-[2018-07-30 19:40:24.3056 5] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext Consensus Loop starting
-[2018-07-30 19:40:24.3362 1] INFO: Stratis.Bitcoin.Features.MemoryPool.MempoolManager+<LoadPoolAsync>d__25.MoveNext Loading Memory Pool...
-[2018-07-30 19:40:24.3362 7] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext MemoryPool.RelayWorker starting
-[2018-07-30 19:40:24.3516 7] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext wallet persist job starting
-[2018-07-30 19:40:24.3516 1] INFO: Stratis.Bitcoin.Features.Wallet.WalletSyncManager.Start WalletSyncManager initialized. Wallet at block 0.
-[2018-07-30 19:40:25.1209 1] INFO: Stratis.Bitcoin.Features.RPC.RPCFeature.Initialize RPC Server listening on: 
-http://[::1]:13972/
-http://127.0.0.1:13972/
-[2018-07-30 19:40:25.1326 6] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext DiscoverPeersAsync starting
-[2018-07-30 19:40:25.1326 4] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext PeerConnectorAddNode.ConnectAsync starting
-[2018-07-30 19:40:25.1475 13] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext PeerConnectorDiscovery.ConnectAsync starting
-[2018-07-30 19:40:25.1637 1] INFO: Stratis.Bitcoin.Connection.ConnectionManager.StartNodeServer Node listening on:
-0.0.0.0:10346
+[2018-07-31 19:27:14.9219 1] INFO: Stratis.Bitcoin.FullNode.Initialize Full node initialized on RegTest
+[2018-07-31 19:27:14.9219 1] INFO: Stratis.Bitcoin.FullNode.Start Starting node...
+[2018-07-31 19:27:15.4855 1] INFO: Stratis.Bitcoin.Base.BaseFeature+<StartChainAsync>d__26.MoveNext Loading finalized block height
+[2018-07-31 19:27:15.5155 5] INFO: Stratis.Bitcoin.Base.BaseFeature+<StartChainAsync>d__26.MoveNext Loading chain
+[2018-07-31 19:27:15.5155 4] INFO: Stratis.Bitcoin.Base.BaseFeature+<StartChainAsync>d__26.MoveNext Chain loaded at height 0
+[2018-07-31 19:27:15.5155 5] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext FlushChain starting
+[2018-07-31 19:27:15.5155 4] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext Periodic peer flush... starting
+[2018-07-31 19:27:16.7507 7] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext Consensus Loop starting
+[2018-07-31 19:27:16.7826 1] INFO: Stratis.Bitcoin.Features.MemoryPool.MempoolManager+<LoadPoolAsync>d__25.MoveNext Loading Memory Pool...
+[2018-07-31 19:27:16.7826 5] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext MemoryPool.RelayWorker starting
+[2018-07-31 19:27:16.8345 10] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext wallet persist job starting
+[2018-07-31 19:27:16.8345 1] INFO: Stratis.Bitcoin.Features.Wallet.WalletSyncManager.Start WalletSyncManager initialized. Wallet at block 0.
+[2018-07-31 19:27:17.7516 1] INFO: Stratis.Bitcoin.Features.RPC.RPCFeature.Initialize RPC Server listening on: 
+http://[::1]:13107/
+http://127.0.0.1:13107/
+[2018-07-31 19:27:17.7516 5] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext DiscoverPeersAsync starting
+[2018-07-31 19:27:17.7650 10] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext PeerConnectorAddNode.ConnectAsync starting
+[2018-07-31 19:27:17.7650 10] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext PeerConnectorDiscovery.ConnectAsync starting
+[2018-07-31 19:27:17.7965 1] INFO: Stratis.Bitcoin.Connection.ConnectionManager.StartNodeServer Node listening on:
+0.0.0.0:12204
 
-[2018-07-30 19:40:25.1637 10] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext PeriodicLog starting
-[2018-07-30 19:40:25.1960 1] INFO: Stratis.Bitcoin.FullNode.Initialize Full node initialized on RegTest
-[2018-07-30 19:40:25.1960 1] INFO: Stratis.Bitcoin.FullNode.Start Starting node...
-[2018-07-30 19:40:25.6165 1] INFO: Stratis.Bitcoin.Base.BaseFeature+<StartChainAsync>d__26.MoveNext Loading finalized block height
-[2018-07-30 19:40:25.6165 6] INFO: Stratis.Bitcoin.Base.BaseFeature+<StartChainAsync>d__26.MoveNext Loading chain
-[2018-07-30 19:40:25.6325 6] INFO: Stratis.Bitcoin.Base.BaseFeature+<StartChainAsync>d__26.MoveNext Chain loaded at height 0
-[2018-07-30 19:40:25.6325 7] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext FlushChain starting
-[2018-07-30 19:40:25.6325 10] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext Periodic peer flush... starting
-[2018-07-30 19:40:26.5956 10] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext Consensus Loop starting
-[2018-07-30 19:40:26.6009 1] INFO: Stratis.Bitcoin.Features.MemoryPool.MempoolManager+<LoadPoolAsync>d__25.MoveNext Loading Memory Pool...
-[2018-07-30 19:40:26.6009 6] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext MemoryPool.RelayWorker starting
-[2018-07-30 19:40:26.6009 13] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext wallet persist job starting
-[2018-07-30 19:40:26.6009 1] INFO: Stratis.Bitcoin.Features.Wallet.WalletSyncManager.Start WalletSyncManager initialized. Wallet at block 0.
-[2018-07-30 19:40:26.6214 1] INFO: Stratis.Bitcoin.Features.RPC.RPCFeature.Initialize RPC Server listening on: 
-http://[::1]:12906/
-http://127.0.0.1:12906/
-[2018-07-30 19:40:26.6214 6] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext DiscoverPeersAsync starting
-[2018-07-30 19:40:26.6214 12] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext PeerConnectorAddNode.ConnectAsync starting
-[2018-07-30 19:40:26.6214 12] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext PeerConnectorDiscovery.ConnectAsync starting
-[2018-07-30 19:40:26.6324 1] INFO: Stratis.Bitcoin.Connection.ConnectionManager.StartNodeServer Node listening on:
-0.0.0.0:12731
+[2018-07-31 19:27:17.7965 6] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext PeriodicLog starting
+[2018-07-31 19:27:17.8281 1] INFO: Stratis.Bitcoin.FullNode.Initialize Full node initialized on RegTest
+[2018-07-31 19:27:17.8281 1] INFO: Stratis.Bitcoin.FullNode.Start Starting node...
+[2018-07-31 19:27:18.1563 1] INFO: Stratis.Bitcoin.Base.BaseFeature+<StartChainAsync>d__26.MoveNext Loading finalized block height
+[2018-07-31 19:27:18.1563 5] INFO: Stratis.Bitcoin.Base.BaseFeature+<StartChainAsync>d__26.MoveNext Loading chain
+[2018-07-31 19:27:18.1741 5] INFO: Stratis.Bitcoin.Base.BaseFeature+<StartChainAsync>d__26.MoveNext Chain loaded at height 0
+[2018-07-31 19:27:18.1741 5] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext FlushChain starting
+[2018-07-31 19:27:18.1741 6] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext Periodic peer flush... starting
+[2018-07-31 19:27:19.2660 11] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext Consensus Loop starting
+[2018-07-31 19:27:19.2660 1] INFO: Stratis.Bitcoin.Features.MemoryPool.MempoolManager+<LoadPoolAsync>d__25.MoveNext Loading Memory Pool...
+[2018-07-31 19:27:19.2841 5] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext MemoryPool.RelayWorker starting
+[2018-07-31 19:27:19.2841 5] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext wallet persist job starting
+[2018-07-31 19:27:19.2841 1] INFO: Stratis.Bitcoin.Features.Wallet.WalletSyncManager.Start WalletSyncManager initialized. Wallet at block 0.
+[2018-07-31 19:27:19.3000 1] INFO: Stratis.Bitcoin.Features.RPC.RPCFeature.Initialize RPC Server listening on: 
+http://[::1]:10151/
+http://127.0.0.1:10151/
+[2018-07-31 19:27:19.3000 5] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext DiscoverPeersAsync starting
+[2018-07-31 19:27:19.3000 17] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext PeerConnectorAddNode.ConnectAsync starting
+[2018-07-31 19:27:19.3120 17] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext PeerConnectorDiscovery.ConnectAsync starting
+[2018-07-31 19:27:19.3120 1] INFO: Stratis.Bitcoin.Connection.ConnectionManager.StartNodeServer Node listening on:
+0.0.0.0:11419
 
-[2018-07-30 19:40:26.6324 13] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext PeriodicLog starting
-[2018-07-30 19:40:30.1815 13] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/30/2018 19:40:30 agent node10346-StratisBitcoin:1.1.2
-Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
-BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
-Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
-Wallet.Height:       No Wallet
-
-======BlockStore======
-Pending Blocks: 0
-Batch Size: 0 kb / 5000 kb
-
-=======Mempool=======
-MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
-
-======Connection======
-
-
-[2018-07-30 19:40:30.8885 6] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext WalletManager.DownloadChain starting
-[2018-07-30 19:40:31.7441 17] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/30/2018 19:40:31 agent node12731-StratisBitcoin:1.1.2
-Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
-BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
-Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
-Wallet.Height:       No Wallet
-
-======BlockStore======
-Pending Blocks: 0
-Batch Size: 0 kb / 5000 kb
-
-=======Mempool=======
-MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
-
-======Connection======
-
-
-[2018-07-30 19:40:33.9427 6] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext WalletManager.DownloadChain starting
-[2018-07-30 19:40:35.1949 7] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/30/2018 19:40:35 agent node10346-StratisBitcoin:1.1.2
+[2018-07-31 19:27:19.3120 5] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext PeriodicLog starting
+[2018-07-31 19:27:22.7696 6] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext WalletManager.DownloadChain starting
+[2018-07-31 19:27:23.7812 5] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/31/2018 19:27:23 agent node12204-StratisBitcoin:1.1.2
 Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
 BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
 Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
@@ -95,12 +62,11 @@ Wallet: mywallet,            Confirmed balance: 0.00000000
 ======Connection======
 
 
-[2018-07-30 19:40:35.9040 6] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext WalletManager.DownloadChain stopping
-[2018-07-30 19:40:36.7576 5] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/30/2018 19:40:36 agent node12731-StratisBitcoin:1.1.2
+[2018-07-31 19:27:25.2652 12] INFO: Stratis.Bitcoin.FullNode.<StartPeriodicLog>b__75_0 ======Node stats====== 07/31/2018 19:27:25 agent node11419-StratisBitcoin:1.1.2
 Headers.Height:      0        Headers.Hash:     0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
 BlockStore.Height:   0        BlockStore.Hash:  0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
 Consensus.Height:    0        Consensus.Hash:   0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
-Wallet.Height:       0        Wallet.Hash:      0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+Wallet.Height:       No Wallet
 
 ======BlockStore======
 Pending Blocks: 0
@@ -109,9 +75,7 @@ Batch Size: 0 kb / 5000 kb
 =======Mempool=======
 MempoolSize: 0    DynamicSize: 0 kb   OrphanSize: 0   
 
-======Wallets======
-Wallet: mywallet,            Confirmed balance: 0.00000000
-
 ======Connection======
 
 
+[2018-07-31 19:27:26.0006 13] INFO: Stratis.Bitcoin.Utilities.AsyncLoop+<>c__DisplayClass16_0+<<StartAsync>b__0>d.MoveNext WalletManager.DownloadChain starting
