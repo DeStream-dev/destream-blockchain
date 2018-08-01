@@ -37,140 +37,45 @@ namespace DeStream.DeStreamD.ForTest
         {
             MainAsync(args).Wait();
         }
-        private class TransactionNode
-        {
-            public uint256 Hash = null;
-            public Transaction Transaction = null;
-            public List<TransactionNode> DependsOn = new List<TransactionNode>();
-
-            public TransactionNode(Transaction tx)
-            {
-                this.Transaction = tx;
-                this.Hash = tx.GetHash();
-            }
-        }
-
-        private static List<Transaction> Reorder(List<Transaction> transactions)
-        {
-            if (transactions.Count == 0)
-                return transactions;
-
-            var result = new List<Transaction>();
-            Dictionary<uint256, TransactionNode> dictionary = transactions.ToDictionary(t => t.GetHash(), t => new TransactionNode(t));
-            foreach (TransactionNode transaction in dictionary.Select(d => d.Value))
-            {
-                foreach (TxIn input in transaction.Transaction.Inputs)
-                {
-                    TransactionNode node = dictionary.TryGet(input.PrevOut.Hash);
-                    if (node != null)
-                    {
-                        transaction.DependsOn.Add(node);
-                    }
-                }
-            }
-
-            while (dictionary.Count != 0)
-            {
-                foreach (TransactionNode node in dictionary.Select(d => d.Value).ToList())
-                {
-                    foreach (TransactionNode parent in node.DependsOn.ToList())
-                    {
-                        if (!dictionary.ContainsKey(parent.Hash))
-                            node.DependsOn.Remove(parent);
-                    }
-
-                    if (node.DependsOn.Count == 0)
-                    {
-                        result.Add(node.Transaction);
-                        dictionary.Remove(node.Hash);
-                    }
-                }
-            }
-
-            return result;
-        }
-
-        public static Block[] GenerateStratis(IFullNode node, BitcoinSecret dest, int blockCount, List<Transaction> passedTransactions = null, bool broadcast = true)
-        {
-            FullNode fullNode = (FullNode)node;
-            //BitcoinSecret dest = this.MinerSecret;
-            var blocks = new List<Block>();
-            //DateTimeOffset now = this.MockTime == null ? DateTimeOffset.UtcNow : this.MockTime.Value;
-            
-            for (int i = 0; i < blockCount; i++)
-            {
-                uint nonce = 0;
-                var block = new Block();
-                block.Header.HashPrevBlock = fullNode.Chain.Tip.HashBlock;
-                block.Header.Bits = block.Header.GetWorkRequired(fullNode.Network, fullNode.Chain.Tip);
-                block.Header.UpdateTime(DateTimeOffset.UtcNow, fullNode.Network, fullNode.Chain.Tip);
-                var coinbase = new Transaction();
-                coinbase.AddInput(TxIn.CreateCoinbase(fullNode.Chain.Height + 1));
-                coinbase.AddOutput(new TxOut(fullNode.Network.GetReward(fullNode.Chain.Height + 1), dest.GetAddress()));
-                block.AddTransaction(coinbase);
-                if (passedTransactions?.Any() ?? false)
-                {
-                    passedTransactions = Reorder(passedTransactions);
-                    block.Transactions.AddRange(passedTransactions);
-                }
-                block.UpdateMerkleRoot();
-                while (!block.CheckProofOfWork())
-                    block.Header.Nonce = ++nonce;
-                blocks.Add(block);
-                if (broadcast)
-                {
-                    uint256 blockHash = block.GetHash();
-                    var newChain = new ChainedHeader(block.Header, blockHash, fullNode.Chain.Tip);
-                    ChainedHeader oldTip = fullNode.Chain.SetTip(newChain);
-                    fullNode.ConsensusLoop().Puller.InjectBlock(blockHash, new DownloadedBlock { Length = block.GetSerializedSize(), Block = block }, CancellationToken.None);
-                }
-            }
-
-            return blocks.ToArray();
-        }
 
         #region Test
-        public static List<Block> AddBlocksWithCoinbaseToChain(Network network, ConcurrentChain chain, HdAddress address, int blocks = 1)
+        public static DataFolder CreateDataFolder(object caller, [System.Runtime.CompilerServices.CallerMemberName] string callingMethod = "")
         {
-            //var chain = new ConcurrentChain(network.GetGenesis().Header);
-
-            var blockList = new List<Block>();
-
-            for (int i = 0; i < blocks; i++)
+            string directoryPath = GetTestDirectoryPath(caller, callingMethod);
+            var dataFolder = new DataFolder(new NodeSettings(args: new string[] { $"-datadir={AssureEmptyDir(directoryPath)}" }).DataDir);
+            return dataFolder;
+        }
+        public static string GetTestDirectoryPath(object caller, [System.Runtime.CompilerServices.CallerMemberName] string callingMethod = "")
+        {
+            return GetTestDirectoryPath(Path.Combine(caller.GetType().Name, callingMethod));
+        }
+        public static string AssureEmptyDir(string dir)
+        {
+            int deleteAttempts = 0;
+            while (deleteAttempts < 50)
             {
-                var block = new Block();
-                block.Header.HashPrevBlock = chain.Tip.HashBlock;
-                block.Header.Bits = block.Header.GetWorkRequired(network, chain.Tip);
-                block.Header.UpdateTime(DateTimeOffset.UtcNow, network, chain.Tip);
-
-                var coinbase = new Transaction();
-                coinbase.AddInput(TxIn.CreateCoinbase(chain.Height + 1));
-                coinbase.AddOutput(new TxOut(network.GetReward(chain.Height + 1), address.ScriptPubKey));
-
-                block.AddTransaction(coinbase);
-                block.Header.Nonce = 0;
-                block.UpdateMerkleRoot();
-                block.Header.PrecomputeHash();
-
-                chain.SetTip(block.Header);
-
-                var addressTransaction = new TransactionData
+                if (Directory.Exists(dir))
                 {
-                    Amount = coinbase.TotalOut,
-                    BlockHash = block.GetHash(),
-                    BlockHeight = chain.GetBlock(block.GetHash()).Height,
-                    CreationTime = DateTimeOffset.FromUnixTimeSeconds(block.Header.Time),
-                    Id = coinbase.GetHash(),
-                    Index = 0,
-                    ScriptPubKey = coinbase.Outputs[0].ScriptPubKey,
-                };
-
-                address.Transactions.Add(addressTransaction);
-
-                blockList.Add(block);
+                    try
+                    {
+                        Directory.Delete(dir, true);
+                        break;
+                    }
+                    catch
+                    {
+                        deleteAttempts++;
+                        Thread.Sleep(200);
+                    }
+                }
+                else
+                    break;
             }
 
-            return blockList;
+            if (deleteAttempts >= 50)
+                throw new Exception(string.Format("The test folder: {0} could not be deleted.", dir));
+
+            Directory.CreateDirectory(dir);
+            return dir;
         }
         #endregion
 
@@ -199,24 +104,18 @@ namespace DeStream.DeStreamD.ForTest
                     .UseApi()
                     .AddRPC()
                     .Build();
-                
 
-                Mnemonic _mnemonic1 = node.NodeService<IWalletManager>().CreateWallet("password", "mywallet");
-                Wallet _wallet = node.NodeService<IWalletManager>().GetWalletByName("mywallet");
-                (ExtKey ExtKey, string ExtPubKey) accountKeys = WalletTestsHelpers.GenerateAccountKeys(_wallet, "password", "m/44'/0'/0'");
-                (PubKey PubKey, BitcoinPubKeyAddress Address) spendingKeys = WalletTestsHelpers.GenerateAddressKeys(_wallet, accountKeys.ExtPubKey, "0/0");
-                (PubKey PubKey, BitcoinPubKeyAddress Address) destinationKeys = WalletTestsHelpers.GenerateAddressKeys(_wallet, accountKeys.ExtPubKey, "0/1");
+                ////node.NodeService<IWalletManager>().LoadWallet("password", "mywallet123");
 
-                (PubKey PubKey, BitcoinPubKeyAddress Address) changeKeys = WalletTestsHelpers.GenerateAddressKeys(_wallet, accountKeys.ExtPubKey, "1/0");
-                var changeAddress = new HdAddress
-                {
-                    Index = 0,
-                    HdPath = $"m/44'/0'/0'/1/0",
-                    Address = changeKeys.Address.ToString(),
-                    Pubkey = changeKeys.PubKey.ScriptPubKey,
-                    ScriptPubKey = changeKeys.Address.ScriptPubKey,
-                    Transactions = new List<TransactionData>()
-                };
+                //DataFolder dataFolder = CreateDataFolder(node);
+                //Directory.CreateDirectory(dataFolder.WalletPath); 
+
+                //var wallet = node.WalletManager().CreateWallet("password", "MyWallet");
+                Wallet wallet = node.NodeService<IWalletManager>().LoadWallet("password", "MyWallet");
+                (ExtKey ExtKey, string ExtPubKey) accountKeys = WalletTestsHelpers.GenerateAccountKeys(wallet, "password", "m/44'/0'/0'");
+                (PubKey PubKey, BitcoinPubKeyAddress Address) spendingKeys = WalletTestsHelpers.GenerateAddressKeys(wallet, accountKeys.ExtPubKey, "0/0");
+                (PubKey PubKey, BitcoinPubKeyAddress Address) destinationKeys = WalletTestsHelpers.GenerateAddressKeys(wallet, accountKeys.ExtPubKey, "0/1");
+                (PubKey PubKey, BitcoinPubKeyAddress Address) changeKeys = WalletTestsHelpers.GenerateAddressKeys(wallet, accountKeys.ExtPubKey, "1/0");
 
                 var spendingAddress = new HdAddress
                 {
@@ -227,24 +126,136 @@ namespace DeStream.DeStreamD.ForTest
                     ScriptPubKey = spendingKeys.Address.ScriptPubKey,
                     Transactions = new List<TransactionData>()
                 };
-                HdAddress _addr = node.NodeService<IWalletManager>().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
-                (ConcurrentChain chain, uint256 blockhash, Block block) chainInfo = WalletTestsHelpers.CreateChainAndCreateFirstBlockWithPaymentToAddress(_wallet.Network, _addr);
-                TransactionData spendingTransaction = WalletTestsHelpers.CreateTransactionDataFromFirstBlock(chainInfo);
-                _addr.Transactions.Add(spendingTransaction);
+
+                //var destinationAddress = new HdAddress
+                //{
+                //    Index = 1,
+                //    HdPath = $"m/44'/0'/0'/0/1",
+                //    Address = destinationKeys.Address.ToString(),
+                //    Pubkey = destinationKeys.PubKey.ScriptPubKey,
+                //    ScriptPubKey = destinationKeys.Address.ScriptPubKey,
+                //    Transactions = new List<TransactionData>()
+                //};
+
+                var changeAddress = new HdAddress
+                {
+                    Index = 0,
+                    HdPath = $"m/44'/0'/0'/1/0",
+                    Address = changeKeys.Address.ToString(),
+                    Pubkey = changeKeys.PubKey.ScriptPubKey,
+                    ScriptPubKey = changeKeys.Address.ScriptPubKey,
+                    Transactions = new List<TransactionData>()
+                };
+
+                //Generate a spendable transaction
+                (ConcurrentChain chain, uint256 blockhash, Block block) chainInfo = WalletTestsHelpers.CreateChainAndCreateFirstBlockWithPaymentToAddress(wallet.Network, spendingAddress);
+                /* CreateChainAndCreateFirstBlockWithPaymentToAddress */
+                var chain = new ConcurrentChain(network);
+
+                var _block = new Block();
+                _block.Header.HashPrevBlock = chain.Tip.HashBlock;
+                _block.Header.Bits = _block.Header.GetWorkRequired(network, chain.Tip);
+                _block.Header.UpdateTime(DateTimeOffset.UtcNow, network, chain.Tip);
+
+                var coinbase = new Transaction();
+                coinbase.AddInput(TxIn.CreateCoinbase(chain.Height + 1));
+                coinbase.AddOutput(new TxOut(network.GetReward(chain.Height + 1), spendingAddress.ScriptPubKey));
+
+                _block.AddTransaction(coinbase);
+                _block.Header.Nonce = 0;
+                _block.UpdateMerkleRoot();
+                _block.Header.PrecomputeHash();
+
+                chain.SetTip(_block.Header);
+
+                /* CreateChainAndCreateFirstBlockWithPaymentToAddress */
+
+                //TransactionData spendingTransaction = WalletTestsHelpers.CreateTransactionDataFromFirstBlock(chainInfo);
+                /*CreateTransactionDataFromFirstBlock*/
+                //public static TransactionData CreateTransactionDataFromFirstBlock((ConcurrentChain chain, uint256 blockHash, Block block) chainInfo)
+                //{
+                    Transaction _transaction = _block.Transactions[0];
+
+                    var addressTransaction = new TransactionData
+                    {
+                        Amount = _transaction.TotalOut,
+                        BlockHash = _block.GetHash(),
+                        BlockHeight = chainInfo.chain.GetBlock(_block.GetHash()).Height,
+                        CreationTime = DateTimeOffset.FromUnixTimeSeconds(chainInfo.block.Header.Time),
+                        Id = _transaction.GetHash(),
+                        Index = 0,
+                        ScriptPubKey = _transaction.Outputs[0].ScriptPubKey,
+                    };
+                    //return addressTransaction;
+                //}
+
+                /*CreateTransactionDataFromFirstBlock*/
+
+                spendingAddress.Transactions.Add(addressTransaction);
 
                 // setup a payment to yourself in a new block.
-                Transaction transaction = WalletTestsHelpers.SetupValidTransaction(_wallet, "password", _addr, destinationKeys.PubKey, changeAddress, new Money(7500), new Money(5000));
-                
-                Block block = WalletTestsHelpers.AppendTransactionInNewBlockToChain(chainInfo.chain, transaction);
-                node.NodeService<IWalletManager>().WalletTipHash= block.Header.GetHash();
-                ChainedHeader chainedBlock = chainInfo.chain.GetBlock(block.GetHash());
-                node.NodeService<IWalletManager>().ProcessBlock(block, chainedBlock);
+                //Transaction transaction = WalletTestsHelpers.SetupValidTransaction(wallet, "password", spendingAddress, destinationKeys.PubKey, changeAddress, new Money(7500), new Money(5000));
+                #region SetupValidTransaction
+                //Transaction SetupValidTransaction(Features.Wallet.Wallet wallet, string password, HdAddress spendingAddress, PubKey destinationPubKey, 
+                //HdAddress changeAddress, Money amount, Money fee)
+                TransactionData spendingTransaction = spendingAddress.Transactions.ElementAt(0);
+                var coin = new Coin(spendingTransaction.Id, (uint)spendingTransaction.Index, spendingTransaction.Amount, spendingTransaction.ScriptPubKey);
 
-                HdAddress spentAddressResult = _wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(0);
-                int qwe123 =1;
+                Key privateKey = Key.Parse(wallet.EncryptedSeed, "password", wallet.Network);
+                var scriptPubKey = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(0).ScriptPubKey;
                 
+                var builder = new TransactionBuilder(wallet.Network);
+                Transaction tx = builder
+                    .AddCoins(new List<Coin> { coin })
+                    .AddKeys(new ExtKey(privateKey, wallet.ChainCode).Derive(new KeyPath(spendingAddress.HdPath)).GetWif(wallet.Network))
+                    .Send(scriptPubKey, new Money(7500))
+                    .SetChange(changeAddress.ScriptPubKey)
+                    .SendFees(new Money(5000))
+                    .BuildTransaction(true);
+
+                if (!builder.Verify(tx))
+                {
+                    throw new WalletException("Could not build transaction, please make sure you entered the correct data.");
+                }
+
+
+                #endregion
+                //Block block = WalletTestsHelpers.AppendTransactionInNewBlockToChain(chainInfo.chain, transaction);
+                Block block = WalletTestsHelpers.AppendTransactionInNewBlockToChain(chainInfo.chain, tx);
+                HdAddress _addr = node.NodeService<IWalletManager>().GetUnusedAddress(new WalletAccountReference("MyWallet", "account 0"));
+                wallet.AccountsRoot.ElementAt(0).Accounts.Add(new HdAccount
+                {
+                    Index = 0,
+                    Name = "account1",
+                    HdPath = "m/44'/0'/0'",
+                    ExtendedPubKey = accountKeys.ExtPubKey,
+                    ExternalAddresses = new List<HdAddress> { spendingAddress, _addr },
+                    InternalAddresses = new List<HdAddress> { changeAddress }
+                });
+
+                var walletFeePolicy = new Mock<IWalletFeePolicy>();
+                walletFeePolicy.Setup(w => w.GetMinimumFee(258, 50))
+                    .Returns(new Money(5000));
+                
+                var walletManager = new WalletManager(nodeSettings.LoggerFactory, Network.DeStreamTest, chainInfo.chain, NodeSettings.Default(), new Mock<WalletSettings>().Object,
+                    nodeSettings.DataFolder, walletFeePolicy.Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
+                walletManager.Wallets.Add(wallet);
+                walletManager.LoadKeysLookupLock();
+                walletManager.WalletTipHash = block.Header.GetHash();
+
+                ChainedHeader chainedBlock = chainInfo.chain.GetBlock(block.GetHash());
+                walletManager.ProcessBlock(block, chainedBlock);
+
+                HdAddress spentAddressResult = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(0);
+
+                int qwe123 = 1;
+                //HdAddress address = WalletTestsHelpers.CreateAddress(false);
+                //this.walletManager.Setup(w => w.GetUnusedAddress(It.IsAny<WalletAccountReference>()))
+                //    .Returns(address);
+
                 //HdAddress _addr = node.NodeService<IWalletManager>().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
-                //Key _key = _wallet.GetExtendedPrivateKeyForAddress("123456", _addr).PrivateKey;
+                //var _key0 = wallet.GetAllPubKeysByCoinType(CoinType.Stratis).FirstOrDefault();
+                //Key _key = wallet.GetExtendedPrivateKeyForAddress("123456", _addr).PrivateKey;
                 //var _walletTransactionHandler = ((FullNode)node).NodeService<IWalletTransactionHandler>() as WalletTransactionHandler;
 
                 //var chain = new ConcurrentChain(_wallet.Network);
@@ -253,124 +264,8 @@ namespace DeStream.DeStreamD.ForTest
                 //var account = _wallet.AccountsRoot.FirstOrDefault();
                 //TransactionBuildContext context = CreateContext(new WalletAccountReference("mywallet", "account 0"), "123456", _key.PubKey.ScriptPubKey, new Money(777), FeeType.Low, 0);
                 //Transaction transactionResult = _walletTransactionHandler.BuildTransaction(context);
-                //if (node != null)
-                //    await node.RunAsync();
-                
-
-
-
-
-
-                //NodeBuilder builder = NodeBuilder.Create(node);
-                //CoreNode stratisSender = builder.CreateStratisPowNode();
-                //CoreNode stratisReceiver = builder.CreateStratisPowNode();
-                //builder.StartAll();
-                //stratisSender.NotInIBD();
-                //stratisReceiver.NotInIBD();
-
-                //// get a key from the wallet
-                //Mnemonic mnemonic1 = stratisSender.FullNode.WalletManager().CreateWallet("123456", "mywallet");
-                //Mnemonic mnemonic2 = stratisReceiver.FullNode.WalletManager().CreateWallet("123456", "mywallet");
-                //HdAddress addr = stratisSender.FullNode.WalletManager().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
-                //Wallet wallet = stratisSender.FullNode.WalletManager().GetWalletByName("mywallet");
-                //Key key = wallet.GetExtendedPrivateKeyForAddress("123456", addr).PrivateKey;
-
-                //stratisSender.SetDummyMinerSecret(new BitcoinSecret(key, stratisSender.FullNode.Network));
-                //int maturity = (int)stratisSender.FullNode.Network.Consensus.CoinbaseMaturity;
-                //stratisSender.GenerateStratis(maturity + 5);
-                //// wait for block repo for block sync to work
-
-                //TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(stratisSender));
-
-                //// the mining should add coins to the wallet
-                //long total = stratisSender.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount);
-
-                //var walletManager = stratisSender.FullNode.NodeService<IWalletManager>() as WalletManager;
-
-                //var walletManager1 = ((FullNode)node).NodeService<IWalletManager>() as WalletManager;
-
-                //HdAddress addr1 = ((FullNode)node).WalletManager().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
-                //walletManager.CreateWallet("123456", "mywallet");
-                //HdAddress sendto = walletManager.GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
-                //var walletTransactionHandler = ((FullNode)node).NodeService<IWalletTransactionHandler>() as WalletTransactionHandler;
-
-                //var transactionBuildContext = CreateContext(
-                //    new WalletAccountReference("mywallet", "account 0"), "123456", sendto.ScriptPubKey, Money.COIN * 100, FeeType.Medium, 101);
-
-                //Transaction trx = walletTransactionHandler.BuildTransaction(transactionBuildContext);
-
-                //if (node != null)
-                //    await node.RunAsync();
-
-                //using (NodeBuilder builder = NodeBuilder.Create(node))
-                //{
-                //    CoreNode stratisSender = builder.CreateStratisPowNode();
-                //    CoreNode stratisReceiver = builder.CreateStratisPowNode();
-
-                //    builder.StartAll();
-                //    stratisSender.NotInIBD();
-                //    stratisReceiver.NotInIBD();
-
-                //    // get a key from the wallet
-                //    Mnemonic mnemonic1 = stratisSender.FullNode.WalletManager().CreateWallet("123456", "mywallet");
-                //    Mnemonic mnemonic2 = stratisReceiver.FullNode.WalletManager().CreateWallet("123456", "mywallet");
-                //    //Assert.Equal(12, mnemonic1.Words.Length);
-                //    //Assert.Equal(12, mnemonic2.Words.Length);
-                //    HdAddress addr = stratisSender.FullNode.WalletManager().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
-                //    Wallet wallet = stratisSender.FullNode.WalletManager().GetWalletByName("mywallet");
-                //    Key key = wallet.GetExtendedPrivateKeyForAddress("123456", addr).PrivateKey;
-
-                //    stratisSender.SetDummyMinerSecret(new BitcoinSecret(key, stratisSender.FullNode.Network));
-                //    int maturity = (int)stratisSender.FullNode.Network.Consensus.CoinbaseMaturity;
-                //    stratisSender.GenerateStratis(maturity + 5);
-                //    // wait for block repo for block sync to work
-
-                //    TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(stratisSender));
-
-                //    // the mining should add coins to the wallet
-                //    long total = stratisSender.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount);
-                //    //Assert.Equal(Money.COIN * 105 * 50, total);
-
-
-                //    // sync both nodes
-                //    //stratisSender.CreateRPCClient().AddNode(stratisReceiver.Endpoint, true);
-                    
-                //    stratisSender.CreateRPCClient().AddNode(((DeStreamTest)node.Network).Endpoint, true);
-
-                    
-
-                //    //TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(stratisReceiver, stratisSender));
-                //    TestHelper.WaitLoop(() => TestHelper.AreNodesSyncedTemp(stratisSender, (FullNode)node));
-
-                    
-                //    // send coins to the receiver
-                //    //HdAddress sendto = stratisReceiver.FullNode.WalletManager().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
-                //    HdAddress sendto = ((FullNode)node).WalletManager().GetUnusedAddress(new WalletAccountReference("mywallet", "account 0"));
-
-                //    Transaction trx = stratisSender.FullNode.WalletTransactionHandler().BuildTransaction(CreateContext(
-                //        new WalletAccountReference("mywallet", "account 0"), "123456", sendto.ScriptPubKey, Money.COIN * 100, FeeType.Medium, 101));
-
-                //    // broadcast to the other node
-                //    stratisSender.FullNode.NodeService<WalletController>().SendTransaction(new SendTransactionRequest(trx.ToHex()));
-
-                //    // wait for the trx to arrive
-                //    TestHelper.WaitLoop(() => stratisReceiver.CreateRPCClient().GetRawMempool().Length > 0);
-                //    TestHelper.WaitLoop(() => stratisReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Any());
-
-                //    long receivetotal = stratisReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").Sum(s => s.Transaction.Amount);
-                //    //Assert.Equal(Money.COIN * 100, receivetotal);
-                //    //Assert.Null(stratisReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").First().Transaction.BlockHeight);
-
-                //    // generate two new blocks do the trx is confirmed
-                //    stratisSender.GenerateStratis(1, new List<Transaction>(new[] { stratisSender.FullNode.Network.CreateTransaction(trx.ToBytes()) }));
-                //    stratisSender.GenerateStratis(1);
-
-                //    // wait for block repo for block sync to work
-                //    TestHelper.WaitLoop(() => TestHelper.IsNodeSynced(stratisSender));
-                //    TestHelper.WaitLoop(() => TestHelper.AreNodesSynced(stratisReceiver, stratisSender));
-
-                //    TestHelper.WaitLoop(() => maturity + 6 == stratisReceiver.FullNode.WalletManager().GetSpendableTransactionsInWallet("mywallet").First().Transaction.BlockHeight);
-                //}
+                if (node != null)
+                    await node.RunAsync();
             }
             catch (Exception ex)
             {
