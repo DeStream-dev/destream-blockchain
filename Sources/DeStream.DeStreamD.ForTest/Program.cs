@@ -17,6 +17,7 @@ using Stratis.Bitcoin.Features.BlockStore;
 using Stratis.Bitcoin.Features.Consensus;
 using Stratis.Bitcoin.Features.MemoryPool;
 using Stratis.Bitcoin.Features.Miner;
+using Stratis.Bitcoin.Features.Miner.Interfaces;
 using Stratis.Bitcoin.Features.RPC;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.Wallet.Controllers;
@@ -37,47 +38,7 @@ namespace DeStream.DeStreamD.ForTest
         {
             MainAsync(args).Wait();
         }
-
-        #region Test
-        public static DataFolder CreateDataFolder(object caller, [System.Runtime.CompilerServices.CallerMemberName] string callingMethod = "")
-        {
-            string directoryPath = GetTestDirectoryPath(caller, callingMethod);
-            var dataFolder = new DataFolder(new NodeSettings(args: new string[] { $"-datadir={AssureEmptyDir(directoryPath)}" }).DataDir);
-            return dataFolder;
-        }
-        public static string GetTestDirectoryPath(object caller, [System.Runtime.CompilerServices.CallerMemberName] string callingMethod = "")
-        {
-            return GetTestDirectoryPath(Path.Combine(caller.GetType().Name, callingMethod));
-        }
-        public static string AssureEmptyDir(string dir)
-        {
-            int deleteAttempts = 0;
-            while (deleteAttempts < 50)
-            {
-                if (Directory.Exists(dir))
-                {
-                    try
-                    {
-                        Directory.Delete(dir, true);
-                        break;
-                    }
-                    catch
-                    {
-                        deleteAttempts++;
-                        Thread.Sleep(200);
-                    }
-                }
-                else
-                    break;
-            }
-
-            if (deleteAttempts >= 50)
-                throw new Exception(string.Format("The test folder: {0} could not be deleted.", dir));
-
-            Directory.CreateDirectory(dir);
-            return dir;
-        }
-        #endregion
+        
 
         public static async Task MainAsync(string[] args)
         {
@@ -101,76 +62,35 @@ namespace DeStream.DeStreamD.ForTest
                     .UseBlockStore()
                     .UsePosConsensus()
                     .UseMempool()
-                    .UseWallet()
+                    .UseWalletDeStream()
                     .AddPowPosMining()
                     .UseApi()
                     .AddRPC()
                     .Build();
-
-                var walletManager = node.WalletManager();
                 
+                node.Services.ServiceProvider.GetService<IPowMining>().GenerateBlocks(new ReserveScript { ReserveFullNodeScript = MinerSecret.ScriptPubKey }, 3, uint.MaxValue);
 
-                Wallet wallet = TestClassHelper.CreateFirstTransaction(nodeSettings, walletManager);
-                walletManager.Wallets.Add(wallet);
-                //var x= node.WalletManager().CreateWallet("password", "MyWallet");
-                //Wallet MyWallet = null;
-                //try
-                //{
-                //    MyWallet = node.NodeService<IWalletManager>().LoadWallet("password", "MyWallet");
-                //}
-                //catch (Exception ex)
-                //{
-                //    node.WalletManager().CreateWallet("password", "MyWallet");
-                //}
-                //TestClassHelper.CreateFirstTransaction(MyWallet, nodeSettings);
+                var walletManager = (DeStreamWalletManager)node.WalletManager();
 
 
-                //node.NodeService<IWalletManager>().SaveWallet(MyWallet);
+                //Wallet wallet = TestClassHelper.CreateFirstTransaction(nodeSettings, ref walletManager, node.NodeService<WalletSettings>(),
+                //    node.NodeService<IWalletFeePolicy>());
+                //(Wallet wallet, Block block, ChainedHeader chainedHeader) test = TestClassHelper.CreateFirstTransaction(nodeSettings, ref walletManager, node.NodeService<WalletSettings>(),
+                //    node.NodeService<IWalletFeePolicy>());
+                //((WalletManager)node.NodeService<IWalletManager>()).Wallets.Add(test.wallet);
 
-                //(ExtKey ExtKey, string ExtPubKey) accountKeys = TestClassHelper.GenerateAccountKeys(MyWallet, "password", "m/44'/0'/0'");
-                //(PubKey PubKey, BitcoinPubKeyAddress Address) spendingKeys = TestClassHelper.GenerateAddressKeys(MyWallet, accountKeys.ExtPubKey, "0/0");
-                //(PubKey PubKey, BitcoinPubKeyAddress Address) destinationKeys = TestClassHelper.GenerateAddressKeys(MyWallet, accountKeys.ExtPubKey, "0/1");
-                //(PubKey PubKey, BitcoinPubKeyAddress Address) changeKeys = TestClassHelper.GenerateAddressKeys(MyWallet, accountKeys.ExtPubKey, "1/0");
+                //((WalletManager)node.NodeService<IWalletManager>()).LoadKeysLookupLock();
+                //((WalletManager)node.NodeService<IWalletManager>()).WalletTipHash = test.block.Header.GetHash();
 
-                //var spendingAddress = new HdAddress
-                //{
-                //    Index = 0,
-                //    HdPath = $"m/44'/0'/0'/0/0",
-                //    Address = spendingKeys.Address.ToString(),
-                //    Pubkey = spendingKeys.PubKey.ScriptPubKey,
-                //    ScriptPubKey = spendingKeys.Address.ScriptPubKey,
-                //    Transactions = new List<TransactionData>()
-                //};
-                //var destinationAddress = new HdAddress
-                //{
-                //    Index = 1,
-                //    HdPath = $"m/44'/0'/0'/0/1",
-                //    Address = destinationKeys.Address.ToString(),
-                //    Pubkey = destinationKeys.PubKey.ScriptPubKey,
-                //    ScriptPubKey = destinationKeys.Address.ScriptPubKey,
-                //    Transactions = new List<TransactionData>()
-                //};
+                //((WalletManager)node.NodeService<IWalletManager>()).ProcessBlock(test.block, test.chainedHeader);
 
-                //var changeAddress = new HdAddress
-                //{
-                //    Index = 0,
-                //    HdPath = $"m/44'/0'/0'/1/0",
-                //    Address = changeKeys.Address.ToString(),
-                //    Pubkey = changeKeys.PubKey.ScriptPubKey,
-                //    ScriptPubKey = changeKeys.Address.ScriptPubKey,
-                //    Transactions = new List<TransactionData>()
-                //};
+                //walletManager.SaveWallets();
+                //walletManager.Wallets.Add(wallet);
 
-                //(ConcurrentChain chain, uint256 blockhash, Block block) chainInfo = TestClassHelper.CreateChainAndCreateFirstBlockWithPaymentToAddress(MyWallet.Network, spendingAddress);
-                //var transaction = chainInfo.block.Transactions[0];
-                //int blockHeight = chainInfo.chain.GetBlock(chainInfo.block.GetHash()).Height;
-                //var walletManager = node.WalletManager();
-                //walletManager.ProcessTransaction(transaction, blockHeight);
-                //ChainedHeader chainedBlock = chainInfo.chain.GetBlock(chainInfo.block.GetHash());
-                //walletManager.ProcessBlock(chainInfo.block, chainedBlock);
-                int qwe = 1;
+                int qwe0 = 1;
                 if (node != null)
                     await node.RunAsync();
+                int qwe = 1;
             }
             catch (Exception ex)
             {
