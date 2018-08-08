@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using DeStream.Stratis.Bitcoin.Configuration;
@@ -222,9 +223,9 @@ namespace DeStream.DeStreamD.ForTest
             //return wallet;
         }
 
-        public static Money Get9Billion()
+        public static Money Get6Billion()
         {
-            return new Money(9000000000);
+            return new Money(6000000000);
         }
 
         public static Block CreateTestBlock(FullNode fullNode, Key key)
@@ -242,7 +243,7 @@ namespace DeStream.DeStreamD.ForTest
             block.Header.Bits = block.Header.GetWorkRequired(fullNode.Network, fullNode.Chain.Tip);
             block.Header.UpdateTime(DateTimeOffset.UtcNow, fullNode.Network, fullNode.Chain.Tip);
             var coinbase = new Transaction();
-            coinbase.AddInput(TxIn.CreateCoinbase(fullNode.Chain.Height + 1));
+            //coinbase.AddInput(TxIn.CreateCoinbase(fullNode.Chain.Height + 1));
             coinbase.AddOutput(new TxOut(Get9Billion(), dest.GetAddress()));
             block.AddTransaction(coinbase);
             if (passedTransactions?.Any() ?? false)
@@ -256,7 +257,28 @@ namespace DeStream.DeStreamD.ForTest
             blocks.Add(block);
             uint256 blockHash = block.GetHash();
             var newChain = new ChainedHeader(block.Header, blockHash, fullNode.Chain.Tip);
+
+            var Genesis = (ChainedHeader)fullNode.Chain.GetMemberValue("Genesis");
+            var Tip = (ChainedHeader)fullNode.Chain.GetMemberValue("tip");
+
+            ChainedHeader test0 = (ChainedHeader)fullNode.Chain.GetMemberValue("Genesis");
+            ChainedHeader test1 = (ChainedHeader)fullNode.Chain.GetMemberValue("Tip");
+            
+            
             ChainedHeader oldTip = fullNode.Chain.SetTip(newChain);
+
+            test0 = (ChainedHeader)fullNode.Chain.GetMemberValue("Genesis");
+            test1 = (ChainedHeader)fullNode.Chain.GetMemberValue("Tip");
+
+            Dictionary<uint256, ChainedHeader> blocksById = (Dictionary<uint256, ChainedHeader>)fullNode.Chain.GetMemberValue("blocksById");
+            
+            
+            //fullNode.Chain.SetMemberValue("blocksById", (0,fullNode.Chain.Tip));
+            //fullNode.Chain.SetMemberValue("Genesis", fullNode.Chain.Tip);
+
+            test0 = (ChainedHeader)fullNode.Chain.GetMemberValue("Genesis");
+            test1 = (ChainedHeader)fullNode.Chain.GetMemberValue("Tip");
+
             fullNode.ConsensusLoop().Puller.InjectBlock(blockHash, new DownloadedBlock { Length = block.GetSerializedSize(), Block = block }, CancellationToken.None);
             return block;
         }
@@ -314,5 +336,95 @@ namespace DeStream.DeStreamD.ForTest
             return result;
         }
 
+    }
+
+    public static class ReflectionExtensions
+    {
+        /// <summary>
+        /// Gets the public or private member using reflection.
+        /// </summary>
+        /// <param name="obj">The source target.</param>
+        /// <param name="memberName">Name of the field or property.</param>
+        /// <returns>the value of member</returns>
+        public static object GetMemberValue(this object obj, string memberName)
+        {
+            var memInf = GetMemberInfo(obj, memberName);
+
+            if (memInf == null)
+                throw new System.Exception("memberName");
+
+            if (memInf is System.Reflection.PropertyInfo)
+                return memInf.As<System.Reflection.PropertyInfo>().GetValue(obj, null);
+
+            if (memInf is System.Reflection.FieldInfo)
+                return memInf.As<System.Reflection.FieldInfo>().GetValue(obj);
+
+            throw new System.Exception();
+        }
+
+        /// <summary>
+        /// Gets the public or private member using reflection.
+        /// </summary>
+        /// <param name="obj">The target object.</param>
+        /// <param name="memberName">Name of the field or property.</param>
+        /// <returns>Old Value</returns>
+        public static object SetMemberValue(this object obj, string memberName, object newValue)
+        {
+            var memInf = GetMemberInfo(obj, memberName);
+
+
+            if (memInf == null)
+                throw new System.Exception("memberName");
+
+            var oldValue = obj.GetMemberValue(memberName);
+
+            if (memInf is System.Reflection.PropertyInfo)
+                memInf.As<System.Reflection.PropertyInfo>().SetValue(obj, newValue, null);
+            else if (memInf is System.Reflection.FieldInfo)
+                memInf.As<System.Reflection.FieldInfo>().SetValue(obj, newValue);
+            else
+                throw new System.Exception();
+
+            return oldValue;
+        }
+
+        /// <summary>
+        /// Gets the member info
+        /// </summary>
+        /// <param name="obj">source object</param>
+        /// <param name="memberName">name of member</param>
+        /// <returns>instanse of MemberInfo corresponsing to member</returns>
+        private static System.Reflection.MemberInfo GetMemberInfo(object obj, string memberName)
+        {
+            var prps = new System.Collections.Generic.List<System.Reflection.PropertyInfo>();
+
+            prps.Add(obj.GetType().GetProperty(memberName,
+                                               System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance |
+                                               System.Reflection.BindingFlags.FlattenHierarchy));
+            prps = System.Linq.Enumerable.ToList(System.Linq.Enumerable.Where(prps, i => !ReferenceEquals(i, null)));
+            if (prps.Count != 0)
+                return prps[0];
+
+            var flds = new System.Collections.Generic.List<System.Reflection.FieldInfo>();
+
+            flds.Add(obj.GetType().GetField(memberName,
+                                            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance |
+                                            System.Reflection.BindingFlags.FlattenHierarchy));
+
+            //to add more types of properties
+
+            flds = System.Linq.Enumerable.ToList(System.Linq.Enumerable.Where(flds, i => !ReferenceEquals(i, null)));
+
+            if (flds.Count != 0)
+                return flds[0];
+
+            return null;
+        }
+
+        [System.Diagnostics.DebuggerHidden]
+        private static T As<T>(this object obj)
+        {
+            return (T)obj;
+        }
     }
 }

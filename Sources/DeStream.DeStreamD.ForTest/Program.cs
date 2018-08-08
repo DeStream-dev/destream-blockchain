@@ -73,29 +73,14 @@ namespace DeStream.DeStreamD.ForTest
                 var walletManager = node.WalletManager();
                 walletManager.Wallets.Add(result.wallet);
 
-                //HdAddress addr = node.WalletManager().GetUnusedAddress(new WalletAccountReference("myWallet1", "account1"));
-                //HdAddress addr = result.wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(0).Address;
-                //HdAddress addr = new HdAddress();
                 HdAddress addr = result.wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(0);
                 Key key = result.wallet.GetExtendedPrivateKeyForAddress("password", addr).PrivateKey;
                 TestClassHelper.CreateTestBlock(node, key);
 
 
-
-
-                //    node.NodeService<IWalletFeePolicy>());
-                //(Wallet wallet, Block block, ChainedHeader chainedHeader) test = TestClassHelper.CreateFirstTransaction(nodeSettings, ref walletManager, node.NodeService<WalletSettings>(),
-                //    node.NodeService<IWalletFeePolicy>());
-                //((WalletManager)node.NodeService<IWalletManager>()).Wallets.Add(test.wallet);
-
-                //((WalletManager)node.NodeService<IWalletManager>()).LoadKeysLookupLock();
-                //((WalletManager)node.NodeService<IWalletManager>()).WalletTipHash = test.block.Header.GetHash(); 
-
-                //((WalletManager)node.NodeService<IWalletManager>()).ProcessBlock(test.block, test.chainedHeader);
-
                 //walletManager.SaveWallets();
-                //walletManager.Wallets.Add(wallet);
 
+                var test = node.WalletManager().GetSpendableTransactionsInWallet("myWallet1").Sum(s => s.Transaction.Amount);
                 int qwe0 = 1;
                 if (node != null)
                     await node.RunAsync();
