@@ -38,7 +38,7 @@ namespace DeStream.DeStreamD.ForTest
         {
             MainAsync(args).Wait();
         }
-        
+
 
         public static async Task MainAsync(string[] args)
         {
@@ -54,7 +54,7 @@ namespace DeStream.DeStreamD.ForTest
 
                 Console.WriteLine($"current network: {network.Name}");
 
-                
+
 
                 // NOTES: running BTC and STRAT side by side is not possible yet as the flags for serialization are static
                 FullNode node = (FullNode)new FullNodeBuilder()
@@ -62,25 +62,34 @@ namespace DeStream.DeStreamD.ForTest
                     .UseBlockStore()
                     .UsePosConsensus()
                     .UseMempool()
-                    .UseWalletDeStream()
+                    .UseWallet()
                     .AddPowPosMining()
                     .UseApi()
                     .AddRPC()
                     .Build();
-                
-                node.Services.ServiceProvider.GetService<IPowMining>().GenerateBlocks(new ReserveScript { ReserveFullNodeScript = MinerSecret.ScriptPubKey }, 3, uint.MaxValue);
 
-                var walletManager = (DeStreamWalletManager)node.WalletManager();
+                (Wallet wallet, Block block, ChainedHeader chainedHeader) result = TestClassHelper.CreateFirstTransaction(nodeSettings, node.WalletManager(), node.NodeService<WalletSettings>(),
+                    node.NodeService<IWalletFeePolicy>());
+                var walletManager = node.WalletManager();
+                walletManager.Wallets.Add(result.wallet);
+
+                //HdAddress addr = node.WalletManager().GetUnusedAddress(new WalletAccountReference("myWallet1", "account1"));
+                //HdAddress addr = result.wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(0).Address;
+                //HdAddress addr = new HdAddress();
+                HdAddress addr = result.wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(0);
+                Key key = result.wallet.GetExtendedPrivateKeyForAddress("password", addr).PrivateKey;
+                TestClassHelper.CreateTestBlock(node, key);
 
 
-                //Wallet wallet = TestClassHelper.CreateFirstTransaction(nodeSettings, ref walletManager, node.NodeService<WalletSettings>(),
+
+
                 //    node.NodeService<IWalletFeePolicy>());
                 //(Wallet wallet, Block block, ChainedHeader chainedHeader) test = TestClassHelper.CreateFirstTransaction(nodeSettings, ref walletManager, node.NodeService<WalletSettings>(),
                 //    node.NodeService<IWalletFeePolicy>());
                 //((WalletManager)node.NodeService<IWalletManager>()).Wallets.Add(test.wallet);
 
                 //((WalletManager)node.NodeService<IWalletManager>()).LoadKeysLookupLock();
-                //((WalletManager)node.NodeService<IWalletManager>()).WalletTipHash = test.block.Header.GetHash();
+                //((WalletManager)node.NodeService<IWalletManager>()).WalletTipHash = test.block.Header.GetHash(); 
 
                 //((WalletManager)node.NodeService<IWalletManager>()).ProcessBlock(test.block, test.chainedHeader);
 

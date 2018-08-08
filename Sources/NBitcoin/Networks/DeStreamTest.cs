@@ -72,9 +72,12 @@ namespace NBitcoin.Networks
             genesis.Header.Bits = this.Consensus.PowLimit;
             this.Genesis = genesis;
             this.Consensus.HashGenesisBlock = genesis.GetHash();
+            //f79e424c3636eb124bb6d07dcc2266e57575c68b738eb3adae364cd3a6ef2943
+
+
             Assert(this.Consensus.HashGenesisBlock == uint256.Parse("0x00000e246d7b73b88c9ab55f2e5e94d9e22d471def3df5ea448f5576b1d156b9"));
 
-            //Assert(this.Consensus.HashGenesisBlock == uint256.Parse("5c69790173d48daf2a2a111e0baafb0546ebbec9a831f890ff8c7e23fe119885"));
+            //Assert(this.Consensus.HashGenesisBlock == uint256.Parse("f79e424c3636eb124bb6d07dcc2266e57575c68b738eb3adae364cd3a6ef2943"));
 
             this.Checkpoints = new Dictionary<int, CheckpointInfo>
             {

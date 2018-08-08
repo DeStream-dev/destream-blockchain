@@ -67,4 +67,9 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Builders\" />
+    <Folder Include="Extensions\" />
+  </ItemGroup>
+
 </Project>

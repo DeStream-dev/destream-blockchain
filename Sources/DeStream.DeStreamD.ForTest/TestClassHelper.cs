@@ -33,15 +33,15 @@ namespace DeStream.DeStreamD.ForTest
         }
 
 
-        public static (ConcurrentChain chain, uint256 blockhash, Block block) CreateChainAndCreateFirstBlockWithPaymentToAddress(DeStreamWalletManager walletManager, Network network, HdAddress address)
+        public static (ConcurrentChain chain, uint256 blockhash, Block block) CreateChainAndCreateFirstBlockWithPaymentToAddress(WalletManager walletManager, Network network, HdAddress address)
         {
             var chain = new ConcurrentChain(network);
-            
+
             //var chain = walletManager.Chain;
 
             var block = new Block();
             //var block = network.GetGenesis().Header;
-            
+
             block.Header.HashPrevBlock = chain.Tip.HashBlock;
             block.Header.Bits = block.Header.GetWorkRequired(network, chain.Tip);
             block.Header.UpdateTime(DateTimeOffset.UtcNow, network, chain.Tip);
@@ -56,7 +56,7 @@ namespace DeStream.DeStreamD.ForTest
             block.Header.PrecomputeHash();
 
             chain.SetTip(block.Header);
-            
+
             return (chain, block.GetHash(), block);
         }
 
@@ -136,7 +136,7 @@ namespace DeStream.DeStreamD.ForTest
 
         //public static Wallet CreateFirstTransaction(DeStreamNodeSettings nodeSettings, ref DeStreamWalletManager walletManager, WalletSettings walletSettings,
         //    IWalletFeePolicy _walletFeePolicy)
-        public static (Wallet wallet, Block block, ChainedHeader chainedHeader) CreateFirstTransaction(DeStreamNodeSettings nodeSettings, ref DeStreamWalletManager walletManager, WalletSettings walletSettings,
+        public static (Wallet wallet, Block block, ChainedHeader chainedHeader) CreateFirstTransaction(DeStreamNodeSettings nodeSettings, WalletManager walletManager, WalletSettings walletSettings,
             IWalletFeePolicy _walletFeePolicy)
         {
             Wallet wallet = GenerateBlankWalletWithExtKey("myWallet1", "password").wallet;
@@ -204,18 +204,18 @@ namespace DeStream.DeStreamD.ForTest
 
             //var _walletManager = new WalletManager(nodeSettings.LoggerFactory, Network.Main, chainInfo.chain, nodeSettings, new Mock<WalletSettings>().Object,
             //    nodeSettings.DataFolder, walletFeePolicy.Object, new Mock<IAsyncLoopFactory>().Object, new NodeLifetime(), DateTimeProvider.Default);
-            
-            walletManager = new DeStreamWalletManager(nodeSettings.LoggerFactory, nodeSettings.Network, chainInfo.chain, nodeSettings,
-                walletSettings,
-                nodeSettings.DataFolder, walletFeePolicy.Object, walletManager.AsyncLoopFactory, walletManager.NodeLifetime, walletManager.DateTimeProvider);
 
-            walletManager.Wallets.Add(wallet);
-            walletManager.LoadKeysLookupLock();
-            walletManager.WalletTipHash = block.Header.GetHash();
+            //walletManager = new DeStreamWalletManager(nodeSettings.LoggerFactory, nodeSettings.Network, chainInfo.chain, nodeSettings,
+            //    walletSettings,
+            //    nodeSettings.DataFolder, walletFeePolicy.Object, walletManager.AsyncLoopFactory, walletManager.NodeLifetime, walletManager.DateTimeProvider);
+
+            //walletManager.Wallets.Add(wallet);
+            //walletManager.LoadKeysLookupLock();
+            //walletManager.WalletTipHash = block.Header.GetHash();
 
             ChainedHeader chainedBlock = chainInfo.chain.GetBlock(block.GetHash());
-            //walletManager.ProcessTransaction(transaction, null, block, false);
-            walletManager.ProcessBlock(block, chainedBlock);
+            ////walletManager.ProcessTransaction(transaction, null, block, false);
+            //walletManager.ProcessBlock(block, chainedBlock);
             return (wallet, block, chainedBlock);
 
             //HdAddress spentAddressResult = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(0);
@@ -227,40 +227,40 @@ namespace DeStream.DeStreamD.ForTest
             return new Money(9000000000);
         }
 
-        public static void CreateTestBlock(FullNode fullNode, BitcoinSecret minerSecret)
+        public static Block CreateTestBlock(FullNode fullNode, Key key)
         {
             //FullNode fullNode = (this.runner as StratisBitcoinPowRunner).FullNode;
-            BitcoinSecret dest = minerSecret;
+
+            BitcoinSecret dest = new BitcoinSecret(key, fullNode.Network);
             var blocks = new List<Block>();
-            
+
 
             List<Transaction> passedTransactions = null;
-            for (int i = 0; i < 3; i++)
+            uint nonce = 0;
+            var block = new Block();
+            block.Header.HashPrevBlock = fullNode.Chain.Tip.HashBlock;
+            block.Header.Bits = block.Header.GetWorkRequired(fullNode.Network, fullNode.Chain.Tip);
+            block.Header.UpdateTime(DateTimeOffset.UtcNow, fullNode.Network, fullNode.Chain.Tip);
+            var coinbase = new Transaction();
+            coinbase.AddInput(TxIn.CreateCoinbase(fullNode.Chain.Height + 1));
+            coinbase.AddOutput(new TxOut(Get9Billion(), dest.GetAddress()));
+            block.AddTransaction(coinbase);
+            if (passedTransactions?.Any() ?? false)
             {
-                uint nonce = 0;
-                var block = new Block();
-                block.Header.HashPrevBlock = fullNode.Chain.Tip.HashBlock;
-                block.Header.Bits = block.Header.GetWorkRequired(fullNode.Network, fullNode.Chain.Tip);
-                block.Header.UpdateTime(DateTimeOffset.UtcNow, fullNode.Network, fullNode.Chain.Tip);
-                var coinbase = new Transaction();
-                coinbase.AddInput(TxIn.CreateCoinbase(fullNode.Chain.Height + 1));
-                coinbase.AddOutput(new TxOut(fullNode.Network.GetReward(fullNode.Chain.Height + 1), dest.GetAddress()));
-                block.AddTransaction(coinbase);
-                if (passedTransactions?.Any() ?? false)
-                {
-                    passedTransactions = Reorder(passedTransactions);
-                    block.Transactions.AddRange(passedTransactions);
-                }
-                block.UpdateMerkleRoot();
-                while (!block.CheckProofOfWork())
-                    block.Header.Nonce = ++nonce;
-                blocks.Add(block);
-                    uint256 blockHash = block.GetHash();
-                    var newChain = new ChainedHeader(block.Header, blockHash, fullNode.Chain.Tip);
-                    ChainedHeader oldTip = fullNode.Chain.SetTip(newChain);
-                    fullNode.ConsensusLoop().Puller.InjectBlock(blockHash, new DownloadedBlock { Length = block.GetSerializedSize(), Block = block }, CancellationToken.None);
+                passedTransactions = Reorder(passedTransactions);
+                block.Transactions.AddRange(passedTransactions);
             }
+            block.UpdateMerkleRoot();
+            while (!block.CheckProofOfWork())
+                block.Header.Nonce = ++nonce;
+            blocks.Add(block);
+            uint256 blockHash = block.GetHash();
+            var newChain = new ChainedHeader(block.Header, blockHash, fullNode.Chain.Tip);
+            ChainedHeader oldTip = fullNode.Chain.SetTip(newChain);
+            fullNode.ConsensusLoop().Puller.InjectBlock(blockHash, new DownloadedBlock { Length = block.GetSerializedSize(), Block = block }, CancellationToken.None);
+            return block;
         }
+
         private class TransactionNode
         {
             public uint256 Hash = null;
@@ -315,3 +315,4 @@ namespace DeStream.DeStreamD.ForTest
         }
 
     }
+}
