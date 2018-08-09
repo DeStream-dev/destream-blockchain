@@ -150,7 +150,7 @@ namespace Stratis.Bitcoin.P2P.Peer
                     this.MessageProducer.PushMessage(incomingMessage);
                 }
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException ex)
             {
                 this.logger.LogTrace("Receiving cancelled.");
                 this.peer.Disconnect("Receiving cancelled.");
@@ -340,7 +340,7 @@ namespace Stratis.Bitcoin.P2P.Peer
         /// <exception cref="ProtocolViolationException">Thrown if the incoming message is too big.</exception>
         private async Task<byte[]> ReadMessageAsync(ProtocolVersion protocolVersion, CancellationToken cancellation = default(CancellationToken))
         {
-            this.logger.LogTrace("({0}:{1})", nameof(protocolVersion), protocolVersion);
+            //this.logger.LogTrace("({0}:{1})", nameof(protocolVersion), protocolVersion);
 
             // First find and read the magic.
             await this.ReadMagicAsync(this.network.MagicBytes, cancellation).ConfigureAwait(false);
@@ -411,7 +411,7 @@ namespace Stratis.Bitcoin.P2P.Peer
 
             this.logger.LogTrace("(-)");
         }
-
+        static int _offset=0;
         /// <summary>
         /// Reads a specific number of bytes from the connection stream into a buffer.
         /// </summary>
@@ -423,11 +423,20 @@ namespace Stratis.Bitcoin.P2P.Peer
         /// <exception cref="OperationCanceledException">Thrown if the operation was cancelled or the end of the stream was reached.</exception>
         private async Task ReadBytesAsync(byte[] buffer, int offset, int bytesToRead, CancellationToken cancellation = default(CancellationToken))
         {
-            this.logger.LogTrace("({0}:{1},{2}:{3})", nameof(offset), offset, nameof(bytesToRead), bytesToRead);
+            //this.logger.LogTrace("({0}:{1},{2}:{3})", nameof(offset), offset, nameof(bytesToRead), bytesToRead);
 
             while (bytesToRead > 0)
             {
-                int chunkSize = await this.stream.ReadAsync(buffer, offset, bytesToRead, cancellation).ConfigureAwait(false);
+                int chunkSize = 0;
+                try
+                {
+                    chunkSize = this.stream.Read(buffer, offset, bytesToRead);
+                    //chunkSize = await this.stream.ReadAsync(buffer, offset, bytesToRead, cancellation).ConfigureAwait(false);
+                }catch(Exception ex)
+                {
+                    int qwe = 1;
+                    _offset = 0;
+                }
                 if (chunkSize == 0)
                 {
                     this.logger.LogTrace("(-)[STREAM_END]");
@@ -435,10 +444,11 @@ namespace Stratis.Bitcoin.P2P.Peer
                 }
 
                 offset += chunkSize;
+                _offset += offset;
                 bytesToRead -= chunkSize;
             }
 
-            this.logger.LogTrace("(-)");
+            //this.logger.LogTrace("(-)");
         }
 
         /// <summary>
@@ -456,7 +466,7 @@ namespace Stratis.Bitcoin.P2P.Peer
         /// </remarks>
         private async Task<Message> ReadAndParseMessageAsync(ProtocolVersion protocolVersion, CancellationToken cancellation)
         {
-            this.logger.LogTrace("({0}:{1})", nameof(protocolVersion), protocolVersion);
+            //this.logger.LogTrace("({0}:{1})", nameof(protocolVersion), protocolVersion);
 
             Message message = null;
 

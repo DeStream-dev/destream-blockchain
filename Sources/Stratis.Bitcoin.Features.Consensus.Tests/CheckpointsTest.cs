@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 using NBitcoin;
+using Stratis.Bitcoin.Configuration.Settings;
+using Stratis.Bitcoin.Consensus;
 using Xunit;
 
 namespace Stratis.Bitcoin.Features.Consensus.Tests

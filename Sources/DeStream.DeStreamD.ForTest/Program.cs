@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -68,19 +69,22 @@ namespace DeStream.DeStreamD.ForTest
                     .AddRPC()
                     .Build();
 
-                (Wallet wallet, Block block, ChainedHeader chainedHeader) result = TestClassHelper.CreateFirstTransaction(nodeSettings, node.WalletManager(), node.NodeService<WalletSettings>(),
-                    node.NodeService<IWalletFeePolicy>());
-                var walletManager = node.WalletManager();
-                walletManager.Wallets.Add(result.wallet);
+                //(Wallet wallet, Block block, ChainedHeader chainedHeader) result = TestClassHelper.CreateFirstTransaction(nodeSettings, node.WalletManager(), node.NodeService<WalletSettings>(),
+                //    node.NodeService<IWalletFeePolicy>());
+                //var walletManager = node.WalletManager();
+                //walletManager.Wallets.Add(result.wallet);
 
-                HdAddress addr = result.wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(0);
-                Key key = result.wallet.GetExtendedPrivateKeyForAddress("password", addr).PrivateKey;
-                TestClassHelper.CreateTestBlock(node, key);
+                //HdAddress addr = result.wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(0);
+                //Key key = result.wallet.GetExtendedPrivateKeyForAddress("password", addr).PrivateKey;
+                //TestClassHelper.CreateTestBlock(node, key);
 
 
                 //walletManager.SaveWallets();
 
-                var test = node.WalletManager().GetSpendableTransactionsInWallet("myWallet1").Sum(s => s.Transaction.Amount);
+                //var test = node.WalletManager().GetSpendableTransactionsInWallet("myWallet1").Sum(s => s.Transaction.Amount);
+
+                Process currentProcess = Process.GetCurrentProcess();
+                Console.WriteLine("##############################: " + currentProcess.Id.ToString());
                 int qwe0 = 1;
                 if (node != null)
                     await node.RunAsync();

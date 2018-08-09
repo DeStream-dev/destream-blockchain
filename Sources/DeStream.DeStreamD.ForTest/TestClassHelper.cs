@@ -49,7 +49,7 @@ namespace DeStream.DeStreamD.ForTest
 
             var coinbase = new Transaction();
             coinbase.AddInput(TxIn.CreateCoinbase(chain.Height + 1));
-            coinbase.AddOutput(new TxOut(Get9Billion(), address.ScriptPubKey));
+            coinbase.AddOutput(new TxOut(Get6Billion(), address.ScriptPubKey));
 
             block.AddTransaction(coinbase);
             block.Header.Nonce = 0;
@@ -231,7 +231,7 @@ namespace DeStream.DeStreamD.ForTest
         public static Block CreateTestBlock(FullNode fullNode, Key key)
         {
             //FullNode fullNode = (this.runner as StratisBitcoinPowRunner).FullNode;
-
+            
             BitcoinSecret dest = new BitcoinSecret(key, fullNode.Network);
             var blocks = new List<Block>();
 
@@ -244,7 +244,7 @@ namespace DeStream.DeStreamD.ForTest
             block.Header.UpdateTime(DateTimeOffset.UtcNow, fullNode.Network, fullNode.Chain.Tip);
             var coinbase = new Transaction();
             //coinbase.AddInput(TxIn.CreateCoinbase(fullNode.Chain.Height + 1));
-            coinbase.AddOutput(new TxOut(Get9Billion(), dest.GetAddress()));
+            coinbase.AddOutput(new TxOut(Get6Billion(), dest.GetAddress()));
             block.AddTransaction(coinbase);
             if (passedTransactions?.Any() ?? false)
             {
