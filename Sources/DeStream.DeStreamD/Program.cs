@@ -19,6 +19,7 @@ using Stratis.Bitcoin.Utilities.Extensions;
 
 
 using DeStream.Stratis.Bitcoin.Configuration;
+using NBitcoin.Networks;
 
 namespace DeStream.DeStreamD
 {
@@ -34,13 +35,17 @@ namespace DeStream.DeStreamD
             try
             {
                 Network network = null;
-                if (args.Contains("-testnet"))
-                    network = Network.DeStreamTest;
-                else
-                    network = Network.DeStreamMain;
 
-                DeStreamNodeSettings nodeSettings = new DeStreamNodeSettings(network, ProtocolVersion.ALT_PROTOCOL_VERSION, args:args, loadConfiguration:false);
-                
+                if (args.Contains("-testnet"))
+                {
+                    network = Network.DeStreamTest;
+                }
+                else
+                {
+                    network = Network.DeStreamMain;
+                }
+                DeStreamNodeSettings nodeSettings = new DeStreamNodeSettings(network, ProtocolVersion.ALT_PROTOCOL_VERSION, args: args, loadConfiguration: false);
+
                 Console.WriteLine($"current network: {network.Name}");
 
                 // NOTES: running BTC and STRAT side by side is not possible yet as the flags for serialization are static

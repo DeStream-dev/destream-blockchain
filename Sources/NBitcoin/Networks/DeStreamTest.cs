@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text;
 using NBitcoin.BouncyCastle.Math;
@@ -10,10 +11,11 @@ namespace NBitcoin.Networks
 {
     public class DeStreamTest : Network
     {
-        public IPEndPoint Endpoint { get { return new IPEndPoint(IPAddress.Parse("127.0.0.1"), 50861); } }
+        const string WalletAddressDeStreamTest = "TPPL2wmtxGzP8U6hQsGkRA9yCMsazB33ft";
 
         public DeStreamTest() //: base()
         {
+            
             this.DNSSeeds = new List<DNSSeedData>();
             this.SeedNodes = new List<NetworkAddress>();
             this.Checkpoints = new Dictionary<int, CheckpointInfo>();
@@ -65,20 +67,6 @@ namespace NBitcoin.Networks
             this.Consensus.CoinType = 105;
             this.Consensus.DefaultAssumeValid = new uint256("0x98fa6ef0bca5b431f15fd79dc6f879dc45b83ed4b1bbe933a383ef438321958e"); // 372652
 
-            Block genesis = CreateStratisGenesisBlock(this.Consensus.ConsensusFactory, 1470467000, 1831645, 0x1e0fffff, 1, Money.Zero);
-            //Block genesis = CreateStratisGenesisBlock(this.Consensus.ConsensusFactory, 1470467000, 1831645, 0x1e0fffff, 1, Money.Coins(9000000000));
-            genesis.Header.Time = 1493909211;
-            genesis.Header.Nonce = 2433759;
-            genesis.Header.Bits = this.Consensus.PowLimit;
-            this.Genesis = genesis;
-            this.Consensus.HashGenesisBlock = genesis.GetHash();
-            //f79e424c3636eb124bb6d07dcc2266e57575c68b738eb3adae364cd3a6ef2943
-
-
-            Assert(this.Consensus.HashGenesisBlock == uint256.Parse("0x00000e246d7b73b88c9ab55f2e5e94d9e22d471def3df5ea448f5576b1d156b9"));
-
-            //Assert(this.Consensus.HashGenesisBlock == uint256.Parse("f79e424c3636eb124bb6d07dcc2266e57575c68b738eb3adae364cd3a6ef2943"));
-
             this.Checkpoints = new Dictionary<int, CheckpointInfo>
             {
                 { 0, new CheckpointInfo(new uint256("0x00000e246d7b73b88c9ab55f2e5e94d9e22d471def3df5ea448f5576b1d156b9"), new uint256("0x0000000000000000000000000000000000000000000000000000000000000000")) },
@@ -102,6 +90,15 @@ namespace NBitcoin.Networks
             this.Base58Prefixes[(int)Base58Type.ASSET_ID] = new byte[] { 23 };
             this.Base58Prefixes[(int)Base58Type.COLORED_ADDRESS] = new byte[] { 0x13 };
 
+            Block genesis = CreateDeStreamGenesisBlock(this.Consensus.ConsensusFactory, 1470467000, 1831645, 0x1e0fffff, 1, new Money(6100000000));
+            genesis.Header.Time = 1493909211;
+            genesis.Header.Nonce = 2433759;
+            genesis.Header.Bits = this.Consensus.PowLimit;
+            this.Genesis = genesis;
+            this.Consensus.HashGenesisBlock = genesis.GetHash();
+            Assert(this.Consensus.HashGenesisBlock == uint256.Parse("9588559fe38409c5a5d652e847dd059a105ef8f26015f43a512ef8c8a7962dff"));
+
+
             var encoder = new Bech32Encoder("bc");
             this.Bech32Encoders[(int)Bech32Type.WITNESS_PUBKEY_ADDRESS] = encoder;
             this.Bech32Encoders[(int)Bech32Type.WITNESS_SCRIPT_ADDRESS] = encoder;
@@ -116,9 +113,42 @@ namespace NBitcoin.Networks
                 new NetworkAddress(IPAddress.Parse("95.128.181.196"), this.DefaultPort),    //peak-srv-12
                 new NetworkAddress(IPAddress.Parse("40.121.9.206"), this.DefaultPort)
             });
-
-            //Network.Register(network);
-            //return network;
         }
+
+        internal  Block CreateDeStreamGenesisBlock(ConsensusFactory consensusFactory, uint nTime, uint nNonce, uint nBits, int nVersion, Money genesisReward)
+        {
+            string pszTimestamp = "http://www.theonion.com/article/olympics-head-priestess-slits-throat-official-rio--53466";
+            return CreateDeStreamGenesisBlock(consensusFactory, pszTimestamp, nTime, nNonce, nBits, nVersion, genesisReward);
+        }
+
+        internal  Block CreateDeStreamGenesisBlock(ConsensusFactory consensusFactory, string pszTimestamp, uint nTime, uint nNonce, uint nBits, int nVersion, Money genesisReward)
+        {
+            Transaction txNew = consensusFactory.CreateTransaction();
+            txNew.Version = 1;
+            txNew.Time = nTime;
+            txNew.AddInput(new TxIn()
+            {
+                ScriptSig = new Script(Op.GetPushOp(0), new Op()
+                {
+                    Code = (OpcodeType)0x1,
+                    PushData = new[] { (byte)42 }
+                }, Op.GetPushOp(Encoders.ASCII.DecodeData(pszTimestamp)))
+            });
+
+            byte[] prefix = this.Base58Prefixes[(int)Base58Type.PUBKEY_ADDRESS];
+            Script destination = (new KeyId(new uint160(Encoders.Base58Check.DecodeData(WalletAddressDeStreamTest).Skip((int)prefix?.ToArray().Length).ToArray()))).ScriptPubKey;
+            txNew.AddOutput(new TxOut(genesisReward, destination));
+            Block genesis = consensusFactory.CreateBlock();
+            genesis.Header.BlockTime = Utils.UnixTimeToDateTime(nTime);
+            genesis.Header.Bits = nBits;
+            genesis.Header.Nonce = nNonce;
+            genesis.Header.Version = nVersion;
+            genesis.Transactions.Add(txNew);
+            genesis.Header.HashPrevBlock = uint256.Zero;
+            genesis.UpdateMerkleRoot();
+            return genesis;
+        }
+
+
     }
 }

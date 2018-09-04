@@ -11,6 +11,8 @@ namespace NBitcoin
 {
     public partial class Network
     {
+        
+
         /// <summary> The name of the root folder containing the different Stratis blockchains (StratisMain, StratisTest, StratisRegTest). 	</summary>
         public const string DeStreamRootFolderName = "destream";
 
@@ -20,6 +22,10 @@ namespace NBitcoin
         public const int StratisMaxTimeOffsetSeconds = 25 * 60;
 
         public const int StratisDefaultMaxTipAgeInSeconds = 2 * 60 * 60;
+
+        
+
+        public const string WalletAddressDeStreamMain = "TPPL2wmtxGzP8U6hQsGkRA9yCMsazB33ft";
 
         public static Network DeStreamMain => NetworksContainer.GetNetwork("DeStreamMain") ?? NetworksContainer.Register(new DeStreamMain());
 

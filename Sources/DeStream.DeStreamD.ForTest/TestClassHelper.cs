@@ -5,8 +5,10 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using DeStream.Stratis.Bitcoin.Configuration;
+using Microsoft.Extensions.Logging;
 using Moq;
 using NBitcoin;
+using NBitcoin.DataEncoders;
 using Stratis.Bitcoin;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.Wallet.Interfaces;
@@ -29,27 +31,51 @@ namespace DeStream.DeStreamD.ForTest
         {
             PubKey addressPubKey = ExtPubKey.Parse(accountExtendedPubKey).Derive(new KeyPath(keyPath)).PubKey;
             BitcoinPubKeyAddress address = addressPubKey.GetAddress(wallet.Network);
+            BitcoinPubKeyAddress address0 = addressPubKey.GetAddress(Network.StratisMain);
+
 
             return (addressPubKey, address);
         }
 
 
-        public static (ConcurrentChain chain, uint256 blockhash, Block block) CreateChainAndCreateFirstBlockWithPaymentToAddress(WalletManager walletManager, Network network, HdAddress address)
+        public static (ConcurrentChain chain, uint256 blockhash, Block block) CreateChainAndCreateFirstBlock_DeStreamTest(Script address)
+        {
+            //
+            var chain = new ConcurrentChain(Network.DeStreamTest);
+            var block = new Block();
+            block.Header.HashPrevBlock = chain.Tip.HashBlock;
+            block.Header.Bits = block.Header.GetWorkRequired(Network.DeStreamTest, chain.Tip);
+            block.Header.UpdateTime(DateTimeOffset.UtcNow, Network.DeStreamTest, chain.Tip);
+
+            var coinbase = new Transaction();
+            coinbase.AddInput(TxIn.CreateCoinbase(chain.Height + 1));
+            coinbase.AddOutput(new TxOut(Get6Billion(), address));
+            //coinbase.AddOutput(new TxOut(Get6Billion(), address.ScriptPubKey));
+
+            block.AddTransaction(coinbase);
+            block.Header.Nonce = 0;
+            block.UpdateMerkleRoot();
+            block.Header.PrecomputeHash();
+
+            chain.SetTip(block.Header);
+
+            return (chain, block.GetHash(), block);
+
+        }
+
+        public static (ConcurrentChain chain, uint256 blockhash, Block block) CreateChainAndCreateFirstBlockWithPaymentToAddress(Network network, HdAddress address, string _addr)
         {
             var chain = new ConcurrentChain(network);
-
-            //var chain = walletManager.Chain;
-
             var block = new Block();
-            //var block = network.GetGenesis().Header;
-
             block.Header.HashPrevBlock = chain.Tip.HashBlock;
             block.Header.Bits = block.Header.GetWorkRequired(network, chain.Tip);
             block.Header.UpdateTime(DateTimeOffset.UtcNow, network, chain.Tip);
 
             var coinbase = new Transaction();
             coinbase.AddInput(TxIn.CreateCoinbase(chain.Height + 1));
-            coinbase.AddOutput(new TxOut(Get6Billion(), address.ScriptPubKey));
+            Script destination = BitcoinAddress.Create(_addr, network).ScriptPubKey;
+            coinbase.AddOutput(new TxOut(Get6Billion(), destination));
+            //coinbase.AddOutput(new TxOut(Get6Billion(), address.ScriptPubKey));
 
             block.AddTransaction(coinbase);
             block.Header.Nonce = 0;
@@ -135,12 +161,49 @@ namespace DeStream.DeStreamD.ForTest
             return (walletFile, extendedKey);
         }
 
-        //public static Wallet CreateFirstTransaction(DeStreamNodeSettings nodeSettings, ref DeStreamWalletManager walletManager, WalletSettings walletSettings,
-        //    IWalletFeePolicy _walletFeePolicy)
-        public static (Wallet wallet, Block block, ChainedHeader chainedHeader) CreateFirstTransaction(DeStreamNodeSettings nodeSettings, WalletManager walletManager, WalletSettings walletSettings,
+        public static void CreateFirstTransaction0(string _addr, Network network)
+        {
+            //var chain = new ConcurrentChain(network);
+            //var block = new Block();
+            //block.Header.HashPrevBlock = chain.Tip.HashBlock;
+            //block.Header.Bits = block.Header.GetWorkRequired(network, chain.Tip);
+            //block.Header.UpdateTime(DateTimeOffset.UtcNow, network, chain.Tip);
+
+            //var coinbase = new Transaction();
+            //coinbase.AddInput(TxIn.CreateCoinbase(chain.Height + 1));
+            Script _destination = BitcoinAddress.Create(_addr, network).ScriptPubKey;
+            
+            //coinbase.AddOutput(new TxOut(Get6Billion(), destination));
+            //block.AddTransaction(coinbase);
+            //block.Header.Nonce = 0;
+            //block.UpdateMerkleRoot();
+            //block.Header.PrecomputeHash();
+            //chain.SetTip(block.Header);
+            //Script scr = new Script("OP_DUP OP_HASH160 93297d1d0f1e3322eb73e7513144dff4d030a8ab OP_EQUALVERIFY OP_CHECKSIG");
+            Script destination = BitcoinAddress.Create(_addr, network).ScriptPubKey;
+            var context = new TransactionBuildContext(
+                new WalletAccountReference("request.WalletName", "request.AccountName"),
+                new[] { new Recipient { Amount = 7, ScriptPubKey = destination } }.ToList(), "password", "true")
+            {
+                TransactionFee = string.IsNullOrEmpty("0") ? null : Money.Parse("0"),
+                MinConfirmations = 1,
+                Shuffle = true // We shuffle transaction outputs by default as it's better for anonymity.
+            };
+
+            if (!string.IsNullOrEmpty("medium"))
+            {
+                context.FeeType = FeeParser.Parse("medium");
+            }
+            Mock<ILoggerFactory> LoggerFactory = new Mock<ILoggerFactory>();
+            var walletTransactionHandler = new WalletTransactionHandler(LoggerFactory.Object, new Mock<IWalletManager>().Object, new Mock<IWalletFeePolicy>().Object, network);
+            Transaction transactionResult = walletTransactionHandler.BuildTransaction(context);
+            string Hex = transactionResult.ToHex();
+        }
+
+        public static (Wallet wallet, Block block, ChainedHeader chainedHeader) CreateFirstTransaction(string _addr, DeStreamNodeSettings nodeSettings, WalletManager walletManager, WalletSettings walletSettings,
             IWalletFeePolicy _walletFeePolicy)
         {
-            Wallet wallet = GenerateBlankWalletWithExtKey("myWallet1", "password").wallet;
+            Wallet wallet = GenerateBlankWalletWithExtKey("myWallet61", "password").wallet;
             (ExtKey ExtKey, string ExtPubKey) accountKeys = GenerateAccountKeys(wallet, "password", "m/44'/0'/0'");
             (PubKey PubKey, BitcoinPubKeyAddress Address) spendingKeys = GenerateAddressKeys(wallet, accountKeys.ExtPubKey, "0/0");
             (PubKey PubKey, BitcoinPubKeyAddress Address) destinationKeys = GenerateAddressKeys(wallet, accountKeys.ExtPubKey, "0/1");
@@ -177,7 +240,80 @@ namespace DeStream.DeStreamD.ForTest
             };
 
             //Generate a spendable transaction
-            (ConcurrentChain chain, uint256 blockhash, Block block) chainInfo = CreateChainAndCreateFirstBlockWithPaymentToAddress(walletManager, wallet.Network, spendingAddress);
+            (ConcurrentChain chain, uint256 blockhash, Block block) chainInfo = CreateChainAndCreateFirstBlockWithPaymentToAddress(wallet.Network, spendingAddress, _addr);
+            //(ConcurrentChain chain, uint256 blockhash, Block block) chainInfo = CreateChainAndCreateFirstBlockWithPaymentToAddress(wallet.Network, spendingAddress);
+
+            TransactionData spendingTransaction = CreateTransactionDataFromFirstBlock(chainInfo);
+            spendingAddress.Transactions.Add(spendingTransaction);
+
+            // setup a payment to yourself in a new block.
+            Transaction transaction = SetupValidTransaction(wallet, "password", spendingAddress, destinationKeys.PubKey, changeAddress, new Money(7500), new Money(5000));
+            Block block = AppendTransactionInNewBlockToChain(chainInfo.chain, transaction);
+
+            wallet.AccountsRoot.ElementAt(0).Accounts.Add(new HdAccount
+            {
+                Index = 1,
+                Name = "account1",
+                HdPath = "m/44'/0'/0'",
+                ExtendedPubKey = accountKeys.ExtPubKey,
+                //ExternalAddresses = new List<HdAddress> { spendingAddress, destinationAddress },
+                ExternalAddresses = new List<HdAddress> { spendingAddress },
+                //InternalAddresses = new List<HdAddress> { changeAddress }
+                InternalAddresses = new List<HdAddress> { destinationAddress }
+            });
+
+            var walletFeePolicy = new Mock<IWalletFeePolicy>();
+            walletFeePolicy.Setup(w => w.GetMinimumFee(258, 50))
+                .Returns(new Money(5000));
+            HdAddress spentAddressResult0 = wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(0);
+            ChainedHeader chainedBlock = chainInfo.chain.GetBlock(block.GetHash());
+            walletManager.ProcessTransaction(transaction, null, block, false);
+            walletManager.ProcessBlock(block, chainedBlock);
+            return (wallet, block, chainedBlock);
+
+        }
+
+        public static (Wallet wallet, Block block, ChainedHeader chainedHeader) old_CreateFirstTransaction(DeStreamNodeSettings nodeSettings, WalletManager walletManager, WalletSettings walletSettings,
+        IWalletFeePolicy _walletFeePolicy)
+        {
+            Wallet wallet = GenerateBlankWalletWithExtKey("myWallet61", "password").wallet;
+            (ExtKey ExtKey, string ExtPubKey) accountKeys = GenerateAccountKeys(wallet, "password", "m/44'/0'/0'");
+            (PubKey PubKey, BitcoinPubKeyAddress Address) spendingKeys = GenerateAddressKeys(wallet, accountKeys.ExtPubKey, "0/0");
+            (PubKey PubKey, BitcoinPubKeyAddress Address) destinationKeys = GenerateAddressKeys(wallet, accountKeys.ExtPubKey, "0/1");
+            (PubKey PubKey, BitcoinPubKeyAddress Address) changeKeys = GenerateAddressKeys(wallet, accountKeys.ExtPubKey, "1/0");
+
+            var spendingAddress = new HdAddress
+            {
+                Index = 0,
+                HdPath = $"m/44'/0'/0'/0/0",
+                Address = spendingKeys.Address.ToString(),
+                Pubkey = spendingKeys.PubKey.ScriptPubKey,
+                ScriptPubKey = spendingKeys.Address.ScriptPubKey,
+                Transactions = new List<TransactionData>()
+            };
+
+            var destinationAddress = new HdAddress
+            {
+                Index = 1,
+                HdPath = $"m/44'/0'/0'/0/1",
+                Address = destinationKeys.Address.ToString(),
+                Pubkey = destinationKeys.PubKey.ScriptPubKey,
+                ScriptPubKey = destinationKeys.Address.ScriptPubKey,
+                Transactions = new List<TransactionData>()
+            };
+
+            var changeAddress = new HdAddress
+            {
+                Index = 0,
+                HdPath = $"m/44'/0'/0'/1/0",
+                Address = changeKeys.Address.ToString(),
+                Pubkey = changeKeys.PubKey.ScriptPubKey,
+                ScriptPubKey = changeKeys.Address.ScriptPubKey,
+                Transactions = new List<TransactionData>()
+            };
+
+            //Generate a spendable transaction
+            (ConcurrentChain chain, uint256 blockhash, Block block) chainInfo = CreateChainAndCreateFirstBlockWithPaymentToAddress(wallet.Network, spendingAddress, "");
 
             TransactionData spendingTransaction = CreateTransactionDataFromFirstBlock(chainInfo);
             spendingAddress.Transactions.Add(spendingTransaction);
@@ -225,16 +361,15 @@ namespace DeStream.DeStreamD.ForTest
 
         public static Money Get6Billion()
         {
-            return new Money(6000000000);
+            return new Money(6100000000);
         }
 
         public static Block CreateTestBlock(FullNode fullNode, Key key)
         {
             //FullNode fullNode = (this.runner as StratisBitcoinPowRunner).FullNode;
-            
+
             BitcoinSecret dest = new BitcoinSecret(key, fullNode.Network);
             var blocks = new List<Block>();
-
 
             List<Transaction> passedTransactions = null;
             uint nonce = 0;
@@ -263,16 +398,16 @@ namespace DeStream.DeStreamD.ForTest
 
             ChainedHeader test0 = (ChainedHeader)fullNode.Chain.GetMemberValue("Genesis");
             ChainedHeader test1 = (ChainedHeader)fullNode.Chain.GetMemberValue("Tip");
-            
-            
+
+
             ChainedHeader oldTip = fullNode.Chain.SetTip(newChain);
 
             test0 = (ChainedHeader)fullNode.Chain.GetMemberValue("Genesis");
             test1 = (ChainedHeader)fullNode.Chain.GetMemberValue("Tip");
 
             Dictionary<uint256, ChainedHeader> blocksById = (Dictionary<uint256, ChainedHeader>)fullNode.Chain.GetMemberValue("blocksById");
-            
-            
+
+
             //fullNode.Chain.SetMemberValue("blocksById", (0,fullNode.Chain.Tip));
             //fullNode.Chain.SetMemberValue("Genesis", fullNode.Chain.Tip);
 
@@ -336,7 +471,44 @@ namespace DeStream.DeStreamD.ForTest
             return result;
         }
 
+        public static Block CreateStratisGenesisBlockTest(ConsensusFactory consensusFactory, uint nTime, uint nNonce, uint nBits, int nVersion, Money genesisReward)
+        {
+            string pszTimestamp = "http://www.theonion.com/article/olympics-head-priestess-slits-throat-official-rio--53466";
+            return CreateStratisGenesisBlockTest(consensusFactory, pszTimestamp, nTime, nNonce, nBits, nVersion, genesisReward);
+        }
+
+        public static Block CreateStratisGenesisBlockTest(ConsensusFactory consensusFactory, string pszTimestamp, uint nTime, uint nNonce, uint nBits, int nVersion, Money genesisReward)
+        {
+            Transaction txNew = consensusFactory.CreateTransaction();
+            txNew.Version = 1;
+            txNew.Time = nTime;
+            txNew.AddInput(new TxIn()
+            {
+                ScriptSig = new Script(Op.GetPushOp(0), new Op()
+                {
+                    Code = (OpcodeType)0x1,
+                    PushData = new[] { (byte)42 }
+                }, Op.GetPushOp(Encoders.ASCII.DecodeData(pszTimestamp)))
+            });
+            //txNew.AddOutput(new TxOut()
+            //{
+            //    Value = genesisReward,
+            //});
+            var test = BitcoinAddress.Create("TPPL2wmtxGzP8U6hQsGkRA9yCMsazB33ft");
+            Script destination = BitcoinAddress.Create("TPPL2wmtxGzP8U6hQsGkRA9yCMsazB33ft", Network.DeStreamTest).ScriptPubKey;
+            txNew.AddOutput(new TxOut(Get6Billion(), destination));
+            Block genesis = consensusFactory.CreateBlock();
+            genesis.Header.BlockTime = Utils.UnixTimeToDateTime(nTime);
+            genesis.Header.Bits = nBits;
+            genesis.Header.Nonce = nNonce;
+            genesis.Header.Version = nVersion;
+            genesis.Transactions.Add(txNew);
+            genesis.Header.HashPrevBlock = uint256.Zero;
+            genesis.UpdateMerkleRoot();
+            return genesis;
+        }
     }
+
 
     public static class ReflectionExtensions
     {

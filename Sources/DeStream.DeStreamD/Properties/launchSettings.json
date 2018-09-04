@@ -2,7 +2,7 @@
   "profiles": {
     "Stratis.StratisD": {
       "commandName": "Project",
-      "commandLineArgs": "-testnet -debug -loglevel=trace -addnode=192.168.31.142:56849"
+      "commandLineArgs": "-testnet -debug -loglevel=trace "
     },
     "Stratis.StratisD Test": {
       "commandName": "Project",

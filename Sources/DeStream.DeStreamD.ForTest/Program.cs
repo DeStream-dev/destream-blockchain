@@ -69,30 +69,35 @@ namespace DeStream.DeStreamD.ForTest
                     .AddRPC()
                     .Build();
 
-                //(Wallet wallet, Block block, ChainedHeader chainedHeader) result = TestClassHelper.CreateFirstTransaction(nodeSettings, node.WalletManager(), node.NodeService<WalletSettings>(),
-                //    node.NodeService<IWalletFeePolicy>());
-                //var walletManager = node.WalletManager();
-                //walletManager.Wallets.Add(result.wallet);
+                //var wallet0 = node.WalletManager().GetWallet("myWallet61");
+                /* version with creating wallet */
+                TestClassHelper.CreateFirstTransaction0("TPPL2wmtxGzP8U6hQsGkRA9yCMsazB33ft", Network.DeStreamTest);
+                //TNXoZ9paETt1ZiHunwbTrXmBXzeQZGMuyC
+                TestClassHelper.CreateFirstTransaction0("TNXoZ9paETt1ZiHunwbTrXmBXzeQZGMuyC", Network.DeStreamTest);
+                (Wallet wallet, Block block, ChainedHeader chainedHeader) result = TestClassHelper.CreateFirstTransaction("TPPL2wmtxGzP8U6hQsGkRA9yCMsazB33ft", nodeSettings, node.WalletManager(), node.NodeService<WalletSettings>(),
+                    node.NodeService<IWalletFeePolicy>());
+                var walletManager = node.WalletManager();
+                walletManager.Wallets.Add(result.wallet);
+                HdAddress addr = result.wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(0);
+                Key key = result.wallet.GetExtendedPrivateKeyForAddress("password", addr).PrivateKey;
+                TestClassHelper.CreateTestBlock(node, key);
+                walletManager.SaveWallets(); 
 
-                //HdAddress addr = result.wallet.AccountsRoot.ElementAt(0).Accounts.ElementAt(0).ExternalAddresses.ElementAt(0);
-                //Key key = result.wallet.GetExtendedPrivateKeyForAddress("password", addr).PrivateKey;
-                //TestClassHelper.CreateTestBlock(node, key);
 
 
-                //walletManager.SaveWallets();
 
+                
+                
                 //var test = node.WalletManager().GetSpendableTransactionsInWallet("myWallet1").Sum(s => s.Transaction.Amount);
-
-                Process currentProcess = Process.GetCurrentProcess();
-                Console.WriteLine("##############################: " + currentProcess.Id.ToString());
                 int qwe0 = 1;
-                if (node != null)
-                    await node.RunAsync();
-                int qwe = 1;
+                //if (node != null)
+                //    await node.RunAsync();
+                //int qwe = 1;
             }
             catch (Exception ex)
             {
                 Console.WriteLine("There was a problem initializing the node. Details: '{0}'", ex.Message);
+
             }
         }
 
