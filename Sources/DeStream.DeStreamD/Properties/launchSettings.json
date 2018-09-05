@@ -1,8 +1,14 @@
 {
   "profiles": {
-    "Stratis.StratisD": {
+    "DeStream.DeStream": {
+      "commandName": "Project"
+    },
+    "DeStream.DeStreamD Test": {
       "commandName": "Project",
-      "commandLineArgs": "-testnet -debug -loglevel=trace "
+      "commandLineArgs": "-testnet -debug -loglevel=trace"
+    },
+    "Stratis.StratisD": {
+      "commandName": "Project"
     },
     "Stratis.StratisD Test": {
       "commandName": "Project",

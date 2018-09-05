@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using NBitcoin.BouncyCastle.Math;
 using NBitcoin.DataEncoders;
@@ -12,6 +13,8 @@ namespace NBitcoin.Networks
 
         public DeStreamMain()
         {
+            string InitialWalletAddress = "TPPL2wmtxGzP8U6hQsGkRA9yCMsazB33ft";
+            decimal InitialCoins = 6000000000;
 
             var messageStart = new byte[4];
             messageStart[0] = 0x70;
@@ -31,6 +34,7 @@ namespace NBitcoin.Networks
             this.MinRelayTxFee = 10000;
             this.MaxTimeOffsetSeconds = StratisMaxTimeOffsetSeconds;
             this.MaxTipAge = StratisDefaultMaxTipAgeInSeconds;
+            this.CoinTicker = "DST";
 
             this.Consensus.SubsidyHalvingInterval = 210000;
             this.Consensus.MajorityEnforceBlockUpgrade = 750;
@@ -55,11 +59,6 @@ namespace NBitcoin.Networks
             this.Consensus.CoinType = 105;
             this.Consensus.DefaultAssumeValid = new uint256("0x55a8205ae4bbf18f4d238c43f43005bd66e0b1f679b39e2c5c62cf6903693a5e"); // 795970
 
-            this.Genesis = CreateStratisGenesisBlock(this.Consensus.ConsensusFactory, 1470467000, 1831645, 0x1e0fffff, 1, Money.Zero);
-            this.Consensus.HashGenesisBlock = this.Genesis.GetHash();
-            Assert(this.Consensus.HashGenesisBlock == uint256.Parse("0x0000066e91e46e5a264d42c89e1204963b2ee6be230b443e9159020539d972af"));
-            Assert(this.Genesis.Header.HashMerkleRoot == uint256.Parse("0x65a26bc20b0351aebf05829daefa8f7db2f800623439f3c114257c91447f1518"));
-
             this.Checkpoints = new Dictionary<int, CheckpointInfo>
             {
                 { 0, new CheckpointInfo(new uint256("0x0000066e91e46e5a264d42c89e1204963b2ee6be230b443e9159020539d972af"), new uint256("0x0000000000000000000000000000000000000000000000000000000000000000")) },
@@ -81,6 +80,7 @@ namespace NBitcoin.Networks
                 { 576000, new CheckpointInfo(new uint256("0xe705476b940e332098d1d5b475d7977312ff8c08cbc8256ce46a3e2c6d5408b8"), new uint256("0x10e31bb5e245ea19650280cfd3ac1a76259fa0002d02e861d2ab5df290534b56")) },
             };
 
+            this.Base58Prefixes = new byte[12][];
             this.Base58Prefixes[(int)Base58Type.PUBKEY_ADDRESS] = new byte[] { (63) };
             this.Base58Prefixes[(int)Base58Type.SCRIPT_ADDRESS] = new byte[] { (125) };
             this.Base58Prefixes[(int)Base58Type.SECRET_KEY] = new byte[] { (63 + 128) };
@@ -95,32 +95,64 @@ namespace NBitcoin.Networks
             this.Base58Prefixes[(int)Base58Type.COLORED_ADDRESS] = new byte[] { 0x13 };
 
             var encoder = new Bech32Encoder("bc");
+            this.Bech32Encoders = new Bech32Encoder[2];
             this.Bech32Encoders[(int)Bech32Type.WITNESS_PUBKEY_ADDRESS] = encoder;
             this.Bech32Encoders[(int)Bech32Type.WITNESS_SCRIPT_ADDRESS] = encoder;
 
-            this.DNSSeeds.AddRange(new[]
+            this.DNSSeeds = new List<DNSSeedData>
             {
                 new DNSSeedData("node1.destream.io", "node1.destream.io"),
                 new DNSSeedData("node2.destream.io", "node2.destream.io")
+            };
+
+            string[] seedNodes = { "95.128.181.103", "95.128.181.80" };
+            this.SeedNodes = ConvertToNetworkAddresses(seedNodes, this.DefaultPort).ToList();
+
+            // Create the genesis block.
+            this.GenesisTime = 1470467000;
+            this.GenesisNonce = 1831645;
+            this.GenesisBits = 0x1e0fffff;
+            this.GenesisVersion = 1;
+            this.GenesisReward = Money.Coins(InitialCoins);
+            this.GenesisWalletAddress = InitialWalletAddress;
+
+            this.Genesis = CreateDeStreamGenesisBlock(this.Consensus.ConsensusFactory, this.GenesisTime, this.GenesisNonce, this.GenesisBits, this.GenesisVersion, this.GenesisReward, this.GenesisWalletAddress);
+            this.Consensus.HashGenesisBlock = this.Genesis.GetHash();
+
+//            Assert(this.Consensus.HashGenesisBlock == uint256.Parse("c5974b227ccb19ebd97578285a5937bb4bfb6dcdbf473966d8a2f9c714a8dbb0"));
+//            Assert(this.Genesis.Header.HashMerkleRoot == uint256.Parse("9e3fff58fb1ba15a69198e22d99572fa024afb754bfe1d3b8d28b86fd9de62df"));
+        }
+
+        protected Block CreateDeStreamGenesisBlock(ConsensusFactory consensusFactory, uint nTime, uint nNonce, uint nBits, int nVersion, Money InitialCoins, string InitialWalletAddress)
+        {
+            string pszTimestamp = "DESTREAM IS THE FIRST DECENTRALIZED GLOBAL FINANCIAL ECOSYSTEM FOR STREAMERS";
+
+            Transaction txNew = consensusFactory.CreateTransaction();
+            txNew.Version = 1;
+            txNew.Time = nTime;
+            txNew.AddInput(new TxIn()
+            {
+                ScriptSig = new Script(Op.GetPushOp(0), new Op()
+                {
+                    Code = (OpcodeType)0x1,
+                    PushData = new[] { (byte)42 }
+                }, Op.GetPushOp(Encoders.ASCII.DecodeData(pszTimestamp)))
             });
 
-            var seeds = new[] { "95.128.181.103", "95.128.181.80" };
-            // Convert the seeds array into usable address objects.
-            Random rand = new Random();
-            TimeSpan oneWeek = TimeSpan.FromDays(7);
-            foreach (string seed in seeds)
-            {
-                // It'll only connect to one or two seed nodes because once it connects,
-                // it'll get a pile of addresses with newer timestamps.
-                // Seed nodes are given a random 'last seen time' of between one and two weeks ago.
-                NetworkAddress addr = new NetworkAddress
-                {
-                    Time = DateTime.UtcNow - (TimeSpan.FromSeconds(rand.NextDouble() * oneWeek.TotalSeconds)) - oneWeek,
-                    Endpoint = Utils.ParseIpEndpoint(seed, this.DefaultPort)
-                };
+            byte[] prefix = this.Base58Prefixes[(int)Base58Type.PUBKEY_ADDRESS];
+            byte[] destination_publicKey = Encoders.Base58Check.DecodeData(InitialWalletAddress).Skip(prefix.Length).ToArray();
+            Script destination = (new KeyId(new uint160(destination_publicKey))).ScriptPubKey;
 
-                this.SeedNodes.Add(addr);
-            }
+            txNew.AddOutput(new TxOut(InitialCoins, destination));
+            Block genesis = consensusFactory.CreateBlock();
+            genesis.Header.BlockTime = Utils.UnixTimeToDateTime(nTime);
+            genesis.Header.Bits = nBits;
+            genesis.Header.Nonce = nNonce;
+            genesis.Header.Version = nVersion;
+            genesis.Transactions.Add(txNew);
+            genesis.Header.HashPrevBlock = uint256.Zero;
+            genesis.UpdateMerkleRoot();
+            return genesis;
         }
     }
 }
