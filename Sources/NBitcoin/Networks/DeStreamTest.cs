@@ -27,8 +27,8 @@ namespace NBitcoin.Networks
 
             this.Name = "DeStreamTest";
             this.Magic = magic;
-            this.DefaultPort = 26178;
-            this.RPCPort = 26174;
+            this.DefaultPort = 0xDE11; // 56849,
+            this.RPCPort = 0xDE10; // 56848,
             this.CoinTicker = "TDST";
 
             this.Consensus.PowLimit = new Target(new uint256("0000ffff00000000000000000000000000000000000000000000000000000000"));
