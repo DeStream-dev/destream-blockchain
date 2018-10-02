@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
 using Stratis.Bitcoin.Configuration;
@@ -8,8 +7,8 @@ using Stratis.Bitcoin.Utilities;
 
 namespace Stratis.Bitcoin.Features.Wallet
 {
-    /// <inheritdoc />
-    public class DeStreamWalletManager : WalletManager
+    /// <inheritdoc cref="WalletManager" />
+    public class DeStreamWalletManager : WalletManager, IDeStreamWalletManager
     {
         public DeStreamWalletManager(ILoggerFactory loggerFactory, Network network, ConcurrentChain chain,
             NodeSettings settings, WalletSettings walletSettings,
@@ -21,16 +20,6 @@ namespace Stratis.Bitcoin.Features.Wallet
         {
         }
 
-        public ConcurrentChain chain { get; set; }
-
-        /// <inheritdoc />
-        public override void Start()
-        {
-            base.Start();
-
-            this.ProcessGenesisBlock();
-        }
-
         /// <inheritdoc />
         public override Wallet LoadWallet(string password, string name)
         {
@@ -38,29 +27,14 @@ namespace Stratis.Bitcoin.Features.Wallet
 
             this.LoadKeysLookupLock();
 
-            this.ProcessGenesisBlock();
-
             return result;
         }
 
         /// <inheritdoc />
-        public override Wallet RecoverWallet(string password, string name, string mnemonic, DateTime creationTime,
-            string passphrase = null)
-        {
-            Wallet result = base.RecoverWallet(password, name, mnemonic, creationTime, passphrase);
-
-            this.ProcessGenesisBlock();
-
-            return result;
-        }
-
-        /// <summary>
-        /// Processes genesis block
-        /// </summary>
-        private void ProcessGenesisBlock()
+        public void ProcessGenesisBlock()
         {
             foreach (var transactionWithOutput in this.network.GetGenesis().Transactions.SelectMany(p =>
-                p.Outputs.Select(q => new { Transaction = p, Output = q }).Where(q =>
+                p.Outputs.Select(q => new {Transaction = p, Output = q}).Where(q =>
                     this.keysLookup.TryGetValue(q.Output.ScriptPubKey, out HdAddress _))))
             {
                 this.AddTransactionToWallet(transactionWithOutput.Transaction, transactionWithOutput.Output, 0,

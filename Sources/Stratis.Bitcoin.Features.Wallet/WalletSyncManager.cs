@@ -19,7 +19,7 @@ namespace Stratis.Bitcoin.Features.Wallet
         protected readonly CoinType coinType;
 
         /// <summary>Instance logger.</summary>
-        private readonly ILogger logger;
+        protected readonly ILogger logger;
 
         private readonly IBlockStoreCache blockStoreCache;
 
