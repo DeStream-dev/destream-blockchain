@@ -24,7 +24,6 @@ namespace NBitcoin.Networks
                 "TBxudKvSsw1hL7aGf9a34dSdxV4e97dx5y"
             };
             const decimal initialCoins = 6000000000;
-            const int numberOfEmissionTransactions = 6;
 
             var messageStart = new byte[4];
             messageStart[0] = 0x70;
@@ -70,7 +69,7 @@ namespace NBitcoin.Networks
                 .Parse("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").ToBytes(false));
             this.Consensus.ProofOfStakeLimitV2 = new BigInteger(uint256
                 .Parse("000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffff").ToBytes(false));
-            this.Consensus.CoinType = 105;
+            this.Consensus.CoinType = 3564;
             this.Consensus.DefaultAssumeValid =
                 new uint256("0x55a8205ae4bbf18f4d238c43f43005bd66e0b1f679b39e2c5c62cf6903693a5e"); // 795970
             this.Consensus.MaxMoney = long.MaxValue;
@@ -81,9 +80,9 @@ namespace NBitcoin.Networks
             // { 0, new CheckpointInfo(new uint256("0x00000e246d7b73b88c9ab55f2e5e94d9e22d471def3df5ea448f5576b1d156b9"), new uint256("0x0000000000000000000000000000000000000000000000000000000000000000")) },
 
             this.Base58Prefixes = new byte[12][];
-            this.Base58Prefixes[(int) Base58Type.PUBKEY_ADDRESS] = new byte[] {63};
-            this.Base58Prefixes[(int) Base58Type.SCRIPT_ADDRESS] = new byte[] {125};
-            this.Base58Prefixes[(int) Base58Type.SECRET_KEY] = new byte[] {63 + 128};
+            this.Base58Prefixes[(int) Base58Type.PUBKEY_ADDRESS] = new byte[] {30};
+            this.Base58Prefixes[(int) Base58Type.SCRIPT_ADDRESS] = new byte[] {90};
+            this.Base58Prefixes[(int) Base58Type.SECRET_KEY] = new byte[] {30 + 90};
             this.Base58Prefixes[(int) Base58Type.ENCRYPTED_SECRET_KEY_NO_EC] = new byte[] {0x01, 0x42};
             this.Base58Prefixes[(int) Base58Type.ENCRYPTED_SECRET_KEY_EC] = new byte[] {0x01, 0x43};
             this.Base58Prefixes[(int) Base58Type.EXT_PUBLIC_KEY] = new byte[] {0x04, 0x88, 0xB2, 0x1E};

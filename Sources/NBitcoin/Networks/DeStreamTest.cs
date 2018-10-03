@@ -24,7 +24,6 @@ namespace NBitcoin.Networks
                 "TBxudKvSsw1hL7aGf9a34dSdxV4e97dx5y"
             };
             const decimal initialCoins = 6000000000;
-            const int numberOfEmissionTransactions = 6;
 
             // The message start string is designed to be unlikely to occur in normal data.
             // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
@@ -58,10 +57,11 @@ namespace NBitcoin.Networks
             this.Consensus.ProofOfWorkReward = Money.Zero;
             this.Consensus.ProofOfStakeReward = Money.COIN;
             this.Consensus.LastPOWBlock = 12500;
+            this.Consensus.CoinType = 3564;
 
-            this.Base58Prefixes[(int) Base58Type.PUBKEY_ADDRESS] = new byte[] {65};
-            this.Base58Prefixes[(int) Base58Type.SCRIPT_ADDRESS] = new byte[] {196};
-            this.Base58Prefixes[(int) Base58Type.SECRET_KEY] = new byte[] {65 + 128};
+            this.Base58Prefixes[(int) Base58Type.PUBKEY_ADDRESS] = new byte[] {30};
+            this.Base58Prefixes[(int) Base58Type.SCRIPT_ADDRESS] = new byte[] {90};
+            this.Base58Prefixes[(int) Base58Type.SECRET_KEY] = new byte[] {30 + 90};
 
             this.Checkpoints = new Dictionary<int, CheckpointInfo>();
             // TODO: Add genesis and premine block to Checkpoints
