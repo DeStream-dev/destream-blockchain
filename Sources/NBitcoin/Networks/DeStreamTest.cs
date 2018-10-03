@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Net;
 using NBitcoin.Protocol;
 
@@ -9,7 +11,18 @@ namespace NBitcoin.Networks
     {
         public DeStreamTest() //: base()
         {
-            const string initialWalletAddress = "TAE5v2wDwkrCPTDN51ru4YSZ8KvnFFrUQc";
+            var initialWalletAddresses = new []{
+                "TWyLf11aUSQvorSvG4oc3asMGXbqkf8MEa",
+                "TSX8RGmEod8K4a2SvPPWZtmJ5KtrBzzXSw",
+                "TTp1D1NrV1uwbuL2YvWm46M3xY8nYQLRHr",
+                "TBgvA3dKhGMGeWXpzCG9UUviXLFjZjsQ2S",
+                "TV37E8whdDUEzVFSsWRHHcj7bWbeDTv9gw",
+                "TWyiGrPmuKvcMj9s9SGR4BWzMxhZQXJxZk",
+                "TNL98Epf3ASKFod2QuincwNi2CxHLkkjMD",
+                "TG3N5ARtJaajqdNHgC9pxnW5kL9CeWkcDa",
+                "TA9GwihBb9KcW3evjxdVkUh1XdQ5wbEcif",
+                "TBxudKvSsw1hL7aGf9a34dSdxV4e97dx5y"
+            };
             const decimal initialCoins = 6000000000;
             const int numberOfEmissionTransactions = 6;
 
@@ -43,6 +56,8 @@ namespace NBitcoin.Networks
             this.Consensus.CoinbaseMaturity = 10;
             this.Consensus.MaxMoney = long.MaxValue;
             this.Consensus.ProofOfWorkReward = Money.Zero;
+            this.Consensus.ProofOfStakeReward = Money.COIN;
+            this.Consensus.LastPOWBlock = 12500;
 
             this.Base58Prefixes[(int) Base58Type.PUBKEY_ADDRESS] = new byte[] {65};
             this.Base58Prefixes[(int) Base58Type.SCRIPT_ADDRESS] = new byte[] {196};
@@ -70,11 +85,11 @@ namespace NBitcoin.Networks
             this.GenesisBits = 0x1e0fffff;
             this.GenesisVersion = 1;
             this.GenesisReward = Money.Coins(initialCoins);
-            this.GenesisWalletAddress = initialWalletAddress;
+            this.GenesisWalletAddress = initialWalletAddresses.First();
 
             this.Genesis = this.CreateDeStreamGenesisBlock(this.Consensus.ConsensusFactory, this.GenesisTime,
                 this.GenesisNonce, this.GenesisBits, this.GenesisVersion, this.GenesisReward,
-                this.GenesisWalletAddress, numberOfEmissionTransactions);
+                initialWalletAddresses);
             this.Genesis.Header.Time = (uint) new DateTimeOffset(2018,09,24,16,13,00, TimeSpan.FromHours(3)).ToUnixTimeSeconds();
             this.Genesis.Header.Nonce = 2433759;
             this.Genesis.Header.Bits = this.Consensus.PowLimit;

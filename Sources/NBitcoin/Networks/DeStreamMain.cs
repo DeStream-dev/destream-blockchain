@@ -10,7 +10,19 @@ namespace NBitcoin.Networks
     {
         public DeStreamMain()
         {
-            const string initialWalletAddress = "TPPL2wmtxGzP8U6hQsGkRA9yCMsazB33ft";
+            var initialWalletAddresses = new[]
+            {
+                "TWyLf11aUSQvorSvG4oc3asMGXbqkf8MEa",
+                "TSX8RGmEod8K4a2SvPPWZtmJ5KtrBzzXSw",
+                "TTp1D1NrV1uwbuL2YvWm46M3xY8nYQLRHr",
+                "TBgvA3dKhGMGeWXpzCG9UUviXLFjZjsQ2S",
+                "TV37E8whdDUEzVFSsWRHHcj7bWbeDTv9gw",
+                "TWyiGrPmuKvcMj9s9SGR4BWzMxhZQXJxZk",
+                "TNL98Epf3ASKFod2QuincwNi2CxHLkkjMD",
+                "TG3N5ARtJaajqdNHgC9pxnW5kL9CeWkcDa",
+                "TA9GwihBb9KcW3evjxdVkUh1XdQ5wbEcif",
+                "TBxudKvSsw1hL7aGf9a34dSdxV4e97dx5y"
+            };
             const decimal initialCoins = 6000000000;
             const int numberOfEmissionTransactions = 6;
 
@@ -64,9 +76,9 @@ namespace NBitcoin.Networks
             this.Consensus.MaxMoney = long.MaxValue;
 
             this.Checkpoints = new Dictionary<int, CheckpointInfo>();
-                        // TODO: Add genesis and premine block to Checkpoints
-                        // First parameter - block height
-                        // { 0, new CheckpointInfo(new uint256("0x00000e246d7b73b88c9ab55f2e5e94d9e22d471def3df5ea448f5576b1d156b9"), new uint256("0x0000000000000000000000000000000000000000000000000000000000000000")) },
+            // TODO: Add genesis and premine block to Checkpoints
+            // First parameter - block height
+            // { 0, new CheckpointInfo(new uint256("0x00000e246d7b73b88c9ab55f2e5e94d9e22d471def3df5ea448f5576b1d156b9"), new uint256("0x0000000000000000000000000000000000000000000000000000000000000000")) },
 
             this.Base58Prefixes = new byte[12][];
             this.Base58Prefixes[(int) Base58Type.PUBKEY_ADDRESS] = new byte[] {63};
@@ -103,11 +115,11 @@ namespace NBitcoin.Networks
             this.GenesisBits = 0x1e0fffff;
             this.GenesisVersion = 1;
             this.GenesisReward = Money.Coins(initialCoins);
-            this.GenesisWalletAddress = initialWalletAddress;
+            this.GenesisWalletAddress = initialWalletAddresses.First();
 
             this.Genesis = this.CreateDeStreamGenesisBlock(this.Consensus.ConsensusFactory, this.GenesisTime,
                 this.GenesisNonce, this.GenesisBits, this.GenesisVersion, this.GenesisReward,
-                this.GenesisWalletAddress, numberOfEmissionTransactions);
+                initialWalletAddresses);
             this.Consensus.HashGenesisBlock = this.Genesis.GetHash();
 
 //            Assert(this.Consensus.HashGenesisBlock == uint256.Parse("c5974b227ccb19ebd97578285a5937bb4bfb6dcdbf473966d8a2f9c714a8dbb0"));
@@ -115,8 +127,7 @@ namespace NBitcoin.Networks
         }
 
         protected Block CreateDeStreamGenesisBlock(ConsensusFactory consensusFactory, uint nTime, uint nNonce,
-            uint nBits, int nVersion, Money initialCoins, string initialWalletAddress,
-            uint numberOfEmissionTransactions)
+            uint nBits, int nVersion, Money initialCoins, string[] initialWalletAddresses)
         {
             const string pszTimestamp = "DESTREAM IS THE FIRST DECENTRALIZED GLOBAL FINANCIAL ECOSYSTEM FOR STREAMERS";
 
@@ -133,15 +144,14 @@ namespace NBitcoin.Networks
             });
 
             byte[] prefix = this.Base58Prefixes[(int) Base58Type.PUBKEY_ADDRESS];
-            byte[] destination_publicKey =
-                Encoders.Base58Check.DecodeData(initialWalletAddress).Skip(prefix.Length).ToArray();
-            Script destination = new KeyId(new uint160(destination_publicKey)).ScriptPubKey;
-
-            txNew.AddOutput(new Money(Money.Zero),  new Script());
-            for (int i = 0; i < numberOfEmissionTransactions; i++)
+            foreach (string initialWalletAddress in initialWalletAddresses)
             {
-                txNew.AddOutput(new TxOut(initialCoins / numberOfEmissionTransactions, destination));   
+                byte[] destinationPublicKey =
+                    Encoders.Base58Check.DecodeData(initialWalletAddress).Skip(prefix.Length).ToArray();
+                Script destination = new KeyId(new uint160(destinationPublicKey)).ScriptPubKey;
+                txNew.AddOutput(new TxOut(initialCoins / initialWalletAddresses.Length, destination));
             }
+
             Block genesis = consensusFactory.CreateBlock();
             genesis.Header.BlockTime = Utils.UnixTimeToDateTime(nTime);
             genesis.Header.Bits = nBits;
