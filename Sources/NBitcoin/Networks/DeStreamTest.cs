@@ -12,16 +12,16 @@ namespace NBitcoin.Networks
         public DeStreamTest() //: base()
         {
             var initialWalletAddresses = new []{
-                "TWyLf11aUSQvorSvG4oc3asMGXbqkf8MEa",
-                "TSX8RGmEod8K4a2SvPPWZtmJ5KtrBzzXSw",
-                "TTp1D1NrV1uwbuL2YvWm46M3xY8nYQLRHr",
-                "TBgvA3dKhGMGeWXpzCG9UUviXLFjZjsQ2S",
-                "TV37E8whdDUEzVFSsWRHHcj7bWbeDTv9gw",
-                "TWyiGrPmuKvcMj9s9SGR4BWzMxhZQXJxZk",
-                "TNL98Epf3ASKFod2QuincwNi2CxHLkkjMD",
-                "TG3N5ARtJaajqdNHgC9pxnW5kL9CeWkcDa",
-                "TA9GwihBb9KcW3evjxdVkUh1XdQ5wbEcif",
-                "TBxudKvSsw1hL7aGf9a34dSdxV4e97dx5y"
+                "DC6UcLUzq645UeqCkdk4iJk9tvMVDQ2Ytd",
+                "D9CKCEtU5cJ5BReBwf4YnWpSqcC7tr1oXv",
+                "DU3cTLWubkzMRGoCSef1G1Jp1tj8z9TGPD",
+                "D95x2iYdVVUwY5RnPjBmDKiJHToTgHhdor",
+                "DPPnSDe416McZ2CKgmUagnJwXZuZ8b31ZM",
+                "DHdc7gkwZRpKPTZzEf8TBQEthmfxuAJoUM",
+                "DJzLTGxadMGnHqByQtyUW3zsLq5f7mSvJz",
+                "D7UwtqLsCNkKb94tb6TiagUHRgF4UDEXMt",
+                "D7a8q2Ldfmh1vBaGrANPFwyKU7oNKBRtQH",
+                "DDmLwBBEoerPy8nZCAxcoyzwGwBs9zUhFq"
             };
             const decimal initialCoins = 6000000000;
 
@@ -52,12 +52,15 @@ namespace NBitcoin.Networks
             this.Consensus.LastPOWBlock = 12500;
             this.Consensus.DefaultAssumeValid =
                 new uint256("0x98fa6ef0bca5b431f15fd79dc6f879dc45b83ed4b1bbe933a383ef438321958e"); // 372652
-            this.Consensus.CoinbaseMaturity = 10;
+            this.Consensus.CoinbaseMaturity = 1;
             this.Consensus.MaxMoney = long.MaxValue;
             this.Consensus.ProofOfWorkReward = Money.Zero;
-            this.Consensus.ProofOfStakeReward = Money.COIN;
+            this.Consensus.ProofOfStakeReward = Money.Zero;
             this.Consensus.LastPOWBlock = 12500;
             this.Consensus.CoinType = 3564;
+
+            this.DeStreamFeePart = 0.9;
+            this.FeeRate = 0.0077;
 
             this.Base58Prefixes[(int) Base58Type.PUBKEY_ADDRESS] = new byte[] {30};
             this.Base58Prefixes[(int) Base58Type.SCRIPT_ADDRESS] = new byte[] {90};

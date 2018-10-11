@@ -16,7 +16,7 @@ namespace NBitcoin.Policy
             // TODO: replace fee params with whats in Network.
             this.MaxTxFee = new FeeRate(Money.Coins(0.1m));
             this.MinRelayTxFee = new FeeRate(Money.Satoshis(5000)); // TODO: new FeeRate(Money.Satoshis(network.MinRelayTxFee));
-            this.CheckFee = true;
+            this.CheckFee = false;
             this.CheckScriptPubKey = true;
         }
 

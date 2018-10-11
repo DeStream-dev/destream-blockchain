@@ -350,7 +350,7 @@ namespace Stratis.Bitcoin.Features.Wallet
         /// Use the <see cref="FeeRate"/> from the <see cref="walletFeePolicy"/>.
         /// </summary>
         /// <param name="context">The context associated with the current transaction being built.</param>
-        private void AddFee(TransactionBuildContext context)
+        protected virtual void AddFee(TransactionBuildContext context)
         {
             Money fee;
 

@@ -29,7 +29,7 @@ namespace Stratis.Bitcoin.Features.Wallet
                     .FeatureServices(services =>
                     {
                         services.AddSingleton<IWalletSyncManager, DeStreamWalletSyncManager>();
-                        services.AddSingleton<IWalletTransactionHandler, WalletTransactionHandler>();
+                        services.AddSingleton<IWalletTransactionHandler, DeStreamWalletTransactionHandler>();
                         services.AddSingleton<IDeStreamWalletManager, DeStreamWalletManager>();
                         services.AddSingleton<IWalletManager>(p => p.GetService<IDeStreamWalletManager>());
                         services.AddSingleton<IWalletFeePolicy, WalletFeePolicy>();
