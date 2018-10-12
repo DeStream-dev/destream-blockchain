@@ -43,10 +43,11 @@ namespace Stratis.Bitcoin.Features.Miner
             if (context.Result.KernelFoundIndex == CoinstakeWorkerResult.KernelNotFound)
                 return;
 
-            Script key = new KeyId(new uint160(Encoders.Base58Check.DecodeData(this.network.DeStreamWallets.First())
+            Script deStreamAddressKey = new KeyId(new uint160(Encoders.Base58Check
+                .DecodeData(this.network.DeStreamWallets.First())
                 .Skip(this.network.Base58Prefixes[(int) Base58Type.PUBKEY_ADDRESS].Length).ToArray())).ScriptPubKey;
 
-            context.CoinstakeContext.CoinstakeTx.AddOutput(new TxOut(0, key));
+            context.CoinstakeContext.CoinstakeTx.AddOutput(new TxOut(Money.Zero, deStreamAddressKey));
         }
 
         // No way to call base function and change smth after this, replacing whole function is the only way.

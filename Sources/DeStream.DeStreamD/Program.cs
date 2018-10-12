@@ -42,7 +42,7 @@ namespace DeStream.DeStreamD
                     .UseDeStreamPosConsensus()
                     .UseMempool()
                     .UseDeStreamWallet()
-                    .AddPowPosMining()
+                    .AddDeStreamPowPosMining()
                     .UseApi()
                     .AddRPC()
                     .Build();
