@@ -56,7 +56,7 @@ namespace Stratis.Bitcoin.Features.Miner
                         services.AddSingleton<IBlockProvider, BlockProvider>();
                         services.AddSingleton<BlockDefinition, DeStreamPowBlockDefinition>();
                         services.AddSingleton<BlockDefinition, DeStreamPosPowBlockDefinition>();
-                        services.AddSingleton<BlockDefinition, DeStreamPosBlockDefinition>();
+                        services.AddSingleton<BlockDefinition, PosBlockDefinition>();
                         services.AddSingleton<MinerController>();
                         services.AddSingleton<MiningRPCController>();
                         services.AddSingleton<MinerSettings>();

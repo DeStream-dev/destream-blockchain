@@ -178,7 +178,7 @@ namespace Stratis.Bitcoin.Features.Miner
             long coinstakeInputValue = coinstakeInput.TxOut.Value + reward;
 
             // Set output amount.
-            this.SetOutputAmount(coinstakeContext.CoinstakeTx.Outputs, coinstakeInputValue, fees);
+            this.SetOutputAmount(coinstakeContext.CoinstakeTx.Outputs, coinstakeInput.TxOut.Value, fees, reward);
 
             // Sign.
             if (!this.SignTransactionInput(coinstakeInput, coinstakeContext.CoinstakeTx))
@@ -204,20 +204,20 @@ namespace Stratis.Bitcoin.Features.Miner
             return true;
         }
 
-        private void SetOutputAmount(TxOutList outputs, long coinstakeInputValue, long fees)
+        private void SetOutputAmount(TxOutList outputs, long totalOut, long fees, long reward)
         {
             if (outputs.Count == 4)
             {
-                outputs[1].Value = coinstakeInputValue / 2 / Money.CENT * Money.CENT;
-                outputs[2].Value = coinstakeInputValue - outputs[1].Value;
-                outputs[3].Value = (long) (fees * this.network.DeStreamFeePart);
+                outputs[1].Value = (totalOut + reward) / 2 / Money.CENT * Money.CENT;
+                outputs[2].Value = totalOut + reward - outputs[1].Value;
+                outputs[3].Value = fees - reward;
                 this.logger.LogTrace("Coinstake first output value is {0}, second is {1}, third is {3}.",
                     outputs[1].Value, outputs[2].Value, outputs[3].Value);
             }
             else
             {
-                outputs[1].Value = coinstakeInputValue;
-                outputs[2].Value = (long) (fees * this.network.DeStreamFeePart);
+                outputs[1].Value = totalOut + reward;
+                outputs[2].Value = fees - reward;
                 this.logger.LogTrace("Coinstake first output value is {0}, second is {1} .", outputs[1].Value,
                     outputs[2].Value);
             }

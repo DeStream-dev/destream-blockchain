@@ -32,10 +32,10 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         private readonly ILogger mempoolLogger;
 
         /// <summary>Transaction memory pool for managing transactions in the memory pool.</summary>
-        private readonly ITxMempool memPool;
+        protected readonly ITxMempool memPool;
 
         /// <summary>Coin view of the memory pool.</summary>
-        private readonly CoinView coinView;
+        protected readonly CoinView coinView;
 
         private readonly Network network;
 
@@ -208,7 +208,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         }
 
         /// <inheritdoc />
-        public async Task<UnspentOutputs> GetUnspentTransactionAsync(uint256 trxid)
+        public virtual async Task<UnspentOutputs> GetUnspentTransactionAsync(uint256 trxid)
         {
             TxMempoolInfo txInfo = await this.InfoAsync(trxid);
             if (txInfo == null)

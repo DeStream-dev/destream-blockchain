@@ -227,7 +227,7 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
         /// <exception cref="ConsensusErrors.BadTransactionInBelowOut">Thrown if transaction inputs are less then outputs.</exception>
         /// <exception cref="ConsensusErrors.BadTransactionNegativeFee">Thrown if fees sum is negative.</exception>
         /// <exception cref="ConsensusErrors.BadTransactionFeeOutOfRange">Thrown if fees value is out of range.</exception>
-        public void CheckInputs(Transaction transaction, UnspentOutputSet inputs, int spendHeight)
+        public virtual void CheckInputs(Transaction transaction, UnspentOutputSet inputs, int spendHeight)
         {
             this.Logger.LogTrace("({0}:{1})", nameof(spendHeight), spendHeight);
 
@@ -290,7 +290,7 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
         /// <param name="inputs">Map of previous transactions that have outputs we're spending.</param>
         /// <param name="flags">Script verification flags.</param>
         /// <returns>Signature operation cost for all transaction's inputs.</returns>
-        public long GetTransactionSignatureOperationCost(Transaction transaction, UnspentOutputSet inputs, DeploymentFlags flags)
+        public virtual long GetTransactionSignatureOperationCost(Transaction transaction, UnspentOutputSet inputs, DeploymentFlags flags)
         {
             long signatureOperationCost = this.GetLegacySignatureOperationsCount(transaction) * this.PowConsensusOptions.WitnessScaleFactor;
 
@@ -318,7 +318,7 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
         /// <param name="witness">Witness script.</param>
         /// <param name="flags">Script verification flags.</param>
         /// <returns>Signature operation cost for single transaction input.</returns>
-        private long CountWitnessSignatureOperation(Script scriptPubKey, WitScript witness, DeploymentFlags flags)
+        protected long CountWitnessSignatureOperation(Script scriptPubKey, WitScript witness, DeploymentFlags flags)
         {
             witness = witness ?? WitScript.Empty;
             if (!flags.ScriptFlags.HasFlag(ScriptVerify.Witness))
@@ -347,7 +347,7 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
         /// <param name="transaction">Transaction for which we are computing the cost.</param>
         /// <param name="inputs">Map of previous transactions that have outputs we're spending.</param>
         /// <returns>Signature operation cost for transaction.</returns>
-        private uint GetP2SHSignatureOperationsCount(Transaction transaction, UnspentOutputSet inputs)
+        protected virtual uint GetP2SHSignatureOperationsCount(Transaction transaction, UnspentOutputSet inputs)
         {
             if (transaction.IsCoinBase)
                 return 0;
@@ -368,7 +368,7 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
         /// </summary>
         /// <param name="transaction">Transaction for which we are computing the cost.</param>
         /// <returns>Legacy signature operation cost for transaction.</returns>
-        private long GetLegacySignatureOperationsCount(Transaction transaction)
+        protected long GetLegacySignatureOperationsCount(Transaction transaction)
         {
             long sigOps = 0;
             foreach (TxIn txin in transaction.Inputs)
@@ -385,7 +385,7 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
         /// </summary>
         /// <param name="value">The value to be checked.</param>
         /// <returns><c>true</c> if the value is in range. Otherwise <c>false</c>.</returns>
-        private bool MoneyRange(long value)
+        protected bool MoneyRange(long value)
         {
             return ((value >= 0) && (value <= this.Consensus.MaxMoney));
         }

@@ -40,7 +40,7 @@ namespace DeStream.DeStreamD
                     .UseNodeSettings(nodeSettings)
                     .UseBlockStore()
                     .UseDeStreamPosConsensus()
-                    .UseMempool()
+                    .UseDeStreamMempool()
                     .UseDeStreamWallet()
                     .AddDeStreamPowPosMining()
                     .UseApi()
