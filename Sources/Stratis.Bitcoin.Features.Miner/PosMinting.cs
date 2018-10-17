@@ -971,7 +971,7 @@ namespace Stratis.Bitcoin.Features.Miner
         /// <param name="input">Transaction input.</param>
         /// <param name="transaction">Transaction being built.</param>
         /// <returns><c>true</c> if the function succeeds, <c>false</c> otherwise.</returns>
-        protected bool SignTransactionInput(UtxoStakeDescription input, Transaction transaction)
+        protected virtual bool SignTransactionInput(UtxoStakeDescription input, Transaction transaction)
         {
             this.logger.LogTrace("({0}:'{1}')", nameof(input), input.OutPoint);
 

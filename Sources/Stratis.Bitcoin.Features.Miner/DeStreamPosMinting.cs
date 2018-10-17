@@ -237,5 +237,29 @@ namespace Stratis.Bitcoin.Features.Miner
             this.logger.LogTrace("Coinstake UTXO will be split to two.");
             outputs.Insert(2, new TxOut(0, outputs[1].ScriptPubKey));
         }
+
+        protected override bool SignTransactionInput(UtxoStakeDescription input, Transaction transaction)
+        {
+            
+            this.logger.LogTrace("({0}:'{1}')", nameof(input), input.OutPoint);
+
+            bool res = false;
+            try
+            {
+                new DeStreamTransactionBuilder(this.network)
+                    .AddKeys(input.Key)
+                    .AddCoins(new Coin(input.OutPoint, input.TxOut))
+                    .SignTransactionInPlace(transaction);
+
+                res = true;
+            }
+            catch (Exception e)
+            {
+                this.logger.LogDebug("Exception occurred: {0}", e.ToString());
+            }
+
+            this.logger.LogTrace("(-):{0}", res);
+            return res;
+        }
     }
 }

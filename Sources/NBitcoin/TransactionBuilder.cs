@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -318,7 +318,7 @@ namespace NBitcoin
             }
         }
 
-        internal class TransactionBuildingContext
+        public class TransactionBuildingContext
         {
             public TransactionBuildingContext(TransactionBuilder builder)
             {
@@ -460,7 +460,7 @@ namespace NBitcoin
             }
         }
 
-        internal class BuilderGroup
+        public class BuilderGroup
         {
             private TransactionBuilder _Parent;
             public BuilderGroup(TransactionBuilder parent)
@@ -867,7 +867,7 @@ namespace NBitcoin
             return this;
         }
 
-        private Money GetDust()
+        protected Money GetDust()
         {
             return GetDust(new Script(new byte[25]));
         }
@@ -1152,7 +1152,7 @@ namespace NBitcoin
             return c.Amount >= this.FilterUneconomicalCoinsRate.GetFee(vSize);
         }
 
-        private IEnumerable<ICoin> BuildTransaction(
+        protected virtual IEnumerable<ICoin> BuildTransaction(
             TransactionBuildingContext ctx,
             BuilderGroup group,
             IEnumerable<Builder> builders,
