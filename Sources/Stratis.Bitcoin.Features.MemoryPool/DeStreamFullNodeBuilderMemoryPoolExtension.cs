@@ -35,7 +35,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
                         services.AddSingleton<BlockPolicyEstimator>();
                         services.AddSingleton<IMempoolValidator, DeStreamMempoolValidator>();
                         services.AddSingleton<MempoolOrphans>();
-                        services.AddSingleton<DeStreamMempoolManager>();
+                        services.AddSingleton<MempoolManager, DeStreamMempoolManager>();
                         services.AddSingleton<IPooledTransaction, DeStreamMempoolManager>();
                         services.AddSingleton<IPooledGetUnspentTransaction, DeStreamMempoolManager>();
                         services.AddSingleton<MempoolBehavior>();

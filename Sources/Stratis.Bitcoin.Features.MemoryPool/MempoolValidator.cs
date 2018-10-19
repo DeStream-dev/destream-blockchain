@@ -127,7 +127,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         private readonly ConcurrentChain chain;
 
         /// <summary>Coin view of the memory pool.</summary>
-        private readonly CoinView coinView;
+        protected readonly CoinView coinView;
 
         /// <inheritdoc cref="IConsensusRules" />
         private readonly IConsensusRules consensusRules;
