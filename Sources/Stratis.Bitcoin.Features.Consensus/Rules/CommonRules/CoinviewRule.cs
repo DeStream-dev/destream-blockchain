@@ -148,7 +148,7 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
         /// </summary>
         /// <param name="context">Context that contains variety of information regarding blocks validation and execution.</param>
         /// <param name="transaction">Transaction which outputs will be added to the context's <see cref="UnspentOutputSet"/> and which inputs will be removed from it.</param>
-        protected void UpdateUTXOSet(RuleContext context, Transaction transaction)
+        protected virtual void UpdateUTXOSet(RuleContext context, Transaction transaction)
         {
             this.Logger.LogTrace("()");
 

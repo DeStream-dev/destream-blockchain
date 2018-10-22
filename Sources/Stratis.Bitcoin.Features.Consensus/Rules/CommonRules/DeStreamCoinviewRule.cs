@@ -75,9 +75,9 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
                         var txData = new PrecomputedTransactionData(tx);
                         for (int inputIndex = 0; inputIndex < tx.Inputs.Count; inputIndex++)
                         {
-                            if(tx.Inputs[inputIndex].PrevOut.Hash == uint256.Zero)
+                            if (tx.Inputs[inputIndex].PrevOut.Hash == uint256.Zero)
                                 continue;
-                            
+
                             this.Parent.PerformanceCounter.AddProcessedInputs(1);
                             TxIn input = tx.Inputs[inputIndex];
                             int inputIndexCopy = inputIndex;
@@ -87,12 +87,13 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
                                 var checker = new TransactionChecker(tx, inputIndexCopy, txout.Value, txData);
                                 var ctx = new ScriptEvaluationContext(this.Parent.Network);
                                 ctx.ScriptVerify = flags.ScriptFlags;
-                                bool verifyScriptResult = ctx.VerifyScript(input.ScriptSig, txout.ScriptPubKey, checker);
+                                bool verifyScriptResult =
+                                    ctx.VerifyScript(input.ScriptSig, txout.ScriptPubKey, checker);
 
                                 if (verifyScriptResult == false)
-                                {
-                                    this.Logger.LogTrace("Verify script for transaction '{0}' failed, ScriptSig = '{1}', ScriptPubKey = '{2}', script evaluation error = '{3}'", tx.GetHash(), input.ScriptSig, txout.ScriptPubKey, ctx.Error);
-                                }
+                                    this.Logger.LogTrace(
+                                        "Verify script for transaction '{0}' failed, ScriptSig = '{1}', ScriptPubKey = '{2}', script evaluation error = '{3}'",
+                                        tx.GetHash(), input.ScriptSig, txout.ScriptPubKey, ctx.Error);
 
                                 return verifyScriptResult;
                             });
@@ -118,7 +119,9 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
                     ConsensusErrors.BadTransactionScriptError.Throw();
                 }
             }
-            else this.Logger.LogTrace("BIP68, SigOp cost, and block reward validation skipped for block at height {0}.", index.Height);
+            else
+                this.Logger.LogTrace("BIP68, SigOp cost, and block reward validation skipped for block at height {0}.",
+                    index.Height);
 
             this.Logger.LogTrace("(-)");
         }
@@ -172,17 +175,18 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
             this.Logger.LogTrace("(-)");
         }
 
-        public override long GetTransactionSignatureOperationCost(Transaction transaction, UnspentOutputSet inputs, DeploymentFlags flags)
+        public override long GetTransactionSignatureOperationCost(Transaction transaction, UnspentOutputSet inputs,
+            DeploymentFlags flags)
         {
-            long signatureOperationCost = this.GetLegacySignatureOperationsCount(transaction) * this.PowConsensusOptions.WitnessScaleFactor;
+            long signatureOperationCost = this.GetLegacySignatureOperationsCount(transaction) *
+                                          this.PowConsensusOptions.WitnessScaleFactor;
 
             if (transaction.IsCoinBase)
                 return signatureOperationCost;
 
             if (flags.ScriptFlags.HasFlag(ScriptVerify.P2SH))
-            {
-                signatureOperationCost += this.GetP2SHSignatureOperationsCount(transaction, inputs) * this.PowConsensusOptions.WitnessScaleFactor;
-            }
+                signatureOperationCost += this.GetP2SHSignatureOperationsCount(transaction, inputs) *
+                                          this.PowConsensusOptions.WitnessScaleFactor;
 
             signatureOperationCost += (from t in transaction.Inputs.RemoveChangePointer()
                 let prevout = inputs.GetOutputFor(t)
@@ -205,6 +209,32 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
             }
 
             return sigOps;
+        }
+
+        protected override void UpdateUTXOSet(RuleContext context, Transaction transaction)
+        {
+            this.Logger.LogTrace("()");
+
+            ChainedHeader index = context.ValidationContext.ChainedHeader;
+
+            UnspentOutputSet view = (context as UtxoRuleContext).UnspentOutputSet;
+            switch (context)
+            {
+                case DeStreamPowRuleContext deStreamPowRuleContext:
+                    deStreamPowRuleContext.InputScriptPubKeys.AddRange(transaction.Inputs.RemoveChangePointer()
+                        .Select(p => view.GetOutputFor(p).ScriptPubKey));
+                    deStreamPowRuleContext.TotalIn = view.GetValueIn(transaction);
+                    break;
+                case DeStreamPosRuleContext deStreamPosRuleContext:
+                    deStreamPosRuleContext.InputScriptPubKeys.AddRange(transaction.Inputs.RemoveChangePointer()
+                        .Select(p => view.GetOutputFor(p).ScriptPubKey));
+                    deStreamPosRuleContext.TotalIn = view.GetValueIn(transaction);
+                    break;
+            }
+
+            view.Update(transaction, index.Height);
+
+            this.Logger.LogTrace("(-)");
         }
     }
 }

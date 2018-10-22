@@ -50,7 +50,7 @@ namespace Stratis.Bitcoin.Features.Consensus
                         services.AddSingleton<ConsensusController>();
                         services.AddSingleton<ConsensusStats>();
                         services.AddSingleton<ConsensusSettings>();
-                        services.AddSingleton<IConsensusRules, PowConsensusRules>();
+                        services.AddSingleton<IConsensusRules, DeStreamPowConsensusRules>();
                         services
                             .AddSingleton<IRuleRegistration,
                                 DeStreamPowConsensusRulesRegistration>();
@@ -93,7 +93,7 @@ namespace Stratis.Bitcoin.Features.Consensus
                         services.AddSingleton<ConsensusController>();
                         services.AddSingleton<ConsensusStats>();
                         services.AddSingleton<ConsensusSettings>();
-                        services.AddSingleton<IConsensusRules, PosConsensusRules>();
+                        services.AddSingleton<IConsensusRules, DeStreamPosConsensusRules>();
                         services
                             .AddSingleton<IRuleRegistration,
                                 DeStreamPosConsensusRulesRegistration>();
@@ -134,7 +134,9 @@ namespace Stratis.Bitcoin.Features.Consensus
                     // rules that require the store to be loaded (coinview)
                     new DeStreamLoadCoinviewRule(),
                     new TransactionDuplicationActivationRule(), // implements BIP30
-                    new PowCoinviewRule() // implements BIP68, MaxSigOps and BlockReward calculation
+                    new PowCoinviewRule(), // implements BIP68, MaxSigOps and BlockReward calculation
+                    new DeStreamBlockFeeRule()
+                    
                 };
             }
         }
@@ -177,7 +179,8 @@ namespace Stratis.Bitcoin.Features.Consensus
                     // rules that require the store to be loaded (coinview)
                     new DeStreamLoadCoinviewRule(),
                     new TransactionDuplicationActivationRule(), // implements BIP30
-                    new PosCoinviewRule() // implements BIP68, MaxSigOps and BlockReward calculation
+                    new PosCoinviewRule(), // implements BIP68, MaxSigOps and BlockReward calculation
+                    new DeStreamBlockFeeRule()
                 };
             }
         }

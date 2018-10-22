@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
 using Stratis.Bitcoin.Consensus.Rules;
@@ -18,6 +19,17 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
             // The UTXO set is stored in the context.
             this.Logger.LogTrace("Loading UTXO set of the new block.");
             utxoRuleContext.UnspentOutputSet = new DeStreamUnspentOutputSet();
+
+            switch (utxoRuleContext)
+            {
+                case DeStreamPowRuleContext deStreamPowRuleContext:
+                    deStreamPowRuleContext.InputScriptPubKeys = new List<Script>();
+                    break;
+                case DeStreamPosRuleContext deStreamPosRuleContext:
+                    deStreamPosRuleContext.InputScriptPubKeys = new List<Script>();
+                    break;
+            }
+
             using (new StopwatchDisposable(o => this.Parent.PerformanceCounter.AddUTXOFetchingTime(o)))
             {
                 uint256[] ids = this.GetIdsToFetch(context.ValidationContext.Block, context.Flags.EnforceBIP30);
