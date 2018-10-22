@@ -37,9 +37,8 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
         private long GetActualFee(Block block)
         {
             IList<TxOut> outputsToFeeWallet = block.Transactions[BlockStake.IsProofOfStake(block) ? 1 : 0].Outputs
-                .Where(p =>
-                    this.Parent.Network.DeStreamWallets.Any(q =>
-                        q == p.ScriptPubKey.GetDestinationAddress(this.Parent.Network)?.ToString())).ToList();
+                .Where(p => this.Parent.Network.IsDeStreamAddress(p.ScriptPubKey
+                    .GetDestinationAddress(this.Parent.Network)?.ToString())).ToList();
 
             if (outputsToFeeWallet.Count() != 1)
                 throw new Exception();

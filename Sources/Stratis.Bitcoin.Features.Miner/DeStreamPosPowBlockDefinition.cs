@@ -81,7 +81,7 @@ namespace Stratis.Bitcoin.Features.Miner
             base.CreateCoinbase();
 
             Script deStreamAddressKey = new KeyId(new uint160(Encoders.Base58Check
-                .DecodeData(this.Network.DeStreamWallets.First())
+                .DecodeData(this.Network.DeStreamWallet)
                 .Skip(this.Network.Base58Prefixes[(int) Base58Type.PUBKEY_ADDRESS].Length).ToArray())).ScriptPubKey;
             this.coinbase.AddOutput(new TxOut(Money.Zero, deStreamAddressKey));
         }

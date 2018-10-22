@@ -9,13 +9,21 @@ namespace NBitcoin
 {
     public abstract partial class Network
     {
-        // TODO: Implement custom circular collection
-        public readonly IReadOnlyCollection<string> DeStreamWallets = new ReadOnlyCollection<string>(new List<string>()
+        private readonly LinkedList<string> _deStreamWallets = new LinkedList<string>(new []
         {
             "DQAa8Fg1ytS5wiXbn1qToRpe9wYSQhCAWc",
             "DMoFqYQNfsoorMbmTbyErxk43ev9B2EuEe",
-        });
+        }.OrderBy(p => Guid.NewGuid()));
+
+        private LinkedListNode<string> DeStreamWalletsNode => this._deStreamWallets.First;
         
+        public string DeStreamWallet => this.DeStreamWalletsNode.NextOrFirst().Value;
+
+        public bool IsDeStreamAddress(string address)
+        {
+            return this._deStreamWallets.Contains(address);
+        }
+
         /// <summary>
         /// 
         /// </summary>
