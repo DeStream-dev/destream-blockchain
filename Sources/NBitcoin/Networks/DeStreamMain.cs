@@ -9,19 +9,15 @@ namespace NBitcoin
 {
     public abstract partial class Network
     {
-        private readonly LinkedList<string> _deStreamWallets = new LinkedList<string>(new []
-        {
-            "DQAa8Fg1ytS5wiXbn1qToRpe9wYSQhCAWc",
-            "DMoFqYQNfsoorMbmTbyErxk43ev9B2EuEe",
-        }.OrderBy(p => Guid.NewGuid()));
+        protected LinkedList<string> DeStreamWallets;
 
-        private LinkedListNode<string> DeStreamWalletsNode => this._deStreamWallets.First;
+        private LinkedListNode<string> DeStreamWalletsNode => this.DeStreamWallets.First;
         
         public string DeStreamWallet => this.DeStreamWalletsNode.NextOrFirst().Value;
 
         public bool IsDeStreamAddress(string address)
         {
-            return this._deStreamWallets.Contains(address);
+            return this.DeStreamWallets.Contains(address);
         }
 
         /// <summary>
@@ -44,18 +40,24 @@ namespace NBitcoin.Networks
         {
             var initialWalletAddresses = new[]
             {
-                "TWyLf11aUSQvorSvG4oc3asMGXbqkf8MEa",
-                "TSX8RGmEod8K4a2SvPPWZtmJ5KtrBzzXSw",
-                "TTp1D1NrV1uwbuL2YvWm46M3xY8nYQLRHr",
-                "TBgvA3dKhGMGeWXpzCG9UUviXLFjZjsQ2S",
-                "TV37E8whdDUEzVFSsWRHHcj7bWbeDTv9gw",
-                "TWyiGrPmuKvcMj9s9SGR4BWzMxhZQXJxZk",
-                "TNL98Epf3ASKFod2QuincwNi2CxHLkkjMD",
-                "TG3N5ARtJaajqdNHgC9pxnW5kL9CeWkcDa",
-                "TA9GwihBb9KcW3evjxdVkUh1XdQ5wbEcif",
-                "TBxudKvSsw1hL7aGf9a34dSdxV4e97dx5y"
+                "DC6UcLUzq645UeqCkdk4iJk9tvMVDQ2Ytd",
+                "D9CKCEtU5cJ5BReBwf4YnWpSqcC7tr1oXv",
+                "DU3cTLWubkzMRGoCSef1G1Jp1tj8z9TGPD",
+                "D95x2iYdVVUwY5RnPjBmDKiJHToTgHhdor",
+                "DPPnSDe416McZ2CKgmUagnJwXZuZ8b31ZM",
+                "DHdc7gkwZRpKPTZzEf8TBQEthmfxuAJoUM",
+                "DJzLTGxadMGnHqByQtyUW3zsLq5f7mSvJz",
+                "D7UwtqLsCNkKb94tb6TiagUHRgF4UDEXMt",
+                "D7a8q2Ldfmh1vBaGrANPFwyKU7oNKBRtQH",
+                "DDmLwBBEoerPy8nZCAxcoyzwGwBs9zUhFq"
             };
             const decimal initialCoins = 6000000000;
+            
+            this.DeStreamWallets = new LinkedList<string>(new []
+            {
+                "DQAa8Fg1ytS5wiXbn1qToRpe9wYSQhCAWc",
+                "DMoFqYQNfsoorMbmTbyErxk43ev9B2EuEe",
+            }.OrderBy(p => Guid.NewGuid()));
 
             var messageStart = new byte[4];
             messageStart[0] = 0x70;
