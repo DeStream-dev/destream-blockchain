@@ -4,25 +4,41 @@ using Stratis.Bitcoin.Consensus;
 
 namespace Stratis.Bitcoin.Features.Consensus
 {
-    /// <inheritdoc />
-    public class DeStreamPosRuleContext : PosRuleContext
+    public interface IDeStreamRuleContext
     {
-        internal DeStreamPosRuleContext()
+        /// <summary>
+        ///     ScriptPubKeys of inputs spent in transaction
+        /// </summary>
+        List<Script> InputScriptPubKeys { get; set; }
+
+        /// <summary>
+        ///     Sum of inputs spent in transaction
+        /// </summary>
+        Money TotalIn { get; set; }
+    }
+
+    /// <inheritdoc cref="PosRuleContext" />
+    public class DeStreamRuleContext : PosRuleContext, IDeStreamRuleContext
+    {
+        internal DeStreamRuleContext()
         {
         }
 
-        public DeStreamPosRuleContext(ValidationContext validationContext, NBitcoin.Consensus consensus,
+        public DeStreamRuleContext(ValidationContext validationContext, NBitcoin.Consensus consensus,
             ChainedHeader consensusTip) : base(validationContext, consensus, consensusTip)
         {
         }
 
+        /// <inheritdoc />
         public List<Script> InputScriptPubKeys { get; set; }
 
+
+        /// <inheritdoc />
         public Money TotalIn { get; set; }
     }
 
-    /// <inheritdoc />
-    public class DeStreamPowRuleContext : PowRuleContext
+    /// <inheritdoc cref="PowRuleContext" />
+    public class DeStreamPowRuleContext : PowRuleContext, IDeStreamRuleContext
     {
         internal DeStreamPowRuleContext()
         {
@@ -33,8 +49,10 @@ namespace Stratis.Bitcoin.Features.Consensus
         {
         }
 
+        /// <inheritdoc />
         public List<Script> InputScriptPubKeys { get; set; }
 
+        /// <inheritdoc />
         public Money TotalIn { get; set; }
     }
 }

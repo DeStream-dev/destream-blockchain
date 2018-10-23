@@ -40,7 +40,7 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules
 
         public override RuleContext CreateRuleContext(ValidationContext validationContext, ChainedHeader consensusTip)
         {
-            return new DeStreamPosRuleContext(validationContext, this.Network.Consensus, consensusTip);
+            return new DeStreamRuleContext(validationContext, this.Network.Consensus, consensusTip);
         }
     }
 }

@@ -28,7 +28,6 @@ namespace Stratis.Bitcoin.Features.Consensus
         /// <param name="network">The network.</param>
         public virtual int GetStakeMinConfirmations(int height, Network network)
         {
-            return 0;
             if (network.IsTest())
                 return height < CoinstakeMinConfirmationActivationHeightTestnet ? 10 : 20;
 

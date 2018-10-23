@@ -7,6 +7,9 @@ using Stratis.Bitcoin.Utilities;
 
 namespace Stratis.Bitcoin.Features.MemoryPool
 {
+    /// <summary>
+    /// Creates <see cref="DeStreamMempoolCoinView"/>
+    /// </summary>
     public class DeStreamMempoolManager : MempoolManager
     {
         public DeStreamMempoolManager(MempoolSchedulerLock mempoolLock, ITxMempool memPool, IMempoolValidator validator, IDateTimeProvider dateTimeProvider, MempoolSettings mempoolSettings, IMempoolPersistence mempoolPersistence, CoinView coinView, ILoggerFactory loggerFactory, Network network) : base(mempoolLock, memPool, validator, dateTimeProvider, mempoolSettings, mempoolPersistence, coinView, loggerFactory, network)

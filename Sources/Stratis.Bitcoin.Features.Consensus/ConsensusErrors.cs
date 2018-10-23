@@ -5,7 +5,7 @@ namespace Stratis.Bitcoin.Features.Consensus
     /// <summary>
     /// A class that holds consensus errors.
     /// </summary>
-    public static class ConsensusErrors
+    public static partial class ConsensusErrors
     {
         public static readonly ConsensusError InvalidPrevTip = new ConsensusError("invalid-prev-tip", "invalid previous tip");
         public static readonly ConsensusError HighHash = new ConsensusError("high-hash", "proof of work failed");

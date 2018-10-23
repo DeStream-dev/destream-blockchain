@@ -10,6 +10,9 @@ using Stratis.Bitcoin.Utilities;
 
 namespace Stratis.Bitcoin.Features.MemoryPool
 {
+    /// <summary>
+    /// Creates <see cref="DeStreamUnspentOutputSet"/> and ChangePointer input
+    /// </summary>
     public class DeStreamMempoolCoinView : MempoolCoinView
     {
         public DeStreamMempoolCoinView(CoinView inner, ITxMempool memPool, SchedulerLock mempoolLock, IMempoolValidator mempoolValidator) : base(inner, memPool, mempoolLock, mempoolValidator)

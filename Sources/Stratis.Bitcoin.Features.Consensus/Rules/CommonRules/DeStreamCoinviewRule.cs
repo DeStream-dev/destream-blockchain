@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -9,6 +10,9 @@ using Stratis.Bitcoin.Utilities;
 
 namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
 {
+    /// <summary>
+    /// CoinViewRule that prevents verifing ChangePointer input
+    /// </summary>
     public abstract class DeStreamCoinViewRule : CoinViewRule
     {
         public override async Task RunAsync(RuleContext context)
@@ -45,7 +49,7 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
                         // be in ConnectBlock because they require the UTXO set.
                         for (int j = 0; j < tx.Inputs.Count; j++)
                         {
-                            prevheights[j] = tx.Inputs[j].PrevOut.Hash == uint256.Zero
+                            prevheights[j] = tx.Inputs[j].IsChangePointer()
                                 ? 0
                                 : (int) view.AccessCoins(tx.Inputs[j].PrevOut.Hash).Height;
                         }
@@ -75,7 +79,7 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
                         var txData = new PrecomputedTransactionData(tx);
                         for (int inputIndex = 0; inputIndex < tx.Inputs.Count; inputIndex++)
                         {
-                            if (tx.Inputs[inputIndex].PrevOut.Hash == uint256.Zero)
+                            if (tx.Inputs[inputIndex].IsChangePointer())
                                 continue;
 
                             this.Parent.PerformanceCounter.AddProcessedInputs(1);
@@ -126,6 +130,7 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
             this.Logger.LogTrace("(-)");
         }
 
+        /// <inheritdoc />
         public override void CheckInputs(Transaction transaction, UnspentOutputSet inputs, int spendHeight)
         {
             this.Logger.LogTrace("({0}:{1})", nameof(spendHeight), spendHeight);
@@ -175,6 +180,7 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
             this.Logger.LogTrace("(-)");
         }
 
+        /// <inheritdoc />
         public override long GetTransactionSignatureOperationCost(Transaction transaction, UnspentOutputSet inputs,
             DeploymentFlags flags)
         {
@@ -185,8 +191,10 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
                 return signatureOperationCost;
 
             if (flags.ScriptFlags.HasFlag(ScriptVerify.P2SH))
+            {
                 signatureOperationCost += this.GetP2SHSignatureOperationsCount(transaction, inputs) *
                                           this.PowConsensusOptions.WitnessScaleFactor;
+            }
 
             signatureOperationCost += (from t in transaction.Inputs.RemoveChangePointer()
                 let prevout = inputs.GetOutputFor(t)
@@ -195,6 +203,7 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
             return signatureOperationCost;
         }
 
+        /// <inheritdoc />
         protected override uint GetP2SHSignatureOperationsCount(Transaction transaction, UnspentOutputSet inputs)
         {
             if (transaction.IsCoinBase)
@@ -211,8 +220,11 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
             return sigOps;
         }
 
+        ///<inheritdoc />
         protected override void UpdateUTXOSet(RuleContext context, Transaction transaction)
         {
+            // Saves script pub keys and total amount of spent inputs to context
+            
             this.Logger.LogTrace("()");
 
             ChainedHeader index = context.ValidationContext.ChainedHeader;
@@ -225,11 +237,14 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
                         .Select(p => view.GetOutputFor(p).ScriptPubKey));
                     deStreamPowRuleContext.TotalIn = view.GetValueIn(transaction);
                     break;
-                case DeStreamPosRuleContext deStreamPosRuleContext:
+                case DeStreamRuleContext deStreamPosRuleContext:
                     deStreamPosRuleContext.InputScriptPubKeys.AddRange(transaction.Inputs.RemoveChangePointer()
                         .Select(p => view.GetOutputFor(p).ScriptPubKey));
                     deStreamPosRuleContext.TotalIn = view.GetValueIn(transaction);
                     break;
+                default:
+                    throw new NotSupportedException(
+                        $"Rule context must be {nameof(DeStreamPowRuleContext)} or {nameof(DeStreamRuleContext)}");
             }
 
             view.Update(transaction, index.Height);

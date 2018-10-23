@@ -12,6 +12,9 @@ using Stratis.Bitcoin.Utilities;
 
 namespace Stratis.Bitcoin.Features.MemoryPool
 {
+    /// <summary>
+    /// Creates <see cref="DeStreamMempoolCoinView"/> and prevents verifing ChangePointer input
+    /// </summary>
     public class DeStreamMempoolValidator : MempoolValidator
     {
         public DeStreamMempoolValidator(ITxMempool memPool, MempoolSchedulerLock mempoolLock,

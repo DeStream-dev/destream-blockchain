@@ -14,5 +14,10 @@ namespace NBitcoin
         {
             return txInList.Where(p => p.PrevOut.Hash == uint256.Zero).Select(p => p.PrevOut.N);
         }
+
+        public static bool IsChangePointer(this TxIn txInList)
+        {
+            return txInList.PrevOut.Hash == uint256.Zero;
+        }
     }
 }
