@@ -40,7 +40,7 @@ namespace Stratis.Bitcoin.Features.Miner
         {
             base.CoinstakeWorker(context, chainTip, block, minimalAllowedTime, searchInterval);
 
-            if (context.Result.KernelFoundIndex == CoinstakeWorkerResult.KernelNotFound)
+            if (context.Result.KernelFoundIndex != context.Index)
                 return;
 
             Script deStreamAddressKey = new KeyId(new uint160(Encoders.Base58Check
