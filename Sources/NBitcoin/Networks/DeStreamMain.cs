@@ -38,7 +38,6 @@ namespace NBitcoin.Networks
         {
             var initialWalletAddresses = new[]
             {
-                "DEzex6Cq1SMAq3p83p5Qwhjy2dxCTPAVfr",
                 "DEaps8sntaCASk67ywscPkiLwrNQAD4e1b",
                 "DE1iWo2MSsEs2HjL813fSiNdELtFnyw1by",
                 "DEkf7nGEvjw2CyNCoTvzsNxsRn6ZVFGZkS",
