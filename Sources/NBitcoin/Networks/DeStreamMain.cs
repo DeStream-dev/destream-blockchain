@@ -115,6 +115,7 @@ namespace NBitcoin.Networks
             this.Consensus.MaxMoney = long.MaxValue;
             this.Consensus.ProofOfWorkReward = Money.Zero;
             this.Consensus.ProofOfStakeReward = Money.Zero;
+            this.Consensus.CoinbaseMaturity = 10;
 
             this.Checkpoints = new Dictionary<int, CheckpointInfo>();
             // TODO: Add genesis and premine block to Checkpoints
