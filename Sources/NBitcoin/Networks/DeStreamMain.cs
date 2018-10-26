@@ -116,6 +116,9 @@ namespace NBitcoin.Networks
             this.Consensus.ProofOfWorkReward = Money.Zero;
             this.Consensus.ProofOfStakeReward = Money.Zero;
             this.Consensus.CoinbaseMaturity = 10;
+            
+            this.DeStreamFeePart = 0.9;
+            this.FeeRate = 0.0077;
 
             this.Checkpoints = new Dictionary<int, CheckpointInfo>();
             // TODO: Add genesis and premine block to Checkpoints
