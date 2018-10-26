@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using NBitcoin.BouncyCastle.Math;
 using NBitcoin.DataEncoders;
@@ -12,23 +11,22 @@ namespace NBitcoin
         protected LinkedList<string> DeStreamWallets;
 
         private LinkedListNode<string> DeStreamWalletsNode => this.DeStreamWallets.First;
-        
+
         public string DeStreamWallet => this.DeStreamWalletsNode.NextOrFirst().Value;
+
+        /// <summary>
+        /// </summary>
+        public double DeStreamFeePart { get; set; }
+
+        /// <summary>
+        ///     Fee applied to all transactions
+        /// </summary>
+        public double FeeRate { get; set; }
 
         public bool IsDeStreamAddress(string address)
         {
             return this.DeStreamWallets.Contains(address);
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public double DeStreamFeePart { get; set; }
-        
-        /// <summary>
-        /// Fee applied to all transactions
-        /// </summary>
-        public double FeeRate { get; set; }
     }
 }
 
@@ -40,30 +38,39 @@ namespace NBitcoin.Networks
         {
             var initialWalletAddresses = new[]
             {
-                "DC6UcLUzq645UeqCkdk4iJk9tvMVDQ2Ytd",
-                "D9CKCEtU5cJ5BReBwf4YnWpSqcC7tr1oXv",
-                "DU3cTLWubkzMRGoCSef1G1Jp1tj8z9TGPD",
-                "D95x2iYdVVUwY5RnPjBmDKiJHToTgHhdor",
-                "DPPnSDe416McZ2CKgmUagnJwXZuZ8b31ZM",
-                "DHdc7gkwZRpKPTZzEf8TBQEthmfxuAJoUM",
-                "DJzLTGxadMGnHqByQtyUW3zsLq5f7mSvJz",
-                "D7UwtqLsCNkKb94tb6TiagUHRgF4UDEXMt",
-                "D7a8q2Ldfmh1vBaGrANPFwyKU7oNKBRtQH",
-                "DDmLwBBEoerPy8nZCAxcoyzwGwBs9zUhFq"
+                "DEzex6Cq1SMAq3p83p5Qwhjy2dxCTPAVfr",
+                "DEaps8sntaCASk67ywscPkiLwrNQAD4e1b",
+                "DE1iWo2MSsEs2HjL813fSiNdELtFnyw1by",
+                "DEkf7nGEvjw2CyNCoTvzsNxsRn6ZVFGZkS",
+                "DEzX6oHMZVUD1qonkTSZFFjajGozsETwgs",
+                "DEcHCoeTRHKgGBwCzzdNvEegVW7Gp1VDK8",
+                "DEwTvJbTh8qrWtes3VYw14GnNNNV4P312b",
+                "DECAapLcscqNCU2ufDRbCFRMVkZyQLhL3w",
+                "DEBEVqQxXo3cFbk1on35tFjsDE5yHvGzy8",
+                "DEEPLTkkN4rCShkqez6cCdSYB54CU6A74z",
+                "DEK92CU1qa7TtPd6JdRqf2tNzxixZYDtB3"
             };
             const decimal initialCoins = 6000000000;
-            
-            this.DeStreamWallets = new LinkedList<string>(new []
+
+            this.DeStreamWallets = new LinkedList<string>(new[]
             {
-                "DQAa8Fg1ytS5wiXbn1qToRpe9wYSQhCAWc",
-                "DMoFqYQNfsoorMbmTbyErxk43ev9B2EuEe",
+                "DEdt7fEuAYQSbtE7ypsJJD7vC6HtZDeriP",
+                "DErzhYkCcXKKDEWLiWTgSBjmHKKnd2KL15",
+                "DEa4NHRZyU4PZSKLTdcagxJU8KT6ASAguh",
+                "DE5h7hdQbvCuhdfVNQWVN42T3MZEP8NHZm",
+                "DE5HrG9YaoLUHC1hb3jfrZphfcERiHJYjj",
+                "DEzeEUeNt2fDM6Xe3C8crbtiB2ZHtp7SYR",
+                "DET5PmzTvLW8bnm6ugmNWjPvnaWLV5dHnL",
+                "DEfwS3ojmhKtYCNpKyP64GiMTUb6gUBAa9",
+                "DEf6Ewa9y3598FdY7D7xMBGwdVvXTvuAPm",
+                "DEHgpa9iXfamEcQxLSUiQQATiRJPHNz2pb"
             }.OrderBy(p => Guid.NewGuid()));
 
             var messageStart = new byte[4];
-            messageStart[0] = 0x70;
-            messageStart[1] = 0x35;
-            messageStart[2] = 0x22;
-            messageStart[3] = 0x05;
+            messageStart[0] = 0x10;
+            messageStart[1] = 0xFE;
+            messageStart[2] = 0xFE;
+            messageStart[3] = 0x10;
             uint magic = BitConverter.ToUInt32(messageStart, 0);
 
             this.Name = "DeStreamMain";
@@ -107,6 +114,8 @@ namespace NBitcoin.Networks
             this.Consensus.DefaultAssumeValid =
                 new uint256("0x55a8205ae4bbf18f4d238c43f43005bd66e0b1f679b39e2c5c62cf6903693a5e"); // 795970
             this.Consensus.MaxMoney = long.MaxValue;
+            this.Consensus.ProofOfWorkReward = Money.Zero;
+            this.Consensus.ProofOfStakeReward = Money.Zero;
 
             this.Checkpoints = new Dictionary<int, CheckpointInfo>();
             // TODO: Add genesis and premine block to Checkpoints
@@ -135,11 +144,11 @@ namespace NBitcoin.Networks
 
             this.DNSSeeds = new List<DNSSeedData>
             {
-                new DNSSeedData("node1.destream.io", "node1.destream.io"),
-                new DNSSeedData("node2.destream.io", "node2.destream.io")
+                new DNSSeedData("seed1.destream.io", "seed1.destream.io"),
+                new DNSSeedData("seed2.destream.io", "seed2.destream.io")
             };
 
-            string[] seedNodes = {"95.128.181.103", "95.128.181.80"};
+            string[] seedNodes = { };
             this.SeedNodes = this.ConvertToNetworkAddresses(seedNodes, this.DefaultPort).ToList();
 
             // Create the genesis block.

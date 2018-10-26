@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
-using System.Net;
 using NBitcoin.Protocol;
 
 namespace NBitcoin.Networks
@@ -11,7 +9,8 @@ namespace NBitcoin.Networks
     {
         public DeStreamTest() //: base()
         {
-            var initialWalletAddresses = new []{
+            var initialWalletAddresses = new[]
+            {
                 "TrpCjf3qT6QXckyXqF8nT1rCQzD2g8S6ES",
                 "Tqe8mF9go4eie1gukcchHRFKFEfd3X75dc",
                 "TqgsrrXENYgiginKbxvfTbeWRPYtR4NdMM",
@@ -35,7 +34,7 @@ namespace NBitcoin.Networks
             };
             const decimal initialCoins = 6000000000;
 
-            this.DeStreamWallets = new LinkedList<string>(new []
+            this.DeStreamWallets = new LinkedList<string>(new[]
             {
                 "TxLYmDJc9bdYLrcT8v3DhUQFD7vnd7hq5n",
                 "Ti4QCbGneeaYstSzy1Ak5c9QaWo7sHGznc",
@@ -58,15 +57,15 @@ namespace NBitcoin.Networks
                 "ThRCqMSWZmp5VWVzob1pfjqje6SqosP8Uw",
                 "TxMpDfwHb5SZ9fzNMmeLthTd1D4BZ1EGyQ"
             }.OrderBy(p => Guid.NewGuid()));
-            
+
             // The message start string is designed to be unlikely to occur in normal data.
             // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
             // a large 4-byte int at any alignment.
             var messageStart = new byte[4];
-            messageStart[0] = 0x71;
-            messageStart[1] = 0x31;
-            messageStart[2] = 0x21;
-            messageStart[3] = 0x11;
+            messageStart[0] = 0xFD;
+            messageStart[1] = 0xFC;
+            messageStart[2] = 0xFC;
+            messageStart[3] = 0xFD;
             uint magic = BitConverter.ToUInt32(messageStart, 0); // 0x11213171;
 
             this.Name = "DeStreamTest";
@@ -110,11 +109,7 @@ namespace NBitcoin.Networks
                 new DNSSeedData("testnode1.destream.io", "testnode1.destream.io")
             };
 
-            this.SeedNodes = new List<NetworkAddress>
-            {
-                new NetworkAddress(IPAddress.Parse("95.128.181.196"), this.DefaultPort), //peak-srv-12
-                new NetworkAddress(IPAddress.Parse("40.121.9.206"), this.DefaultPort)
-            };
+            this.SeedNodes = new List<NetworkAddress>();
 
             // Create the genesis block.
             this.GenesisTime = 1470467000;
@@ -127,11 +122,12 @@ namespace NBitcoin.Networks
             this.Genesis = this.CreateDeStreamGenesisBlock(this.Consensus.ConsensusFactory, this.GenesisTime,
                 this.GenesisNonce, this.GenesisBits, this.GenesisVersion, this.GenesisReward,
                 initialWalletAddresses);
-            this.Genesis.Header.Time = (uint) new DateTimeOffset(2018,09,24,16,13,00, TimeSpan.FromHours(3)).ToUnixTimeSeconds();
+            this.Genesis.Header.Time =
+                (uint) new DateTimeOffset(2018, 09, 24, 16, 13, 00, TimeSpan.FromHours(3)).ToUnixTimeSeconds();
             this.Genesis.Header.Nonce = 2433759;
             this.Genesis.Header.Bits = this.Consensus.PowLimit;
             this.Consensus.HashGenesisBlock = this.Genesis.GetHash();
-            
+
 //            Assert(this.Consensus.HashGenesisBlock == uint256.Parse("c5974b227ccb19ebd97578285a5937bb4bfb6dcdbf473966d8a2f9c714a8dbb0"));
 //            Assert(this.Genesis.Header.HashMerkleRoot == uint256.Parse("9e3fff58fb1ba15a69198e22d99572fa024afb754bfe1d3b8d28b86fd9de62df"));
         }

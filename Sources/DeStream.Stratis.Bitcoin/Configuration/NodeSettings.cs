@@ -20,7 +20,7 @@ namespace DeStream.Stratis.Bitcoin.Configuration
         /// <summary>
         /// Returns default data root directory name
         /// </summary>
-        protected string DataRootDirName
+        protected override string DataRootDirName
         {
             get { return "DeStreamNode"; }
         }
