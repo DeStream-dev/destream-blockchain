@@ -81,8 +81,8 @@ namespace NBitcoin.Networks
             this.MinTxFee = 10000;
             this.FallbackFee = 60000;
             this.MinRelayTxFee = 10000;
-            this.MaxTimeOffsetSeconds = StratisMaxTimeOffsetSeconds;
-            this.MaxTipAge = StratisDefaultMaxTipAgeInSeconds;
+            this.MaxTimeOffsetSeconds = DeStreamMaxTimeOffsetSeconds;
+            this.MaxTipAge = DeStreamDefaultMaxTipAgeInSeconds;
             this.CoinTicker = "DST";
 
             this.Consensus.SubsidyHalvingInterval = 210000;
