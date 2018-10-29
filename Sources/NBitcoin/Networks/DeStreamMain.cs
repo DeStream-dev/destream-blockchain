@@ -167,8 +167,8 @@ namespace NBitcoin.Networks
                 initialWalletAddresses);
             this.Consensus.HashGenesisBlock = this.Genesis.GetHash();
 
-            Assert(this.Consensus.HashGenesisBlock == uint256.Parse("754bc6b0a3ee1b05d3a5dc309b311ba84b02cbbe9992715198e6a59219afc19f"));
-            Assert(this.Genesis.Header.HashMerkleRoot == uint256.Parse("8663707abae6892f1b44a62746c2b04903b61074f36dd13c21e6792c76ae663a"));
+            Assert(this.Consensus.HashGenesisBlock == uint256.Parse("416beaac36e7d6e08a46a87ec1bea980a9ac527609f81ea5e2c992920c052df5"));
+            Assert(this.Genesis.Header.HashMerkleRoot == uint256.Parse("b99cb1b790a1506ceefc3ee989dfaa747e9393bfe64f40872553f16d541e5742"));
         }
 
         protected Block CreateDeStreamGenesisBlock(ConsensusFactory consensusFactory, uint nTime, uint nNonce,
