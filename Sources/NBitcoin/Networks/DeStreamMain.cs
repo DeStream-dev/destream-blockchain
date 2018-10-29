@@ -155,7 +155,7 @@ namespace NBitcoin.Networks
             this.SeedNodes = this.ConvertToNetworkAddresses(seedNodes, this.DefaultPort).ToList();
 
             // Create the genesis block.
-            this.GenesisTime = 1470467000;
+            this.GenesisTime = (uint) new DateTimeOffset(2018,10,27,0,0,0,new TimeSpan()).ToUnixTimeSeconds();
             this.GenesisNonce = 1831645;
             this.GenesisBits = 0x1e0fffff;
             this.GenesisVersion = 1;
@@ -167,8 +167,8 @@ namespace NBitcoin.Networks
                 initialWalletAddresses);
             this.Consensus.HashGenesisBlock = this.Genesis.GetHash();
 
-//            Assert(this.Consensus.HashGenesisBlock == uint256.Parse("c5974b227ccb19ebd97578285a5937bb4bfb6dcdbf473966d8a2f9c714a8dbb0"));
-//            Assert(this.Genesis.Header.HashMerkleRoot == uint256.Parse("9e3fff58fb1ba15a69198e22d99572fa024afb754bfe1d3b8d28b86fd9de62df"));
+            Assert(this.Consensus.HashGenesisBlock == uint256.Parse("754bc6b0a3ee1b05d3a5dc309b311ba84b02cbbe9992715198e6a59219afc19f"));
+            Assert(this.Genesis.Header.HashMerkleRoot == uint256.Parse("8663707abae6892f1b44a62746c2b04903b61074f36dd13c21e6792c76ae663a"));
         }
 
         protected Block CreateDeStreamGenesisBlock(ConsensusFactory consensusFactory, uint nTime, uint nNonce,
