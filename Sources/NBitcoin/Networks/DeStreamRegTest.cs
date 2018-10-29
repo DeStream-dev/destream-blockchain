@@ -24,8 +24,8 @@ namespace NBitcoin.Networks
             this.Magic = magic;
             this.DefaultPort = 18444;
             this.RPCPort = 18442;
-            this.MaxTimeOffsetSeconds = StratisMaxTimeOffsetSeconds;
-            this.MaxTipAge = StratisDefaultMaxTipAgeInSeconds;
+            this.MaxTimeOffsetSeconds = DeStreamMaxTimeOffsetSeconds;
+            this.MaxTipAge = DeStreamDefaultMaxTipAgeInSeconds;
 
             this.Consensus.SubsidyHalvingInterval = 210000;
             this.Consensus.MajorityEnforceBlockUpgrade = 750;
