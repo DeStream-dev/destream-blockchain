@@ -499,7 +499,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         /// If a conflict is found it is added to the validation context.
         /// </summary>
         /// <param name="context">Current validation context.</param>
-        protected void CheckConflicts(MempoolValidationContext context)
+        protected virtual void CheckConflicts(MempoolValidationContext context)
         {
             context.SetConflicts = new List<uint256>();
             foreach (TxIn txin in context.Transaction.Inputs)

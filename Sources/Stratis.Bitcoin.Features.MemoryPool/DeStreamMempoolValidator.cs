@@ -143,5 +143,48 @@ namespace Stratis.Bitcoin.Features.MemoryPool
 
             return true;
         }
+
+        /// <inheritdoc />
+        protected override void CheckConflicts(MempoolValidationContext context)
+        {
+            context.SetConflicts = new List<uint256>();
+            foreach (TxIn txin in context.Transaction.Inputs.RemoveChangePointer())
+            {
+                TxMempool.NextTxPair itConflicting = this.memPool.MapNextTx.Find(f => f.OutPoint == txin.PrevOut);
+                if (itConflicting == null) continue;
+                
+                Transaction ptxConflicting = itConflicting.Transaction;
+                if (context.SetConflicts.Contains(ptxConflicting.GetHash())) continue;
+                
+                // Allow opt-out of transaction replacement by setting
+                // nSequence >= maxint-1 on all inputs.
+                //
+                // maxint-1 is picked to still allow use of nLockTime by
+                // non-replaceable transactions. All inputs rather than just one
+                // is for the sake of multi-party protocols, where we don't
+                // want a single party to be able to disable replacement.
+                //
+                // The opt-out ignores descendants as anyone relying on
+                // first-seen mempool behavior should be checking all
+                // unconfirmed ancestors anyway; doing otherwise is hopelessly
+                // insecure.
+                bool replacementOptOut = true;
+                if (this.mempoolSettings.EnableReplacement)
+                {
+                    foreach (TxIn txiner in ptxConflicting.Inputs)
+                    {
+                        if (txiner.Sequence >= Sequence.Final - 1) continue;
+                        
+                        replacementOptOut = false;
+                        break;
+                    }
+                }
+
+                if (replacementOptOut)
+                    context.State.Invalid(MempoolErrors.Conflict).Throw();
+
+                context.SetConflicts.Add(ptxConflicting.GetHash());
+            }
+        }
     }
 }
