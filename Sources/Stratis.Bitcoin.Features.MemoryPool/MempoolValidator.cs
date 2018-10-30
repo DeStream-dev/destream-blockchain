@@ -1110,7 +1110,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         /// <param name="tx">Transaction to verify.</param>
         /// <param name="mapInputs">Map of previous transactions that have outputs we're spending.</param>
         /// <returns>Whether all inputs (scriptSigs) use only standard transaction forms.</returns>
-        private bool AreInputsStandard(Transaction tx, MempoolCoinView mapInputs)
+        protected virtual bool AreInputsStandard(Transaction tx, MempoolCoinView mapInputs)
         {
             if (tx.IsCoinBase)
                 return true; // Coinbases don't use vin normally

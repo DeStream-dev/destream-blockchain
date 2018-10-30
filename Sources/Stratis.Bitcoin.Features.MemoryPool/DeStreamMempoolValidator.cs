@@ -2,18 +2,16 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
-using Stratis.Bitcoin.Base.Deployments;
 using Stratis.Bitcoin.Configuration;
 using Stratis.Bitcoin.Consensus.Rules;
 using Stratis.Bitcoin.Features.Consensus.CoinViews;
-using Stratis.Bitcoin.Features.Consensus.Rules.CommonRules;
 using Stratis.Bitcoin.Features.MemoryPool.Interfaces;
 using Stratis.Bitcoin.Utilities;
 
 namespace Stratis.Bitcoin.Features.MemoryPool
 {
     /// <summary>
-    /// Creates <see cref="DeStreamMempoolCoinView"/> and prevents verifing ChangePointer input
+    ///     Creates <see cref="DeStreamMempoolCoinView" /> and prevents verifing ChangePointer input
     /// </summary>
     public class DeStreamMempoolValidator : MempoolValidator
     {
@@ -122,6 +120,28 @@ namespace Stratis.Bitcoin.Features.MemoryPool
             // are the actual inputs available?
             if (!context.View.HaveInputs(context.Transaction))
                 context.State.Invalid(MempoolErrors.BadInputsSpent).Throw();
+        }
+
+        /// <inheritdoc />
+        protected override bool AreInputsStandard(Transaction tx, MempoolCoinView mapInputs)
+        {
+            if (tx.IsCoinBase)
+                return true; // Coinbases don't use vin normally
+
+            foreach (TxIn txin in tx.Inputs.RemoveChangePointer())
+            {
+                TxOut prev = mapInputs.GetOutputFor(txin);
+                ScriptTemplate template = StandardScripts.GetTemplateFromScriptPubKey(prev.ScriptPubKey);
+                if (template == null)
+                    return false;
+
+                if (template.Type != TxOutType.TX_SCRIPTHASH) continue;
+
+                if (prev.ScriptPubKey.GetSigOpCount(true) > 15) //MAX_P2SH_SIGOPS
+                    return false;
+            }
+
+            return true;
         }
     }
 }
