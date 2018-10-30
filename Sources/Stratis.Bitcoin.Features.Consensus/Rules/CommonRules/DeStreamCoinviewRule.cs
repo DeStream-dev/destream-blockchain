@@ -79,13 +79,12 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
                         var txData = new PrecomputedTransactionData(tx);
                         for (int inputIndex = 0; inputIndex < tx.Inputs.Count; inputIndex++)
                         {
-                            if (tx.Inputs[inputIndex].IsChangePointer())
-                                continue;
-
                             this.Parent.PerformanceCounter.AddProcessedInputs(1);
                             TxIn input = tx.Inputs[inputIndex];
                             int inputIndexCopy = inputIndex;
-                            TxOut txout = view.GetOutputFor(input);
+                            TxOut txout = input.IsChangePointer()
+                                ? tx.Outputs[input.PrevOut.N]
+                                : view.GetOutputFor(input);
                             var checkInput = new Task<bool>(() =>
                             {
                                 var checker = new TransactionChecker(tx, inputIndexCopy, txout.Value, txData);
