@@ -2,6 +2,7 @@
 using System.Linq;
 using NBitcoin;
 using Newtonsoft.Json.Linq;
+using Stratis.Bitcoin.Controllers.Models;
 using Stratis.Bitcoin.Features.RPC.Models;
 using Xunit;
 
@@ -23,9 +24,9 @@ namespace Stratis.Bitcoin.Features.RPC.Tests.Models
 
         public TransactionModelsTest()
         {
-            this.txBlock10CoinbaseModelBrief = new TransactionBriefModel(Transaction.Parse(TxBlock10Hex));
-            this.txBlock460373CoinbaseModelVerbose = new TransactionVerboseModel(Transaction.Parse(TxBlock460373CoinbaseHex), Network.Main);
-            this.txTwoInTwoOutModelVerbose = new TransactionVerboseModel(Transaction.Parse(TxTwoInTwoOutHex), Network.Main);
+            this.txBlock10CoinbaseModelBrief = new TransactionBriefModel(Transaction.Parse(TxBlock10Hex, RawFormat.BlockExplorer));
+            this.txBlock460373CoinbaseModelVerbose = new TransactionVerboseModel(Transaction.Parse(TxBlock460373CoinbaseHex, RawFormat.BlockExplorer), Network.Main);
+            this.txTwoInTwoOutModelVerbose = new TransactionVerboseModel(Transaction.Parse(TxTwoInTwoOutHex, RawFormat.BlockExplorer), Network.Main);
         }
 
         public void Dispose()

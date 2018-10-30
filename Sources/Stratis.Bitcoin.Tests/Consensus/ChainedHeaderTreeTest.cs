@@ -2678,7 +2678,7 @@ namespace Stratis.Bitcoin.Tests.Consensus
             Assert.True(connectNewHeadersResult.HaveBlockDataAvailabilityStateOf(BlockDataAvailabilityState.BlockRequired));
             
             // 10 blocks are downloaded.
-            foreach (ChainedHeader chainedHeader in connectNewHeadersResult.ToHashArray())
+            foreach (ChainedHeader chainedHeader in connectNewHeadersResult.ToArray())
             {
                 chainedHeaderTree.BlockDataDownloaded(chainedHeader, extendedChainTip.FindAncestorOrSelf(chainedHeader).Block);
                 chainedHeaderTree.PartialValidationSucceeded(chainedHeader, out bool fullValidationRequired);
@@ -2703,7 +2703,7 @@ namespace Stratis.Bitcoin.Tests.Consensus
             Assert.Equal(connectNewHeadersResult.DownloadFrom.Header, tipOfFork.GetAncestor(heightOfFork + 1).Header);
             Assert.Equal(connectNewHeadersResult.DownloadTo.Header, tipOfFork.Header);
 
-            foreach (ChainedHeader chainedHeader in connectNewHeadersResult.ToHashArray())
+            foreach (ChainedHeader chainedHeader in connectNewHeadersResult.ToArray())
             {
                 chainedHeaderTree.BlockDataDownloaded(chainedHeader, tipOfFork.FindAncestorOrSelf(chainedHeader).Block);
                 chainedHeaderTree.PartialValidationSucceeded(chainedHeader, out bool fullValidationRequired);
