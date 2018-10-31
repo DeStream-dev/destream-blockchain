@@ -116,7 +116,7 @@ namespace NBitcoin.Networks
             this.Consensus.ProofOfWorkReward = Money.Zero;
             this.Consensus.ProofOfStakeReward = Money.Zero;
             this.Consensus.CoinbaseMaturity = 10;
-            
+
             this.DeStreamFeePart = 0.9;
             this.FeeRate = 0.0077;
 
@@ -151,11 +151,11 @@ namespace NBitcoin.Networks
                 new DNSSeedData("seed2.destream.io", "seed2.destream.io")
             };
 
-            string[] seedNodes = { };
+            string[] seedNodes = {"13.68.198.162"};
             this.SeedNodes = this.ConvertToNetworkAddresses(seedNodes, this.DefaultPort).ToList();
 
             // Create the genesis block.
-            this.GenesisTime = (uint) new DateTimeOffset(2018,10,27,0,0,0,new TimeSpan()).ToUnixTimeSeconds();
+            this.GenesisTime = (uint) new DateTimeOffset(2018, 10, 27, 0, 0, 0, new TimeSpan()).ToUnixTimeSeconds();
             this.GenesisNonce = 1831645;
             this.GenesisBits = 0x1e0fffff;
             this.GenesisVersion = 1;
@@ -167,14 +167,18 @@ namespace NBitcoin.Networks
                 initialWalletAddresses);
             this.Consensus.HashGenesisBlock = this.Genesis.GetHash();
 
-            Assert(this.Consensus.HashGenesisBlock == uint256.Parse("416beaac36e7d6e08a46a87ec1bea980a9ac527609f81ea5e2c992920c052df5"));
-            Assert(this.Genesis.Header.HashMerkleRoot == uint256.Parse("b99cb1b790a1506ceefc3ee989dfaa747e9393bfe64f40872553f16d541e5742"));
+            Assert(this.Consensus.HashGenesisBlock ==
+                   uint256.Parse("95dfb30e229e18197a812ece5d8d6c03efc9b9b65a9122a73f17d99613841b1b"));
+            Assert(this.Genesis.Header.HashMerkleRoot ==
+                   uint256.Parse("6598d7cc968eae6d6e66e7ac88707f5e0948b816dc8ba52433d7edc1a1f2c6a3"));
         }
 
         protected Block CreateDeStreamGenesisBlock(ConsensusFactory consensusFactory, uint nTime, uint nNonce,
             uint nBits, int nVersion, Money initialCoins, string[] initialWalletAddresses)
         {
-            const string pszTimestamp = "DESTREAM IS THE FIRST DECENTRALIZED GLOBAL FINANCIAL ECOSYSTEM FOR STREAMERS";
+            const string pszTimestamp =
+                "DESTREAM IS THE FIRST DECENTRALIZED GLOBAL FINANCIAL ECOSYSTEM FOR STREAMERS " +
+                "https://sputniknews.com/science/201810281069300462-ai-cyborg-sophia-gets-robot-visa/";
 
             Transaction txNew = consensusFactory.CreateTransaction();
             txNew.Version = 1;
