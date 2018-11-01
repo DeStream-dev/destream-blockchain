@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin.BouncyCastle.Math;
@@ -10,9 +10,16 @@ namespace NBitcoin
     {
         protected LinkedList<string> DeStreamWallets;
 
-        private LinkedListNode<string> DeStreamWalletsNode => this.DeStreamWallets.First;
+        private LinkedListNode<string> DeStreamWalletsNode { get; set; }
 
-        public string DeStreamWallet => this.DeStreamWalletsNode.NextOrFirst().Value;
+        public string DeStreamWallet
+        {
+            get
+            {
+                this.DeStreamWalletsNode = this.DeStreamWalletsNode.NextOrFirst() ?? this.DeStreamWallets.First;
+                return this.DeStreamWalletsNode.Value;
+            }
+        }
 
         /// <summary>
         /// </summary>
