@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin.BouncyCastle.Math;
@@ -109,7 +109,7 @@ namespace NBitcoin.Networks
             this.Consensus.PowNoRetargeting = false;
             this.Consensus.RuleChangeActivationThreshold = 1916; // 95% of 2016
             this.Consensus.MinerConfirmationWindow = 2016; // nPowTargetTimespan / nPowTargetSpacing
-            this.Consensus.LastPOWBlock = 12500;
+            this.Consensus.LastPOWBlock = 1000;
             this.Consensus.IsProofOfStake = true;
             this.Consensus.ConsensusFactory = new PosConsensusFactory {Consensus = this.Consensus};
             this.Consensus.ProofOfStakeLimit = new BigInteger(uint256

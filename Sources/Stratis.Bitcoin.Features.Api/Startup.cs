@@ -37,7 +37,7 @@ namespace Stratis.Bitcoin.Features.Api
 
                         builder =>
                         {
-                            var allowedDomains = new[] { "http://localhost", "http://localhost:4200" };
+                            var allowedDomains = new[] { "http://localhost", "http://localhost:4200", "http://localhost:6060" };
 
                             builder
                             .WithOrigins(allowedDomains)
