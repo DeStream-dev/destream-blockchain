@@ -35,7 +35,7 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
                         $"Rule context must be {nameof(DeStreamPowRuleContext)} or {nameof(DeStreamRuleContext)}");
             }
 
-            if (Math.Abs(actualFee - expectedFee) > Money.CENT)
+            if (Math.Abs(actualFee - expectedFee) > 1)
                 ConsensusErrors.BadTransactionFeeOutOfRange.Throw();
 
             return Task.CompletedTask;
@@ -70,7 +70,7 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
             double feeInTransaction = transaction.Outputs
                                           .Where(p => !changeScriptPubKeys.Contains(p.ScriptPubKey))
                                           .Sum(p => p.Value) * this.Parent.Network.FeeRate;
-            if (Math.Abs(totalIn.Satoshi - transaction.TotalOut.Satoshi - feeInTransaction) > Money.CENT)
+            if (Math.Abs(totalIn.Satoshi - transaction.TotalOut.Satoshi - feeInTransaction) > 1)
                 ConsensusErrors.BadTransactionFeeOutOfRange.Throw();
 
             return (long) (feeInTransaction * this.Parent.Network.DeStreamFeePart);
