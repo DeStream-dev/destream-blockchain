@@ -260,4 +260,13 @@ namespace Stratis.Bitcoin.Features.Wallet.Models
         [Required]
         public string Password { get; set; }
     }
+    
+    /// <summary>
+    /// Object used to synchronize a wallet
+    /// </summary>
+    public class WalletSyncFromDateRequest : RequestModel
+    {
+        [JsonConverter(typeof(IsoDateTimeConverter))]
+        public DateTime Date { get; set; }
+    }
 }

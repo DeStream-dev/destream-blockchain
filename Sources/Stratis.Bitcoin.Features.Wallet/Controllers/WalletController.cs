@@ -1026,6 +1026,25 @@ namespace Stratis.Bitcoin.Features.Wallet.Controllers
             this.walletSyncManager.SyncFromHeight(block.Height);
             return this.Ok();
         }
+        
+        /// <summary>
+        /// Request the node to sync back from a given date.
+        /// </summary>
+        /// <param name="request">The model containing the date from which to start syncing.</param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("syncfromdate")]
+        public IActionResult SyncFromDate([FromBody] WalletSyncFromDateRequest request)
+        {
+            if (!this.ModelState.IsValid)
+            {
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, "Invalid date format", string.Empty);
+            }
+
+            this.walletSyncManager.SyncFromDate(request.Date);
+
+            return this.Ok();
+        }
 
         /// <summary>
         /// Builds an <see cref="IActionResult"/> containing errors contained in the <see cref="ControllerBase.ModelState"/>.
