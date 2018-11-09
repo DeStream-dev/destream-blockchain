@@ -14,7 +14,7 @@ namespace Stratis.Bitcoin.Features.Consensus
         /// <summary>
         ///     Sum of inputs spent in transaction
         /// </summary>
-        Money TotalIn { get; set; }
+        IDictionary<uint256, Money> TotalIn { get; set; }
     }
 
     /// <inheritdoc cref="PosRuleContext" />
@@ -34,7 +34,7 @@ namespace Stratis.Bitcoin.Features.Consensus
 
 
         /// <inheritdoc />
-        public Money TotalIn { get; set; }
+        public IDictionary<uint256, Money> TotalIn { get; set; } = new Dictionary<uint256, Money>();
     }
 
     /// <inheritdoc cref="PowRuleContext" />
@@ -53,6 +53,6 @@ namespace Stratis.Bitcoin.Features.Consensus
         public List<Script> InputScriptPubKeys { get; set; }
 
         /// <inheritdoc />
-        public Money TotalIn { get; set; }
+        public IDictionary<uint256, Money> TotalIn { get; set; } = new Dictionary<uint256, Money>();
     }
 }

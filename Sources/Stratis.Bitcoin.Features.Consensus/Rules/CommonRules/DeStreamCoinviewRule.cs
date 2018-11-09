@@ -234,12 +234,12 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
                 case DeStreamPowRuleContext deStreamPowRuleContext:
                     deStreamPowRuleContext.InputScriptPubKeys.AddRange(transaction.Inputs.RemoveChangePointer()
                         .Select(p => view.GetOutputFor(p).ScriptPubKey));
-                    deStreamPowRuleContext.TotalIn = view.GetValueIn(transaction);
+                    deStreamPowRuleContext.TotalIn.Add(transaction.GetHash(), view.GetValueIn(transaction));
                     break;
                 case DeStreamRuleContext deStreamPosRuleContext:
                     deStreamPosRuleContext.InputScriptPubKeys.AddRange(transaction.Inputs.RemoveChangePointer()
                         .Select(p => view.GetOutputFor(p).ScriptPubKey));
-                    deStreamPosRuleContext.TotalIn = view.GetValueIn(transaction);
+                    deStreamPosRuleContext.TotalIn.Add(transaction.GetHash(), view.GetValueIn(transaction));
                     break;
                 default:
                     throw new NotSupportedException(

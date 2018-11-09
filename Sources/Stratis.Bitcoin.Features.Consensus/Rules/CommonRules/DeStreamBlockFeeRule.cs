@@ -53,10 +53,10 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
             return outputsToFeeWallet.Single().Value;
         }
 
-        private long GetExpectedFee(Block block, Money totalIn, ICollection<Script> inputScriptPubKeys)
+        private long GetExpectedFee(Block block, IDictionary<uint256, Money> totalIn, ICollection<Script> inputScriptPubKeys)
         {
             return block.Transactions.Where(p => !p.IsCoinBase && !p.IsCoinStake).Sum(p => this.GetFeeInTransaction(p,
-                totalIn, p.Outputs
+                totalIn[p.GetHash()], p.Outputs
                     .Select(q => q.ScriptPubKey).Intersect(inputScriptPubKeys)
                     .Concat(p.Inputs.GetChangePointers()
                         .Select(q => p.Outputs[q].ScriptPubKey))
