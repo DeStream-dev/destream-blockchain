@@ -74,5 +74,7 @@ namespace Stratis.Bitcoin.Features.Consensus
         public static readonly ConsensusError ProofOfWorkTooHigh = new ConsensusError("proof-of-work-too-heigh", "proof of work too heigh");
 
         public static readonly ConsensusError CheckpointViolation = new ConsensusError("checkpoint-violation", "block header hash does not match the checkpointed value");
+        
+        public static readonly ConsensusError BadBlockTotalFundsChanged = new ConsensusError("bad-block-total-funds-changed", "total amount of funds in blockchain changed");
     }
 }

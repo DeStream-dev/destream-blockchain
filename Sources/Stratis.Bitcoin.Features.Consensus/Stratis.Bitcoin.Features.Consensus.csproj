@@ -13,7 +13,7 @@
     <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-      <Version>1.1.12-beta</Version>
+    <Version>1.1.12-beta</Version>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
   </PropertyGroup>
   <ItemGroup>
@@ -36,7 +36,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <NoWarn>1701;1702;1705;IDE0008;</NoWarn>
-      <DocumentationFile>
-      </DocumentationFile>
+    <DocumentationFile>
+    </DocumentationFile>
   </PropertyGroup>
 </Project>
