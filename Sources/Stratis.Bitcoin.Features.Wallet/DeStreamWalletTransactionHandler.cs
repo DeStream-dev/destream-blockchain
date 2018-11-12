@@ -22,7 +22,7 @@ namespace Stratis.Bitcoin.Features.Wallet
         /// <inheritdoc />
         protected override void AddFee(TransactionBuildContext context)
         {
-            long fee = (long) (context.Recipients.Sum(p => p.Amount) * this.Network.FeeRate);
+            long fee = Convert.ToInt64(context.Recipients.Sum(p => p.Amount) * this.Network.FeeRate);
             context.TransactionFee = fee;
             context.TransactionBuilder.SendFees(fee);
         }

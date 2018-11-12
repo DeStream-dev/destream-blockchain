@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
 using NBitcoin.DataEncoders;
@@ -63,9 +64,9 @@ namespace Stratis.Bitcoin.Features.Miner
             // pblocktemplate->CoinbaseCommitment = GenerateCoinbaseCommitment(*pblock, pindexPrev, chainparams.GetConsensus());
 
             var coinviewRule = this.ConsensusLoop.ConsensusRules.GetRule<CoinViewRule>();
-            this.coinbase.Outputs[0].Value = (long) (this.fees.Satoshi * (1 - this.Network.DeStreamFeePart)) +
-                                             coinviewRule.GetProofOfWorkReward(this.height);
-            this.coinbase.Outputs[1].Value = (long) (this.fees.Satoshi * this.Network.DeStreamFeePart);
+            this.Network.SplitFee(this.fees.Satoshi, out long deStreamFee, out long minerReward);
+            this.coinbase.Outputs[0].Value =  minerReward;
+            this.coinbase.Outputs[1].Value = deStreamFee;
             this.BlockTemplate.TotalFee = this.fees;
 
             int nSerializeSize = this.block.GetSerializedSize();

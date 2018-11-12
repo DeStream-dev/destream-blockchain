@@ -30,6 +30,18 @@ namespace NBitcoin
         /// </summary>
         public double FeeRate { get; set; }
 
+        /// <summary>
+        /// Splits fee between miner and DeStream
+        /// </summary>
+        /// <param name="fee">Total amount of fees to be split</param>
+        /// <param name="deStreamFee">DeStream fee part</param>
+        /// <param name="minerReward">Miner fee part</param>
+        public void SplitFee(long fee, out long deStreamFee, out long minerReward)
+        {
+            deStreamFee = Convert.ToInt64(fee * this.DeStreamFeePart);
+            minerReward = fee - deStreamFee;
+        }
+
         public bool IsDeStreamAddress(string address)
         {
             return this.DeStreamWallets.Contains(address);

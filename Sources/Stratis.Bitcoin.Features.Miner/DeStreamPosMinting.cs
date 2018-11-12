@@ -157,16 +157,6 @@ namespace Stratis.Bitcoin.Features.Miner
 
             this.logger.LogTrace("Worker #{0} found the kernel.", workersResult.KernelFoundIndex);
 
-            // Get reward for newly created block.
-            long reward = this.GetReward(fees, chainTip.Height);
-            if (reward < 0)
-            {
-                // TODO: This can't happen unless we remove reward for mined block.
-                // If this can happen over time then this check could be done much sooner
-                // to avoid a lot of computation.
-                this.logger.LogTrace("(-)[NO_REWARD]:false");
-                return false;
-            }
 
             // Split stake if above threshold.
             this.SplitStake(nonEmptyUtxos, chainTip, coinstakeContext.CoinstakeTx.Outputs);
@@ -174,11 +164,8 @@ namespace Stratis.Bitcoin.Features.Miner
             // Input to coinstake transaction.
             UtxoStakeDescription coinstakeInput = workersResult.KernelCoin;
 
-            // Total amount of input values in coinstake transaction.
-            long coinstakeInputValue = coinstakeInput.TxOut.Value + reward;
-
             // Set output amount.
-            this.SetOutputAmount(coinstakeContext.CoinstakeTx.Outputs, coinstakeInput.TxOut.Value, fees, reward);
+            this.SetOutputAmount(coinstakeContext.CoinstakeTx.Outputs, coinstakeInput.TxOut.Value, fees);
 
             // Sign.
             if (!this.SignTransactionInput(coinstakeInput, coinstakeContext.CoinstakeTx))
@@ -204,30 +191,25 @@ namespace Stratis.Bitcoin.Features.Miner
             return true;
         }
 
-        private void SetOutputAmount(TxOutList outputs, long totalOut, long fees, long reward)
+        private void SetOutputAmount(TxOutList outputs, long totalOut, long fees)
         {
+            this.network.SplitFee(fees, out long deStreamFee, out long minerReward);
+            
             if (outputs.Count == 4)
             {
-                outputs[1].Value = (totalOut + reward) / 2 / Money.CENT * Money.CENT;
-                outputs[2].Value = totalOut + reward - outputs[1].Value;
-                outputs[3].Value = fees - reward;
+                outputs[1].Value = (totalOut + minerReward) / 2 / Money.CENT * Money.CENT;
+                outputs[2].Value = totalOut + minerReward - outputs[1].Value;
+                outputs[3].Value = deStreamFee;
                 this.logger.LogTrace("Coinstake first output value is {0}, second is {1}, third is {3}.",
                     outputs[1].Value, outputs[2].Value, outputs[3].Value);
             }
             else
             {
-                outputs[1].Value = totalOut + reward;
-                outputs[2].Value = fees - reward;
+                outputs[1].Value = totalOut + minerReward;
+                outputs[2].Value = deStreamFee;
                 this.logger.LogTrace("Coinstake first output value is {0}, second is {1} .", outputs[1].Value,
                     outputs[2].Value);
             }
-        }
-
-        private long GetReward(long fees, int chainTipHeight)
-        {
-            return (long) (fees * (1 - this.network.DeStreamFeePart)) +
-                   this.consensusLoop.ConsensusRules.GetRule<PosCoinviewRule>()
-                       .GetProofOfStakeReward(chainTipHeight + 1);
         }
 
         private void SplitStake(int nonEmptyUtxos, ChainedHeader chainTip, TxOutList outputs)
