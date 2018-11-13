@@ -31,7 +31,7 @@ namespace NBitcoin
         public double FeeRate { get; set; }
 
         /// <summary>
-        /// Splits fee between miner and DeStream
+        ///     Splits fee between miner and DeStream
         /// </summary>
         /// <param name="fee">Total amount of fees to be split</param>
         /// <param name="deStreamFee">DeStream fee part</param>
@@ -134,15 +134,20 @@ namespace NBitcoin.Networks
             this.Consensus.MaxMoney = long.MaxValue;
             this.Consensus.ProofOfWorkReward = Money.Zero;
             this.Consensus.ProofOfStakeReward = Money.Zero;
-            this.Consensus.CoinbaseMaturity = 10;
+            this.Consensus.CoinbaseMaturity = 50;
+            this.Consensus.MaxReorgLength = 500;
 
             this.DeStreamFeePart = 0.9;
             this.FeeRate = 0.0077;
 
-            this.Checkpoints = new Dictionary<int, CheckpointInfo>();
-            // TODO: Add genesis and premine block to Checkpoints
-            // First parameter - block height
-            // { 0, new CheckpointInfo(new uint256("0x00000e246d7b73b88c9ab55f2e5e94d9e22d471def3df5ea448f5576b1d156b9"), new uint256("0x0000000000000000000000000000000000000000000000000000000000000000")) },
+            this.Checkpoints = new Dictionary<int, CheckpointInfo>
+            {
+                {
+                    0, new CheckpointInfo(
+                        new uint256("0x95dfb30e229e18197a812ece5d8d6c03efc9b9b65a9122a73f17d99613841b1b"),
+                        new uint256("0x0000000000000000000000000000000000000000000000000000000000000000"))
+                }
+            };
 
             this.Base58Prefixes = new byte[12][];
             this.Base58Prefixes[(int) Base58Type.PUBKEY_ADDRESS] = new byte[] {30};

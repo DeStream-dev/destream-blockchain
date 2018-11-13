@@ -71,7 +71,7 @@ namespace Stratis.Bitcoin.Features.Consensus
                     .AddFeature<ConsensusFeature>()
                     .FeatureServices(services =>
                     {
-                        fullNodeBuilder.Network.Consensus.Options = new PosConsensusOptions();
+                        fullNodeBuilder.Network.Consensus.Options = new DeStreamPosConsensusOptions();
 
                         services.AddSingleton<ICheckpoints, Checkpoints>();
                         services.AddSingleton<DBreezeCoinView, DeStreamDBreezeCoinView>();
