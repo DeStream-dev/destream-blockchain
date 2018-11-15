@@ -5,6 +5,7 @@ using System.Security;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
+using Stratis.Bitcoin.Features.Consensus;
 using Stratis.Bitcoin.Features.Wallet.Interfaces;
 using Stratis.Bitcoin.Utilities;
 using Stratis.Bitcoin.Utilities.Extensions;
@@ -124,6 +125,91 @@ namespace Stratis.Bitcoin.Features.Wallet
             signingKeys.Add(changeAddressPrivateKey);
 
             context.TransactionBuilder.AddKeys(signingKeys.ToArray());
+        }
+
+        /// <inheritdoc />
+        protected override void AddCoins(TransactionBuildContext context)
+        {
+            // Transaction.IsCoinStake == true - for coinstake transactions
+            // Transaction.IsCoinStake == null - for non-coinstake transactions
+            // Transaction.IsCoinStake == false - not encountered (bug?)
+
+            // Take all non-coinstake transactions
+            context.UnspentOutputs = this.walletManager
+                .GetSpendableTransactionsInAccount(context.AccountReference, context.MinConfirmations)
+                .Where(p => p.Transaction.IsCoinStake != true)
+                .ToList();
+
+            // Add all coinstake transactions with enough confirmations
+            context.UnspentOutputs.AddRange(this.walletManager
+                .GetSpendableTransactionsInAccount(context.AccountReference,
+                    this.Network.Consensus.Option<PosConsensusOptions>()
+                        .GetStakeMinConfirmations(this.walletManager.LastBlockHeight(), this.Network))
+                .Where(p => p.Transaction.IsCoinStake ?? false)
+                .ToList());
+
+            (context.TransactionBuilder.CoinSelector as DeStreamCoinSelector ?? throw new NotSupportedException(
+                 $"{nameof(context.TransactionBuilder.CoinSelector)} must be {typeof(DeStreamCoinSelector)} type"))
+                .StakeScript = context.UnspentOutputs
+                    .FirstOrDefault(p => p.Transaction.IsCoinStake ?? false)
+                    ?.Address.Pubkey;
+
+            if (context.UnspentOutputs.Count == 0) throw new WalletException("No spendable transactions found.");
+
+            // Get total spendable balance in the account.
+            long balance = context.UnspentOutputs.Sum(t => t.Transaction.Amount);
+            long totalToSend = context.Recipients.Sum(s => s.Amount);
+            if (balance < totalToSend)
+                throw new WalletException("Not enough funds.");
+
+            if (context.SelectedInputs.Any())
+            {
+                // 'SelectedInputs' are inputs that must be included in the
+                // current transaction. At this point we check the given
+                // input is part of the UTXO set and filter out UTXOs that are not
+                // in the initial list if 'context.AllowOtherInputs' is false.
+
+                Dictionary<OutPoint, UnspentOutputReference> availableHashList =
+                    context.UnspentOutputs.ToDictionary(item => item.ToOutPoint(), item => item);
+
+                if (!context.SelectedInputs.All(input => availableHashList.ContainsKey(input)))
+                    throw new WalletException("Not all the selected inputs were found on the wallet.");
+
+                if (!context.AllowOtherInputs)
+                {
+                    foreach (KeyValuePair<OutPoint, UnspentOutputReference> unspentOutputsItem in availableHashList)
+                    {
+                        if (!context.SelectedInputs.Contains(unspentOutputsItem.Key))
+                            context.UnspentOutputs.Remove(unspentOutputsItem.Value);
+                    }
+                }
+            }
+
+            Money sum = 0;
+            int index = 0;
+            var coins = new List<Coin>();
+            foreach (UnspentOutputReference item in context.UnspentOutputs.OrderByDescending(a => a.Transaction.Amount))
+            {
+                coins.Add(new Coin(item.Transaction.Id, (uint) item.Transaction.Index, item.Transaction.Amount,
+                    item.Transaction.ScriptPubKey));
+                sum += item.Transaction.Amount;
+                index++;
+
+                // If threshold is reached and the total value is above the target
+                // then its safe to stop adding UTXOs to the coin list.
+                // The primery goal is to reduce the time it takes to build a trx
+                // when the wallet is bloated with UTXOs.
+                if (index > SendCountThresholdLimit && sum > totalToSend)
+                    break;
+            }
+
+            // All the UTXOs are added to the builder without filtering.
+            // The builder then has its own coin selection mechanism
+            // to select the best UTXO set for the corresponding amount.
+            // To add a custom implementation of a coin selection override
+            // the builder using builder.SetCoinSelection().
+
+            context.TransactionBuilder.AddCoins(coins);
         }
 
         /// <inheritdoc />

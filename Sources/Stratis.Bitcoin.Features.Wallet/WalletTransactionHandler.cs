@@ -31,7 +31,7 @@ namespace Stratis.Bitcoin.Features.Wallet
         /// 500 is a safe number that if reached ensures the coin selector will not take too long to complete,
         /// most regular wallets will never reach such a high number of UTXO.
         /// </remarks>
-        private const int SendCountThresholdLimit = 500;
+        protected const int SendCountThresholdLimit = 500;
 
         protected readonly IWalletManager walletManager;
 
@@ -264,7 +264,7 @@ namespace Stratis.Bitcoin.Features.Wallet
         /// Then add them to the <see cref="TransactionBuildContext.UnspentOutputs"/>.
         /// </summary>
         /// <param name="context">The context associated with the current transaction being built.</param>
-        protected void AddCoins(TransactionBuildContext context)
+        protected virtual void AddCoins(TransactionBuildContext context)
         {
             context.UnspentOutputs = this.walletManager.GetSpendableTransactionsInAccount(context.AccountReference, context.MinConfirmations).ToList();
 

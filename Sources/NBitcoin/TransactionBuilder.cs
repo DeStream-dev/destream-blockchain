@@ -34,7 +34,7 @@ namespace NBitcoin
 
         }
 
-        private Random _Rand = new Random();
+        protected Random _Rand = new Random();
         public DefaultCoinSelector(int seed)
         {
             this._Rand = new Random(seed);
@@ -50,7 +50,7 @@ namespace NBitcoin
 
         #region ICoinSelector Members
 
-        public IEnumerable<ICoin> Select(IEnumerable<ICoin> coins, IMoney target)
+        public virtual IEnumerable<ICoin> Select(IEnumerable<ICoin> coins, IMoney target)
         {
             IMoney zero = target.Sub(target);
 

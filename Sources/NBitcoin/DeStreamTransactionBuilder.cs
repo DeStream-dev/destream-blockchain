@@ -9,10 +9,12 @@ namespace NBitcoin
     {
         public DeStreamTransactionBuilder(Network network) : base(network)
         {
+            this.CoinSelector = new DeStreamCoinSelector();
         }
 
         public DeStreamTransactionBuilder(int seed, Network network) : base(seed, network)
         {
+            this.CoinSelector = new DeStreamCoinSelector(seed);
         }
 
         protected override IEnumerable<ICoin> BuildTransaction(TransactionBuildingContext ctx, BuilderGroup group,
