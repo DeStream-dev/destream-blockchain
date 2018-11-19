@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
@@ -185,6 +187,22 @@ namespace Stratis.Bitcoin.Features.MemoryPool
 
                 context.SetConflicts.Add(ptxConflicting.GetHash());
             }
+        }
+        
+        /// <summary>
+        /// Validates the transaction fee is valid.
+        /// </summary>
+        /// <param name="context">Current validation context.</param>
+        protected override void CheckFee(MempoolValidationContext context)
+        {
+            long expectedFee = Convert.ToInt64(context.Transaction.Outputs
+                                                   .Where(p => !context.Transaction.Inputs.RemoveChangePointer()
+                                                       .Select(q => context.View.Set.GetOutputFor(q).ScriptPubKey)
+                                                       .Contains(p.ScriptPubKey))
+                                                   .Sum(p => p.Value) * this.network.FeeRate);
+            
+            if (context.ModifiedFees < expectedFee)
+                context.State.Fail(MempoolErrors.InsufficientFee, $" {context.Fees} < {expectedFee}").Throw();
         }
     }
 }

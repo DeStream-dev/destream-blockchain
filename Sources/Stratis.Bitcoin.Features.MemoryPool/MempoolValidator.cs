@@ -153,7 +153,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         //  public long LastTime;
         //}
 
-        private Network network;
+        protected Network network;
 
         /// <summary>
         /// Constructs a memory pool validator object.
@@ -697,7 +697,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         /// and absurdly high fees.
         /// </summary>
         /// <param name="context">Current validation context.</param>
-        protected void CheckFee(MempoolValidationContext context)
+        protected virtual void CheckFee(MempoolValidationContext context)
         {
             Money mempoolRejectFee = this.memPool.GetMinFee(this.mempoolSettings.MaxMempool * 1000000).GetFee(context.EntrySize);
             if (mempoolRejectFee > 0 && context.ModifiedFees < mempoolRejectFee)
