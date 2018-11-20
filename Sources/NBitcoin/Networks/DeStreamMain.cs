@@ -42,6 +42,16 @@ namespace NBitcoin
             minerReward = fee - deStreamFee;
         }
 
+        /// <summary>
+        /// Subtracts fee from sum of fees and transfer funds
+        /// </summary>
+        /// <param name="value">Sum of fees and transfer funds</param>
+        /// <returns>Transfer funds without fees</returns>
+        public Money SubtractFee(Money value)
+        {
+            return Convert.ToInt64(value.Satoshi / (1.0 + this.FeeRate));
+        }
+
         public bool IsDeStreamAddress(string address)
         {
             return this.DeStreamWallets.Contains(address);

@@ -27,21 +27,21 @@ namespace Stratis.Bitcoin.Features.Wallet.Controllers
     {
         private readonly IWalletManager walletManager;
 
-        private readonly IWalletTransactionHandler walletTransactionHandler;
+        protected readonly IWalletTransactionHandler walletTransactionHandler;
 
         private readonly IWalletSyncManager walletSyncManager;
 
         private readonly CoinType coinType;
 
         /// <summary>Specification of the network the node runs on - regtest/testnet/mainnet.</summary>
-        private readonly Network network;
+        protected readonly Network network;
 
         private readonly IConnectionManager connectionManager;
 
         private readonly ConcurrentChain chain;
 
         /// <summary>Instance logger.</summary>
-        private readonly ILogger logger;
+        protected readonly ILogger logger;
 
         private readonly IBroadcasterManager broadcasterManager;
 
@@ -1050,7 +1050,7 @@ namespace Stratis.Bitcoin.Features.Wallet.Controllers
         /// Builds an <see cref="IActionResult"/> containing errors contained in the <see cref="ControllerBase.ModelState"/>.
         /// </summary>
         /// <returns>A result containing the errors.</returns>
-        private static IActionResult BuildErrorResponse(ModelStateDictionary modelState)
+        protected internal static IActionResult BuildErrorResponse(ModelStateDictionary modelState)
         {
             List<ModelError> errors = modelState.Values.SelectMany(e => e.Errors).ToList();
             return ErrorHelpers.BuildErrorResponse(
