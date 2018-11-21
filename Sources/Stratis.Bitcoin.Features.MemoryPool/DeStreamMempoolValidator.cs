@@ -198,6 +198,8 @@ namespace Stratis.Bitcoin.Features.MemoryPool
             long expectedFee = Convert.ToInt64(context.Transaction.Outputs
                                                    .Where(p => !context.Transaction.Inputs.RemoveChangePointer()
                                                        .Select(q => context.View.Set.GetOutputFor(q).ScriptPubKey)
+                                                       .Concat(context.Transaction.Inputs.GetChangePointers()
+                                                           .Select(q => context.Transaction.Outputs[q].ScriptPubKey))
                                                        .Contains(p.ScriptPubKey))
                                                    .Sum(p => p.Value) * this.network.FeeRate);
             
