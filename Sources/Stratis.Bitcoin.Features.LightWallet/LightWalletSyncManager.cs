@@ -26,7 +26,7 @@ namespace Stratis.Bitcoin.Features.LightWallet
 
         private readonly IBlockNotification blockNotification;
 
-        private readonly ILogger logger;
+        protected readonly ILogger logger;
 
         private readonly ISignals signals;
 
@@ -278,7 +278,7 @@ namespace Stratis.Bitcoin.Features.LightWallet
         }
 
         /// <inheritdoc />
-        public void SyncFromHeight(int height)
+        public virtual void SyncFromHeight(int height)
         {
             this.logger.LogTrace("({0}:'{1}')", nameof(height), height);
 
