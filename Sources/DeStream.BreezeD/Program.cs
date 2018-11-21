@@ -1,17 +1,15 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using DeStream.Stratis.Bitcoin.Configuration;
 using NBitcoin;
 using NBitcoin.Protocol;
 using Stratis.Bitcoin;
 using Stratis.Bitcoin.Builder;
-using Stratis.Bitcoin.Configuration;
 using Stratis.Bitcoin.Features.Api;
 using Stratis.Bitcoin.Features.LightWallet;
 using Stratis.Bitcoin.Features.Notifications;
 using Stratis.Bitcoin.Utilities;
-
-using DeStream.Stratis.Bitcoin.Configuration;
 
 namespace DeStream.BreezeD
 {
@@ -27,26 +25,14 @@ namespace DeStream.BreezeD
             try
             {
                 // Get the API uri.
-                var isTestNet = args.Contains("-testnet");
-                var isDeStream= args.Contains("destream");
+                Network network = args.Contains("-testnet") ? Network.DeStreamTest : Network.DeStreamMain;
 
-                var agent = "Breeze";
-
-                DeStreamNodeSettings nodeSettings;
-
-                if (isDeStream)
-                {
-                    Network network = isTestNet ? Network.DeStreamTest : Network.DeStreamMain;
-                    nodeSettings = new DeStreamNodeSettings(network, ProtocolVersion.ALT_PROTOCOL_VERSION, agent, args:args, loadConfiguration:false);
-                }
-                else
-                {
-                    nodeSettings = new DeStreamNodeSettings(agent: agent, args: args, loadConfiguration:false);
-                }
+                var nodeSettings = new DeStreamNodeSettings(network, ProtocolVersion.ALT_PROTOCOL_VERSION, args: args,
+                    loadConfiguration: false);
 
                 IFullNodeBuilder fullNodeBuilder = new FullNodeBuilder()
                     .UseNodeSettings(nodeSettings)
-                    .UseLightWallet()
+                    .UseDeStreamLightWallet()
                     .UseBlockNotification()
                     .UseTransactionNotification()
                     .UseApi();
