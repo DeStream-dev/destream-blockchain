@@ -58,7 +58,7 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
         /// <param name="block">The block with the transactions.</param>
         /// <param name="enforceBIP30">Whether to enforce look up of the transaction id itself and not only the reference to previous transaction id.</param>
         /// <returns>A list of transaction ids to fetch from store</returns>
-        protected uint256[] GetIdsToFetch(Block block, bool enforceBIP30)
+        protected virtual uint256[] GetIdsToFetch(Block block, bool enforceBIP30)
         {
             this.Logger.LogTrace("({0}:'{1}',{2}:{3})", nameof(block), block.GetHash(), nameof(enforceBIP30), enforceBIP30);
 

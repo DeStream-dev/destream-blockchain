@@ -838,7 +838,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         {
             // Remove transactions which depend on inputs of tx, recursively
             //LOCK(cs);
-            foreach (TxIn txInput in tx.Inputs)
+            foreach (TxIn txInput in tx.Inputs.RemoveChangePointer())
             {
                 NextTxPair it = this.MapNextTx.FirstOrDefault(p => p.OutPoint == txInput.PrevOut);
                 if (it != null)

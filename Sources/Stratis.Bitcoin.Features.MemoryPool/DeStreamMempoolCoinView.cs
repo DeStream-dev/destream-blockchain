@@ -23,7 +23,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         public override async Task LoadViewAsync(Transaction trx)
         {
             // lookup all ids (duplicate ids are ignored in case a trx spends outputs from the same parent).
-            List<uint256> ids = trx.Inputs.Select(n => n.PrevOut.Hash).Distinct().Concat(new[] { trx.GetHash() }).ToList();
+            List<uint256> ids = trx.Inputs.RemoveChangePointer().Select(n => n.PrevOut.Hash).Distinct().Concat(new[] { trx.GetHash() }).ToList();
             FetchCoinsResponse coins = await this.Inner.FetchCoinsAsync(ids.ToArray());
             // find coins currently in the mempool
             List<Transaction> mempoolcoins = await this.mempoolLock.ReadAsync(() =>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
@@ -44,6 +45,33 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
             // Attempt to load into the cache the next set of UTXO to be validated.
             // The task is not awaited so will not stall main validation process.
             this.TryPrefetchAsync(context.Flags);
+        }
+
+        /// <inheritdoc />
+        protected override uint256[] GetIdsToFetch(Block block, bool enforceBIP30)
+        {
+            this.Logger.LogTrace("({0}:'{1}',{2}:{3})", nameof(block), block.GetHash(), nameof(enforceBIP30), enforceBIP30);
+
+            var ids = new HashSet<uint256>();
+            foreach (Transaction tx in block.Transactions)
+            {
+                if (enforceBIP30)
+                {
+                    uint256 txId = tx.GetHash();
+                    ids.Add(txId);
+                }
+
+                if (tx.IsCoinBase) continue;
+                
+                foreach (TxIn input in tx.Inputs.RemoveChangePointer())
+                {
+                    ids.Add(input.PrevOut.Hash);
+                }
+            }
+
+            uint256[] res = ids.ToArray();
+            this.Logger.LogTrace("(-):*.{0}={1}", nameof(res.Length), res.Length);
+            return res;
         }
     }
 }
