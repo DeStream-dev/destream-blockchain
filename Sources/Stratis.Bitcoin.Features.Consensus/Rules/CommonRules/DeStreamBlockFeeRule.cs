@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -55,11 +55,11 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
             return outputsToFeeWallet.Single().Value;
         }
 
-        private long GetExpectedFee(Block block, IDictionary<uint256, Money> totalIn, ICollection<Script> inputScriptPubKeys)
+        private long GetExpectedFee(Block block, IDictionary<uint256, Money> totalIn, IDictionary<uint256, List<Script>> inputScriptPubKeys)
         {
             return block.Transactions.Where(p => !p.IsCoinBase && !p.IsCoinStake).Sum(p => this.GetFeeInTransaction(p,
                 totalIn[p.GetHash()], p.Outputs
-                    .Select(q => q.ScriptPubKey).Intersect(inputScriptPubKeys)
+                    .Select(q => q.ScriptPubKey).Intersect(inputScriptPubKeys[p.GetHash()])
                     .Concat(p.Inputs.GetChangePointers()
                         .Select(q => p.Outputs[q].ScriptPubKey))
                     .Distinct()

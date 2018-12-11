@@ -11,7 +11,7 @@ using Stratis.Bitcoin.Utilities;
 namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
 {
     /// <summary>
-    /// CoinViewRule that prevents verifing ChangePointer input
+    ///     CoinViewRule that prevents verifing ChangePointer input
     /// </summary>
     public abstract class DeStreamCoinViewRule : CoinViewRule
     {
@@ -94,9 +94,11 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
                                     ctx.VerifyScript(input.ScriptSig, txout.ScriptPubKey, checker);
 
                                 if (verifyScriptResult == false)
+                                {
                                     this.Logger.LogTrace(
                                         "Verify script for transaction '{0}' failed, ScriptSig = '{1}', ScriptPubKey = '{2}', script evaluation error = '{3}'",
                                         tx.GetHash(), input.ScriptSig, txout.ScriptPubKey, ctx.Error);
+                                }
 
                                 return verifyScriptResult;
                             });
@@ -123,8 +125,10 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
                 }
             }
             else
+            {
                 this.Logger.LogTrace("BIP68, SigOp cost, and block reward validation skipped for block at height {0}.",
                     index.Height);
+            }
 
             this.Logger.LogTrace("(-)");
         }
@@ -223,7 +227,7 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
         protected override void UpdateUTXOSet(RuleContext context, Transaction transaction)
         {
             // Saves script pub keys and total amount of spent inputs to context
-            
+
             this.Logger.LogTrace("()");
 
             ChainedHeader index = context.ValidationContext.ChainedHeader;
@@ -232,13 +236,16 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
             switch (context)
             {
                 case DeStreamPowRuleContext deStreamPowRuleContext:
-                    deStreamPowRuleContext.InputScriptPubKeys.AddRange(transaction.Inputs.RemoveChangePointer()
-                        .Select(p => view.GetOutputFor(p).ScriptPubKey));
+                    deStreamPowRuleContext.InputScriptPubKeys.AddOrReplace(transaction.GetHash(), transaction.Inputs
+                        .RemoveChangePointer()
+                        .Select(p => view.GetOutputFor(p).ScriptPubKey).ToList());
                     deStreamPowRuleContext.TotalIn.Add(transaction.GetHash(), view.GetValueIn(transaction));
                     break;
+                
                 case DeStreamRuleContext deStreamPosRuleContext:
-                    deStreamPosRuleContext.InputScriptPubKeys.AddRange(transaction.Inputs.RemoveChangePointer()
-                        .Select(p => view.GetOutputFor(p).ScriptPubKey));
+                    deStreamPosRuleContext.InputScriptPubKeys.AddOrReplace(transaction.GetHash(), transaction.Inputs
+                        .RemoveChangePointer()
+                        .Select(p => view.GetOutputFor(p).ScriptPubKey).ToList());
                     deStreamPosRuleContext.TotalIn.Add(transaction.GetHash(), view.GetValueIn(transaction));
                     break;
                 default:

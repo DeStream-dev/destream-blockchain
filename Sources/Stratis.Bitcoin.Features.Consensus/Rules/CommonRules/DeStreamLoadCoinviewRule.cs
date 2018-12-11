@@ -25,10 +25,10 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
             switch (utxoRuleContext)
             {
                 case DeStreamPowRuleContext deStreamPowRuleContext:
-                    deStreamPowRuleContext.InputScriptPubKeys = new List<Script>();
+                    deStreamPowRuleContext.InputScriptPubKeys = new Dictionary<uint256, List<Script>>();
                     break;
                 case DeStreamRuleContext deStreamPosRuleContext:
-                    deStreamPosRuleContext.InputScriptPubKeys = new List<Script>();
+                    deStreamPosRuleContext.InputScriptPubKeys = new Dictionary<uint256, List<Script>>();
                     break;
                 default:
                     throw new NotSupportedException(
