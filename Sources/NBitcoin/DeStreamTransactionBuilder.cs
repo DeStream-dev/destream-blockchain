@@ -23,26 +23,30 @@ namespace NBitcoin
         {
             IEnumerable<ICoin> result = base.BuildTransaction(ctx, group, builders, coins, zero);
 
-            if(ctx.Transaction.Inputs.Any(p => p.PrevOut.Hash == uint256.Zero))
+            if (ctx.Transaction.Inputs.Any(p => p.PrevOut.Hash == uint256.Zero))
                 return result;
 
             // To secure that fee is charged from spending coins and not from change,
             // we add input with uint256.Zero hash that points to output with change
+            int changeIndex = ctx.Transaction.Outputs.FindIndex(p =>
+                p.ScriptPubKey == group.ChangeScript[(int) ctx.ChangeType]);
+            
+            if (changeIndex == -1) return result;
+
             var outPoint = new OutPoint
             {
                 Hash = uint256.Zero,
-                N = (uint) ctx.Transaction.Outputs.FindIndex(p =>
-                    p.ScriptPubKey == group.ChangeScript[(int) ctx.ChangeType])
+                N = (uint) changeIndex
             };
-            
+
             ctx.Transaction.AddInput(new TxIn
             {
                 PrevOut = outPoint
             });
 
             group.Coins.Add(outPoint, new Coin(uint256.Zero, outPoint.N,
-                Money.Zero, group.ChangeScript[(int) ctx.ChangeType]));
-            
+                Money.Zero, @group.ChangeScript[(int) ctx.ChangeType]));
+
             return result;
         }
     }
