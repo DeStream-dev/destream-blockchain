@@ -181,11 +181,11 @@ namespace NBitcoin.Networks
 
             this.DNSSeeds = new List<DNSSeedData>
             {
-                new DNSSeedData("seed1.destream.io", "seed1.destream.io"),
-                new DNSSeedData("seed2.destream.io", "seed2.destream.io")
+//                new DNSSeedData("seed1.destream.io", "seed1.destream.io"),
+//                new DNSSeedData("seed2.destream.io", "seed2.destream.io")
             };
 
-            string[] seedNodes = {"13.68.198.162", "13.70.18.104"};
+            string[] seedNodes = {/*"13.68.198.162", "13.70.18.104"*/};
             this.SeedNodes = this.ConvertToNetworkAddresses(seedNodes, this.DefaultPort).ToList();
 
             // Create the genesis block.

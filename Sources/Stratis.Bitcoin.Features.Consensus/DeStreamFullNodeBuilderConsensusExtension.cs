@@ -135,7 +135,7 @@ namespace Stratis.Bitcoin.Features.Consensus
                     new DeStreamLoadCoinviewRule(),
                     new DeStreamFundsPreservationRule(),
                     new TransactionDuplicationActivationRule(), // implements BIP30
-                    new PowCoinviewRule(), // implements BIP68, MaxSigOps and BlockReward calculation
+                    new DeStreamPowCoinviewRule(), // implements BIP68, MaxSigOps and BlockReward calculation
                     new DeStreamBlockFeeRule()
                     
                 };
@@ -181,7 +181,7 @@ namespace Stratis.Bitcoin.Features.Consensus
                     new DeStreamLoadCoinviewRule(),
                     new DeStreamFundsPreservationRule(),
                     new TransactionDuplicationActivationRule(), // implements BIP30
-                    new PosCoinviewRule(), // implements BIP68, MaxSigOps and BlockReward calculation
+                    new DeStreamPosCoinviewRule(), // implements BIP68, MaxSigOps and BlockReward calculation
                     new DeStreamBlockFeeRule()
                 };
             }

@@ -50,8 +50,7 @@ namespace Stratis.Bitcoin.Features.Miner
             context.CoinstakeContext.CoinstakeTx.AddOutput(new TxOut(Money.Zero, deStreamAddressKey));
         }
 
-        // No way to call base function and change smth after this, replacing whole function is the only way.
-        // All modified code is extraced to functions.
+        /// <inheritdoc />
         public override async Task<bool> CreateCoinstakeAsync(List<UtxoStakeDescription> utxoStakeDescriptions,
             Block block, ChainedHeader chainTip, long searchInterval,
             long fees, CoinstakeContext coinstakeContext)

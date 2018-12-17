@@ -459,8 +459,7 @@ namespace Stratis.Bitcoin.IntegrationTests.Common.EnvironmentMockUpHelpers
             var blocks = new List<Block>();
             DateTimeOffset now = this.MockTime == null ? DateTimeOffset.UtcNow : this.MockTime.Value;
 
-            //for (int i = 0; i < blockCount; i++)
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < blockCount; i++)
             {
                 uint nonce = 0;
                 var block = new Block();

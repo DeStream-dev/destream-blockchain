@@ -76,7 +76,7 @@ namespace Stratis.Bitcoin.Features.Wallet.Tests
             });
         }
 
-        [Fact]
+        [Fact(Skip = "Fee check is disabled")]
         public void BuildTransactionFeeTooLowThrowsWalletException()
         {
             Assert.Throws<WalletException>(() =>
@@ -138,7 +138,6 @@ namespace Stratis.Bitcoin.Features.Wallet.Tests
                 };
 
                 walletTransactionHandler.BuildTransaction(CreateContext(walletReference, "password", destinationKeys.PubKey.ScriptPubKey, new Money(7500), FeeType.Low, 0));
-                int qwe = 1;
             });
         }
 

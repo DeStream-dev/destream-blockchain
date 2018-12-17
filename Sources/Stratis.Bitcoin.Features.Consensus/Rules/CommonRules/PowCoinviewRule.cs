@@ -8,7 +8,7 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
 {
     /// <inheritdoc />
     [ExecutionRule]
-    public sealed class PowCoinviewRule : DeStreamCoinViewRule
+    public sealed class PowCoinviewRule : CoinViewRule
     {
         /// <summary>Consensus parameters.</summary>
         private NBitcoin.Consensus consensus;

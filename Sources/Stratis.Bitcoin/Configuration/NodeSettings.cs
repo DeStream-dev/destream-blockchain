@@ -74,15 +74,6 @@ namespace Stratis.Bitcoin.Configuration
         /// <summary>Minimum relay transaction fee for network.</summary>
         public FeeRate MinRelayTxFeeRate { get; private set; }
 
-
-        /// <summary>
-        /// Returns default data root directory name
-        /// </summary>
-        protected virtual string DataRootDirName
-        {
-            get { return "StratisNode"; }
-        }
-
         /// <summary>
         /// Initializes a new instance of the object.
         /// </summary>
@@ -100,6 +91,11 @@ namespace Stratis.Bitcoin.Configuration
         ///   name would be determined. In this case we first need to determine the network.
         /// </remarks>
         public NodeSettings(Network network = null, ProtocolVersion protocolVersion = SupportedProtocolVersion,
+            string agent = "StratisBitcoin", string[] args = null) : this("StratisNode", network, protocolVersion, agent, args)
+        {
+        }
+
+        protected NodeSettings(string  dataRootDirName, Network network = null, ProtocolVersion protocolVersion = SupportedProtocolVersion,
             string agent = "StratisBitcoin", string[] args = null)
         {
             // Create the default logger factory and logger.
@@ -168,7 +164,7 @@ namespace Stratis.Bitcoin.Configuration
             if (this.DataDir == null)
             {
                 // Create the data directories if they don't exist.
-                this.DataDir = this.CreateDefaultDataDirectories(Path.Combine(this.DataRootDirName, this.Network.RootFolderName), this.Network);
+                this.DataDir = this.CreateDefaultDataDirectories(Path.Combine(dataRootDirName, this.Network.RootFolderName), this.Network);
             }
             else
             {
