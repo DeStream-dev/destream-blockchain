@@ -9,14 +9,14 @@ namespace NBitcoin
         ///     The name of the root folder containing the different Stratis blockchains (StratisMain, StratisTest,
         ///     StratisRegTest).
         /// </summary>
-        protected const string DeStreamRootFolderName = "destream";
+        protected internal const string DeStreamRootFolderName = "destream";
 
         /// <summary> The default name used for the Stratis configuration file. </summary>
-        protected const string DeStreamDefaultConfigFilename = "destream.conf";
+        protected internal const string DeStreamDefaultConfigFilename = "destream.conf";
 
-        protected const int DeStreamMaxTimeOffsetSeconds = 25 * 60;
+        protected internal const int DeStreamMaxTimeOffsetSeconds = 25 * 60;
 
-        protected const int DeStreamDefaultMaxTipAgeInSeconds = 2 * 60 * 60;
+        protected internal const int DeStreamDefaultMaxTipAgeInSeconds = 2 * 60 * 60;
 
 
         public const string WalletAddressDeStreamMain = "TPPL2wmtxGzP8U6hQsGkRA9yCMsazB33ft";

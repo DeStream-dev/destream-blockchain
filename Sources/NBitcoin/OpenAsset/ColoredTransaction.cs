@@ -156,6 +156,7 @@ namespace NBitcoin.OpenAsset
                 frame.Transaction = frame.Transaction ?? await repo.Transactions.GetAsync(frame.TransactionId).ConfigureAwait(false);
                 if(frame.Transaction == null)
                     throw new TransactionNotFoundException("Transaction " + frame.TransactionId + " not found in transaction repository", frame.TransactionId);
+                int skipped;
                 if(frame.PreviousTransactions == null)
                 {
                     if(frame.Transaction.IsCoinBase ||
@@ -165,14 +166,14 @@ namespace NBitcoin.OpenAsset
                         coloreds.Push(new ColoredTransaction());
                         continue;
                     }
-                    frame.PreviousTransactions = new ColoredTransaction[frame.Transaction.Inputs.Count];
+                    frame.PreviousTransactions = new ColoredTransaction[frame.Transaction.Inputs.RemoveChangePointer().Count()];
                     await BulkLoadIfCached(frame.Transaction, repo).ConfigureAwait(false);
                     frames.Push(frame);
-                    for(int i = 0; i < frame.Transaction.Inputs.Count; i++)
+                    foreach (TxIn transactionInput in frame.Transaction.Inputs.RemoveChangePointer())
                     {
                         frames.Push(new ColoredFrame()
                         {
-                            TransactionId = frame.Transaction.Inputs[i].PrevOut.Hash
+                            TransactionId = transactionInput.PrevOut.Hash
                         });
                     }
                     frame.Transaction = frame.TransactionId == txId ? frame.Transaction : null; //Do not waste memory, will refetch later
@@ -180,9 +181,15 @@ namespace NBitcoin.OpenAsset
                 }
                 else
                 {
+                    skipped = 0;
                     for(int i = 0; i < frame.Transaction.Inputs.Count; i++)
                     {
-                        frame.PreviousTransactions[i] = coloreds.Pop();
+                        if (frame.Transaction.Inputs[i].IsChangePointer())
+                        {
+                            skipped++;
+                            continue;
+                        }
+                        frame.PreviousTransactions[i - skipped] = coloreds.Pop();
                     }
                 }
 
@@ -200,10 +207,16 @@ namespace NBitcoin.OpenAsset
                 }
 
                 var spentCoins = new List<ColoredCoin>();
+                skipped = 0;
                 for(int i = 0; i < frame.Transaction.Inputs.Count; i++)
                 {
+                    if (frame.Transaction.Inputs[i].IsChangePointer())
+                    {
+                        skipped++;
+                        continue;
+                    }
                     TxIn txIn = frame.Transaction.Inputs[i];
-                    ColoredEntry entry = frame.PreviousTransactions[i].GetColoredEntry(txIn.PrevOut.N);
+                    ColoredEntry entry = frame.PreviousTransactions[i - skipped].GetColoredEntry(txIn.PrevOut.N);
                     if(entry != null)
                         spentCoins.Add(new ColoredCoin(entry.Asset, new Coin(txIn.PrevOut, new TxOut())));
                 }

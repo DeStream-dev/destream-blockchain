@@ -1359,7 +1359,7 @@ namespace NBitcoin
         /// <param name="expectedFees">The expected fees (more or less 10%)</param>
         /// <param name="errors">Detected errors</param>
         /// <returns>True if no error</returns>
-        public bool Verify(Transaction tx, Money expectedFees, out TransactionPolicyError[] errors)
+        public virtual bool Verify(Transaction tx, Money expectedFees, out TransactionPolicyError[] errors)
         {
             if(tx == null)
                 throw new ArgumentNullException("tx");
@@ -1429,7 +1429,7 @@ namespace NBitcoin
             return Check(tx, null as Money);
         }
 
-        private CoinNotFoundException CoinNotFound(IndexedTxIn txIn)
+        protected CoinNotFoundException CoinNotFound(IndexedTxIn txIn)
         {
             return new CoinNotFoundException(txIn);
         }
@@ -1777,7 +1777,7 @@ namespace NBitcoin
         }
 
 
-        private Transaction _CompletedTransaction;
+        protected Transaction _CompletedTransaction;
 
         /// <summary>
         /// Allows to keep building on the top of a partially built transaction
@@ -1798,7 +1798,7 @@ namespace NBitcoin
         /// Will cover the remaining amount of TxOut of a partially built transaction (to call after ContinueToBuild)
         /// </summary>
         /// <returns></returns>
-        public TransactionBuilder CoverTheRest()
+        public virtual TransactionBuilder CoverTheRest()
         {
             if(this._CompletedTransaction == null)
                 throw new InvalidOperationException("A partially built transaction should be specified by calling ContinueToBuild");

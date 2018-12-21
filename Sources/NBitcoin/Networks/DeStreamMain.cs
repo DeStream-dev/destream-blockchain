@@ -154,7 +154,11 @@ namespace NBitcoin.Networks
             {
                 {
                     0, new CheckpointInfo(
-                        new uint256("0x95dfb30e229e18197a812ece5d8d6c03efc9b9b65a9122a73f17d99613841b1b"),
+                        new uint256("0x95dfb30e229e18197a812ece5d8d6c03efc9b9b65a9122a73f17d99613841b1b"))
+                },
+                {
+                    1,
+                    new CheckpointInfo(
                         new uint256("0x0000000000000000000000000000000000000000000000000000000000000000"))
                 }
             };

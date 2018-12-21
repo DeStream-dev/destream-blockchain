@@ -10,6 +10,11 @@ namespace NBitcoin
             return txInList.Where(p => p.PrevOut.Hash != uint256.Zero);
         }
 
+        public static IEnumerable<IndexedTxIn> RemoveChangePointer(this IEnumerable<IndexedTxIn> indexedTxIns)
+        {
+            return indexedTxIns.Where(p => p.PrevOut.Hash != uint256.Zero);
+        }
+
         public static IEnumerable<uint> GetChangePointers(this TxInList txInList)
         {
             return txInList.Where(p => p.PrevOut.Hash == uint256.Zero).Select(p => p.PrevOut.N);
