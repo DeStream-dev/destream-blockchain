@@ -61,7 +61,7 @@ namespace Stratis.Bitcoin.Features.Wallet
         private readonly INodeLifetime nodeLifetime;
 
         /// <summary>Instance logger.</summary>
-        private readonly ILogger logger;
+        protected readonly ILogger logger;
 
         /// <summary>An object capable of storing <see cref="Wallet"/>s to the file system.</summary>
         private readonly FileStorage<Wallet> fileStorage;
@@ -73,7 +73,7 @@ namespace Stratis.Bitcoin.Features.Wallet
         private readonly IDateTimeProvider dateTimeProvider;
 
         /// <summary>The settings for the wallet feature.</summary>
-        private readonly WalletSettings walletSettings;
+        protected readonly WalletSettings walletSettings;
 
         public uint256 WalletTipHash { get; set; }
 
@@ -987,7 +987,7 @@ namespace Stratis.Bitcoin.Features.Wallet
         /// <param name="spendingTransactionIndex">The index of the output in the transaction being referenced, if this is a spending transaction.</param>
         /// <param name="blockHeight">Height of the block.</param>
         /// <param name="block">The block containing the transaction to add.</param>
-        private void AddSpendingTransactionToWallet(Transaction transaction, IEnumerable<TxOut> paidToOutputs,
+        protected virtual void AddSpendingTransactionToWallet(Transaction transaction, IEnumerable<TxOut> paidToOutputs,
             uint256 spendingTransactionId, int? spendingTransactionIndex, int? blockHeight = null, Block block = null)
         {
             Guard.NotNull(transaction, nameof(transaction));
