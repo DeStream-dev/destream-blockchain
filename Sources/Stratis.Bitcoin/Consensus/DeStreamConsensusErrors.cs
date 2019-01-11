@@ -1,6 +1,4 @@
-﻿using Stratis.Bitcoin.Consensus;
-
-namespace Stratis.Bitcoin.Features.Consensus
+﻿namespace Stratis.Bitcoin.Consensus
 {
     public static partial class ConsensusErrors
     {
