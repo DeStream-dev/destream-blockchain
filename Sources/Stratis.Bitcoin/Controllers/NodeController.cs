@@ -9,11 +9,13 @@ using Stratis.Bitcoin.Base;
 using Stratis.Bitcoin.Builder.Feature;
 using Stratis.Bitcoin.Configuration;
 using Stratis.Bitcoin.Connection;
+using Stratis.Bitcoin.Consensus;
 using Stratis.Bitcoin.Controllers.Models;
 using Stratis.Bitcoin.Interfaces;
 using Stratis.Bitcoin.P2P.Peer;
 using Stratis.Bitcoin.Utilities;
 using Stratis.Bitcoin.Utilities.JsonErrors;
+using Stratis.Bitcoin.Utilities.ModelStateErrors;
 
 namespace Stratis.Bitcoin.Controllers
 {
@@ -59,14 +61,17 @@ namespace Stratis.Bitcoin.Controllers
         /// <summary>Specification of the network the node runs on.</summary>
         private Network network; // Not readonly because of ValidateAddress
 
+        /// <summary>An interface implementation for the blockstore.</summary>
+        private readonly IBlockStore blockStore;
 
-        public NodeController(IFullNode fullNode, ILoggerFactory loggerFactory, 
-            IDateTimeProvider dateTimeProvider, IChainState chainState, 
+        public NodeController(IFullNode fullNode, ILoggerFactory loggerFactory,
+            IDateTimeProvider dateTimeProvider, IChainState chainState,
             NodeSettings nodeSettings, IConnectionManager connectionManager,
             ConcurrentChain chain, Network network, IPooledTransaction pooledTransaction = null,
             IPooledGetUnspentTransaction pooledGetUnspentTransaction = null,
             IGetUnspentTransaction getUnspentTransaction = null,
-            INetworkDifficulty networkDifficulty = null)
+            INetworkDifficulty networkDifficulty = null,
+            IBlockStore blockStore = null)
         {
             Guard.NotNull(fullNode, nameof(fullNode));
             Guard.NotNull(network, nameof(network));
@@ -89,6 +94,7 @@ namespace Stratis.Bitcoin.Controllers
             this.pooledGetUnspentTransaction = pooledGetUnspentTransaction;
             this.getUnspentTransaction = getUnspentTransaction;
             this.networkDifficulty = networkDifficulty;
+            this.blockStore = blockStore;
         }
 
         /// <summary>
@@ -99,7 +105,7 @@ namespace Stratis.Bitcoin.Controllers
         [Route("status")]
         public IActionResult Status()
         {
-            // Output has been merged with RPC's GetInfo() since they provided similar functionality. 
+            // Output has been merged with RPC's GetInfo() since they provided similar functionality.
             var model = new StatusModel
             {
                 Version = this.fullNode.Version?.ToString() ?? "0",
@@ -129,15 +135,15 @@ namespace Stratis.Bitcoin.Controllers
             // Add the details of connected nodes.
             foreach (INetworkPeer peer in this.connectionManager.ConnectedPeers)
             {
-                var connectionManagerBehavior = peer.Behavior<ConnectionManagerBehavior>();
-                var chainHeadersBehavior = peer.Behavior<ChainHeadersBehavior>();
+                var connectionManagerBehavior = peer.Behavior<IConnectionManagerBehavior>();
+                var chainHeadersBehavior = peer.Behavior<ConsensusManagerBehavior>();
 
                 var connectedPeer = new ConnectedPeerModel
                 {
                     Version = peer.PeerVersion != null ? peer.PeerVersion.UserAgent : "[Unknown]",
                     RemoteSocketEndpoint = peer.RemoteSocketEndpoint.ToString(),
-                    TipHeight = chainHeadersBehavior.PendingTip != null ? chainHeadersBehavior.PendingTip.Height : peer.PeerVersion?.StartHeight ?? -1,
-                    IsInbound = connectionManagerBehavior.Inbound
+                    TipHeight = chainHeadersBehavior.BestReceivedTip != null ? chainHeadersBehavior.BestReceivedTip.Height : peer.PeerVersion?.StartHeight ?? -1,
+                    IsInbound = peer.Inbound
                 };
 
                 if (connectedPeer.IsInbound)
@@ -196,8 +202,8 @@ namespace Stratis.Bitcoin.Controllers
         }
 
         /// <summary>
-        /// Gets a raw, possibly pooled, transaction from the full node. 
-        /// API implementation of RPC call. 
+        /// Gets a raw, possibly pooled, transaction from the full node.
+        /// API implementation of RPC call.
         /// </summary>
         /// <param name="trxid">The transaction hash.</param>
         /// <param name="verbose"><c>True if <see cref="TransactionVerboseModel"/> is wanted.</c></param>
@@ -219,12 +225,11 @@ namespace Stratis.Bitcoin.Controllers
                     throw new ArgumentException(nameof(trxid));
                 }
 
-                // First tries to find a pooledTransaction. If can't, will retrieve it from the blockstore if it exists. 
+                // First tries to find a pooledTransaction. If can't, will retrieve it from the blockstore if it exists.
                 Transaction trx = this.pooledTransaction != null ? await this.pooledTransaction.GetTransaction(txid).ConfigureAwait(false) : null;
                 if (trx == null)
                 {
-                    var blockStore = this.fullNode.NodeFeature<IBlockStore>();
-                    trx = blockStore != null ? await blockStore.GetTrxAsync(txid).ConfigureAwait(false) : null;
+                    trx = this.blockStore != null ? await this.blockStore.GetTransactionByIdAsync(txid).ConfigureAwait(false) : null;
                 }
 
                 if (trx == null)
@@ -241,6 +246,31 @@ namespace Stratis.Bitcoin.Controllers
                 {
                     return this.Json(new TransactionBriefModel(trx));
                 }
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError("Exception occurred: {0}", e.ToString());
+                return ErrorHelpers.BuildErrorResponse(HttpStatusCode.BadRequest, e.Message, e.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Return the JSON representation for a given transaction in hex format.
+        /// </summary>
+        /// <param name="rawHex">The raw hexadecimal form of the transaction.</param>
+        /// <returns>The JSON representation of the transaction.</returns>
+        [HttpPost]
+        [Route("decoderawtransaction")]
+        public IActionResult DecodeRawTransaction([FromBody] DecodeRawTransactionModel request)
+        {
+            try
+            {
+                if (!this.ModelState.IsValid)
+                {
+                    return ModelStateErrors.BuildErrorResponse(this.ModelState);
+                }
+
+                return this.Json(new TransactionVerboseModel(this.network.CreateTransaction(request.RawHex), this.network));
             }
             catch (Exception e)
             {
@@ -268,22 +298,25 @@ namespace Stratis.Bitcoin.Controllers
                 var res = new ValidatedAddress();
                 res.IsValid = false;
                 // P2WPKH
-                if (BitcoinWitPubKeyAddress.IsValid(address, ref this.network, out Exception _))
+                if (BitcoinWitPubKeyAddress.IsValid(address, this.network, out Exception _))
                 {
                     res.IsValid = true;
                 }
+
                 // P2WSH
-                else if (BitcoinWitScriptAddress.IsValid(address, ref this.network, out Exception _))
+                else if (BitcoinWitScriptAddress.IsValid(address, this.network, out Exception _))
                 {
                     res.IsValid = true;
                 }
+
                 // P2PKH
-                else if (BitcoinPubKeyAddress.IsValid(address, ref this.network))
+                else if (BitcoinPubKeyAddress.IsValid(address, this.network))
                 {
                     res.IsValid = true;
                 }
+
                 // P2SH
-                else if (BitcoinScriptAddress.IsValid(address, ref this.network))
+                else if (BitcoinScriptAddress.IsValid(address, this.network))
                 {
                     res.IsValid = true;
                 }
@@ -348,14 +381,19 @@ namespace Stratis.Bitcoin.Controllers
         /// <summary>
         /// Triggers a shutdown of the currently running node.
         /// </summary>
+        /// <param name="corsProtection">This body parameter is here to prevent a CORS call from triggering method execution.</param>
+        /// <remarks>
+        /// <seealso cref="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS#Simple_requests"/>
+        /// </remarks>
         /// <returns><see cref="OkResult"/></returns>
         [HttpPost]
         [Route("shutdown")]
         [Route("stop")]
-        public IActionResult Shutdown()
+        public IActionResult Shutdown([FromBody] bool corsProtection = true)
         {
-            // Start the node shutdown process.
-            this.fullNode?.Dispose();
+            // Start the node shutdown process, by calling StopApplication, which will signal to
+            // the full node RunAsync to continue processing, which calls Dispose on the node.
+            this.fullNode?.NodeLifetime.StopApplication();
 
             return this.Ok();
         }
@@ -376,7 +414,7 @@ namespace Stratis.Bitcoin.Controllers
 
             ChainedHeader block = null;
             var blockStore = fullNode.NodeFeature<IBlockStore>();
-            uint256 blockid = blockStore != null ? await blockStore.GetTrxBlockIdAsync(trxid).ConfigureAwait(false) : null;
+            uint256 blockid = blockStore != null ? await blockStore.GetBlockIdByTransactionIdAsync(trxid).ConfigureAwait(false) : null;
             if (blockid != null)
             {
                 block = chain?.GetBlock(blockid);
@@ -386,7 +424,7 @@ namespace Stratis.Bitcoin.Controllers
         }
 
         /// <summary>
-        /// Retrieves the difficulty target of the full node's network. 
+        /// Retrieves the difficulty target of the full node's network.
         /// </summary>
         /// <param name="networkDifficulty">The network difficulty interface.</param>
         /// <returns>A network difficulty <see cref="Target"/>. Returns <c>null</c> if fails.</returns>

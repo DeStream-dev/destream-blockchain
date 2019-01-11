@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
+using FluentAssertions;
 using NBitcoin;
 using Stratis.Bitcoin.Configuration;
 using Stratis.Bitcoin.Utilities;
@@ -11,7 +11,7 @@ namespace Stratis.Bitcoin.Tests.Common
 {
     public class TestBase
     {
-        public Network Network { get; }
+        public Network Network { get; protected set; }
 
         /// <summary>
         /// Initializes logger factory for inherited tests.
@@ -20,36 +20,14 @@ namespace Stratis.Bitcoin.Tests.Common
         {
             this.Network = network;
             var serializer = new DBreezeSerializer();
-            serializer.Initialize(this.Network); 
+            serializer.Initialize(this.Network);
         }
-        
+
         public static string AssureEmptyDir(string dir)
         {
-            int deleteAttempts = 0;
-            while (deleteAttempts < 50)
-            {
-                if (Directory.Exists(dir))
-                {
-                    try
-                    {
-                        Directory.Delete(dir, true);
-                        break;
-                    }
-                    catch
-                    {
-                        deleteAttempts++;
-                        Thread.Sleep(200);
-                    }
-                }
-                else
-                    break;
-            }
-
-            if (deleteAttempts >= 50)
-                throw new Exception(string.Format("The test folder: {0} could not be deleted.", dir));
-
-            Directory.CreateDirectory(dir);
-            return dir;
+            string uniqueDirName = $"{dir}-{DateTime.UtcNow:ddMMyyyyTHH.mm.ss.fff}";
+            Directory.CreateDirectory(uniqueDirName);
+            return uniqueDirName;
         }
 
         /// <summary>
@@ -61,7 +39,7 @@ namespace Stratis.Bitcoin.Tests.Common
         public static DataFolder CreateDataFolder(object caller, [System.Runtime.CompilerServices.CallerMemberName] string callingMethod = "")
         {
             string directoryPath = GetTestDirectoryPath(caller, callingMethod);
-            var dataFolder = new DataFolder(new NodeSettings(args: new string[] { $"-datadir={AssureEmptyDir(directoryPath)}" }).DataDir);
+            var dataFolder = new DataFolder(new NodeSettings(networksSelector: Networks.Networks.Bitcoin, args: new string[] { $"-datadir={AssureEmptyDir(directoryPath)}" }).DataDir);
             return dataFolder;
         }
 
@@ -108,7 +86,7 @@ namespace Stratis.Bitcoin.Tests.Common
         /// <returns>The path of the directory.</returns>
         public static string GetTestDirectoryPath(string testDirectory)
         {
-            return Path.Combine("TestCase", testDirectory);
+            return Path.Combine("..", "..", "..", "..", "TestCase", testDirectory);
         }
 
         public void AppendBlocksToChain(ConcurrentChain chain, IEnumerable<Block> blocks)
@@ -134,17 +112,17 @@ namespace Stratis.Bitcoin.Tests.Common
             return blocks;
         }
 
-        public Block CreateBlock(int blockNumber, bool bigBlocks = false)
+        private Block CreateBlock(int blockNumber, bool bigBlocks = false)
         {
-            var block = new Block();
+            Block block = this.Network.CreateBlock();
 
             int transactionCount = bigBlocks ? 1000 : 10;
 
             for (int j = 0; j < transactionCount; j++)
             {
-                var trx = new Transaction();
+                Transaction trx = this.Network.CreateTransaction();
 
-                block.AddTransaction(new Transaction());
+                block.AddTransaction(this.Network.CreateTransaction());
 
                 trx.AddInput(new TxIn(Script.Empty));
                 trx.AddOutput(Money.COIN + j + blockNumber, new Script(Enumerable.Range(1, 5).SelectMany(index => Guid.NewGuid().ToByteArray())));
@@ -158,6 +136,81 @@ namespace Stratis.Bitcoin.Tests.Common
             block.UpdateMerkleRoot();
 
             return block;
+        }
+
+        public ProvenBlockHeader CreateNewProvenBlockHeaderMock(PosBlock posBlock = null)
+        {
+            PosBlock block = posBlock == null ? CreatePosBlockMock() : posBlock;
+            ProvenBlockHeader provenBlockHeader = ((PosConsensusFactory)this.Network.Consensus.ConsensusFactory).CreateProvenBlockHeader(block);
+
+            return provenBlockHeader;
+        }
+
+        public PosBlock CreatePosBlockMock()
+        {
+            // Create coinstake Tx.
+            Transaction previousTx = this.Network.CreateTransaction();
+            previousTx.AddOutput(new TxOut());
+            Transaction coinstakeTx = this.Network.CreateTransaction();
+            coinstakeTx.AddOutput(new TxOut(0, Script.Empty));
+            coinstakeTx.AddOutput(new TxOut(50, new Script()));
+            coinstakeTx.AddInput(previousTx, 0);
+            coinstakeTx.IsCoinStake.Should().BeTrue();
+            coinstakeTx.IsCoinBase.Should().BeFalse();
+
+            // Create coinbase Tx.
+            Transaction coinBaseTx = this.Network.CreateTransaction();
+            coinBaseTx.AddOutput(100, new Script());
+            coinBaseTx.AddInput(new TxIn());
+            coinBaseTx.IsCoinBase.Should().BeTrue();
+            coinBaseTx.IsCoinStake.Should().BeFalse();
+
+            var block = (PosBlock)this.Network.CreateBlock();
+            block.AddTransaction(coinBaseTx);
+            block.AddTransaction(coinstakeTx);
+            block.BlockSignature = new BlockSignature { Signature = new byte[] { 0x2, 0x3 } };
+
+            return block;
+        }
+
+        /// <returns>Tip of a created chain of headers.</returns>
+        public ChainedHeader BuildChainWithProvenHeaders(int blockCount)
+        {
+            ChainedHeader currentHeader = ChainedHeadersHelper.CreateGenesisChainedHeader(this.Network);
+
+            for (int i = 1; i < blockCount; i++)
+            {
+                PosBlock block = this.CreatePosBlockMock();
+                ProvenBlockHeader header = ((PosConsensusFactory)this.Network.Consensus.ConsensusFactory).CreateProvenBlockHeader(block);
+
+                header.Nonce = RandomUtils.GetUInt32();
+                header.HashPrevBlock = currentHeader.HashBlock;
+                header.Bits = Target.Difficulty1;
+
+                ChainedHeader prevHeader = currentHeader;
+                currentHeader = new ChainedHeader(header, header.GetHash(), i);
+
+                currentHeader.SetPrivatePropertyValue("Previous", prevHeader);
+                prevHeader.Next.Add(currentHeader);
+            }
+
+            return currentHeader;
+        }
+
+        public SortedDictionary<int, ProvenBlockHeader> ConvertToDictionaryOfProvenHeaders(ChainedHeader tip)
+        {
+            var headers = new SortedDictionary<int, ProvenBlockHeader>();
+
+            ChainedHeader currentHeader = tip;
+
+            while (currentHeader.Height != 0)
+            {
+                headers.Add(currentHeader.Height, currentHeader.Header as ProvenBlockHeader);
+
+                currentHeader = currentHeader.Previous;
+            }
+
+            return headers;
         }
     }
 }

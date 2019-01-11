@@ -8,7 +8,7 @@ namespace Stratis.Bitcoin.Features.Consensus
 {
     public class UnspentOutputSet
     {
-        protected Dictionary<uint256, UnspentOutputs> unspents;
+        private Dictionary<uint256, UnspentOutputs> unspents;
 
         public TxOut GetOutputFor(TxIn txIn)
         {
@@ -19,7 +19,7 @@ namespace Stratis.Bitcoin.Features.Consensus
             return unspent.TryGetOutput(txIn.PrevOut.N);
         }
 
-        public virtual bool HaveInputs(Transaction tx)
+        public bool HaveInputs(Transaction tx)
         {
             return tx.Inputs.All(txin => this.GetOutputFor(txin) != null);
         }
@@ -29,7 +29,7 @@ namespace Stratis.Bitcoin.Features.Consensus
             return this.unspents.TryGet(uint256);
         }
 
-        public virtual Money GetValueIn(Transaction tx)
+        public Money GetValueIn(Transaction tx)
         {
             return tx.Inputs.Select(txin => this.GetOutputFor(txin).Value).Sum();
         }
@@ -39,13 +39,14 @@ namespace Stratis.Bitcoin.Features.Consensus
         /// </summary>
         /// <param name="transaction">Transaction which inputs and outputs are used for updating unspent coins list.</param>
         /// <param name="height">Height of a block that contains target transaction.</param>
-        public virtual void Update(Transaction transaction, int height)
+        public void Update(Transaction transaction, int height)
         {
             if (!transaction.IsCoinBase)
             {
                 foreach (TxIn input in transaction.Inputs)
                 {
                     UnspentOutputs c = this.AccessCoins(input.PrevOut.Hash);
+
                     c.Spend(input.PrevOut.N);
                 }
             }
@@ -59,7 +60,9 @@ namespace Stratis.Bitcoin.Features.Consensus
             foreach (UnspentOutputs coin in coins)
             {
                 if (coin != null)
+                {
                     this.unspents.Add(coin.TransactionId, coin);
+                }
             }
         }
 
@@ -73,7 +76,7 @@ namespace Stratis.Bitcoin.Features.Consensus
             }
         }
 
-        public IEnumerable<UnspentOutputs> GetCoins(CoinView utxo)
+        public IList<UnspentOutputs> GetCoins()
         {
             return this.unspents.Select(u => u.Value).ToList();
         }

@@ -5,6 +5,7 @@ using NBitcoin;
 using Newtonsoft.Json;
 using Stratis.Bitcoin.Utilities;
 using Stratis.Bitcoin.Utilities.JsonConverters;
+using TracerAttributes;
 
 namespace Stratis.Bitcoin.Features.Wallet
 {
@@ -13,6 +14,15 @@ namespace Stratis.Bitcoin.Features.Wallet
     /// </summary>
     public class Wallet
     {
+        /// <summary>Default pattern for accounts in the wallet. The first account will be called 'account 0', then 'account 1' and so on.</summary>
+        public const string AccountNamePattern = "account {0}";
+
+        /// <summary>Account numbers greater or equal to this number are reserved for special purpose account indexes.</summary>
+        public const int SpecialPurposeAccountIndexesStart = 100_000_000;
+
+        /// <summary>Filter for identifying normal wallet accounts.</summary>
+        public static Func<HdAccount, bool> NormalAccounts = a => a.Index < SpecialPurposeAccountIndexesStart;
+
         /// <summary>
         /// Initializes a new instance of the wallet.
         /// </summary>
@@ -28,15 +38,21 @@ namespace Stratis.Bitcoin.Features.Wallet
         public string Name { get; set; }
 
         /// <summary>
+        /// Flag indicating if it is a watch only wallet.
+        /// </summary>
+        [JsonProperty(PropertyName = "isExtPubKeyWallet")]
+        public bool IsExtPubKeyWallet { get; set; }
+
+        /// <summary>
         /// The seed for this wallet, password encrypted.
         /// </summary>
-        [JsonProperty(PropertyName = "encryptedSeed")]
+        [JsonProperty(PropertyName = "encryptedSeed", NullValueHandling = NullValueHandling.Ignore)]
         public string EncryptedSeed { get; set; }
 
         /// <summary>
         /// The chain code.
         /// </summary>
-        [JsonProperty(PropertyName = "chainCode")]
+        [JsonProperty(PropertyName = "chainCode", NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(ByteArrayConverter))]
         public byte[] ChainCode { get; set; }
 
@@ -70,10 +86,11 @@ namespace Stratis.Bitcoin.Features.Wallet
         /// Gets the accounts the wallet has for this type of coin.
         /// </summary>
         /// <param name="coinType">Type of the coin.</param>
+        /// <param name="accountFilter">An optional filter for filtering the accounts being returned.</param>
         /// <returns>The accounts in the wallet corresponding to this type of coin.</returns>
-        public IEnumerable<HdAccount> GetAccountsByCoinType(CoinType coinType)
+        public IEnumerable<HdAccount> GetAccountsByCoinType(CoinType coinType, Func<HdAccount, bool> accountFilter = null)
         {
-            return this.AccountsRoot.Where(a => a.CoinType == coinType).SelectMany(a => a.Accounts);
+            return this.AccountsRoot.Where(a => a.CoinType == coinType).SelectMany(a => a.Accounts).Where(accountFilter ?? NormalAccounts);
         }
 
         /// <summary>
@@ -147,10 +164,11 @@ namespace Stratis.Bitcoin.Features.Wallet
         /// Gets all the addresses contained in this wallet.
         /// </summary>
         /// <param name="coinType">Type of the coin.</param>
+        /// <param name="accountFilter">An optional filter for filtering the accounts being returned.</param>
         /// <returns>A list of all the addresses contained in this wallet.</returns>
-        public IEnumerable<HdAddress> GetAllAddressesByCoinType(CoinType coinType)
+        public IEnumerable<HdAddress> GetAllAddressesByCoinType(CoinType coinType, Func<HdAccount, bool> accountFilter = null)
         {
-            List<HdAccount> accounts = this.GetAccountsByCoinType(coinType).ToList();
+            List<HdAccount> accounts = this.GetAccountsByCoinType(coinType, accountFilter).ToList();
 
             var allAddresses = new List<HdAddress>();
             foreach (HdAccount account in accounts)
@@ -171,13 +189,34 @@ namespace Stratis.Bitcoin.Features.Wallet
         /// <param name="password">The password used to decrypt the wallet's <see cref="EncryptedSeed"/>.</param>
         /// <param name="coinType">The type of coin this account is for.</param>
         /// <param name="accountCreationTime">Creation time of the account to be created.</param>
+        /// <param name="accountIndex">The index at which an account will be created. If left null, a new account will be created after the last used one.</param>
+        /// <param name="accountName">The name of the account to be created. If left null, an account will be created according to the <see cref="Wallet.AccountNamePattern"/>.</param>
         /// <returns>A new HD account.</returns>
-        public HdAccount AddNewAccount(string password, CoinType coinType, DateTimeOffset accountCreationTime)
+        public HdAccount AddNewAccount(string password, CoinType coinType, DateTimeOffset accountCreationTime, int? accountIndex = null, string accountName = null)
         {
             Guard.NotEmpty(password, nameof(password));
 
             AccountRoot accountRoot = this.AccountsRoot.Single(a => a.CoinType == coinType);
-            return accountRoot.AddNewAccount(password, this.EncryptedSeed, this.ChainCode, this.Network, accountCreationTime);
+            return accountRoot.AddNewAccount(password, this.EncryptedSeed, this.ChainCode, this.Network, accountCreationTime, accountIndex, accountName);
+        }
+
+        /// <summary>
+        /// Adds an account to the current wallet.
+        /// </summary>
+        /// <remarks>
+        /// The name given to the account is of the form "account (i)" by default, where (i) is an incremental index starting at 0.
+        /// According to BIP44, an account at index (i) can only be created when the account at index (i - 1) contains at least one transaction.
+        /// </remarks>
+        /// <seealso cref="https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki"/>
+        /// <param name="coinType">The type of coin this account is for.</param>
+        /// <param name="extPubKey">The extended public key for the wallet<see cref="EncryptedSeed"/>.</param>
+        /// <param name="accountIndex">Zero-based index of the account to add.</param>
+        /// <param name="accountCreationTime">Creation time of the account to be created.</param>
+        /// <returns>A new HD account.</returns>
+        public HdAccount AddNewAccount(CoinType coinType, ExtPubKey extPubKey, int accountIndex, DateTimeOffset accountCreationTime)
+        {
+            AccountRoot accountRoot = this.AccountsRoot.Single(a => a.CoinType == coinType);
+            return accountRoot.AddNewAccount(extPubKey, accountIndex, this.Network, accountCreationTime);
         }
 
         /// <summary>
@@ -247,13 +286,13 @@ namespace Stratis.Bitcoin.Features.Wallet
         /// <param name="coinType">Type of the coin to get transactions from.</param>
         /// <param name="currentChainHeight">Height of the current chain, used in calculating the number of confirmations.</param>
         /// <param name="confirmations">The number of confirmations required to consider a transaction spendable.</param>
+        /// <param name="accountFilter">An optional filter for filtering the accounts being returned.</param>
         /// <returns>A collection of spendable outputs.</returns>
-        public IEnumerable<UnspentOutputReference> GetAllSpendableTransactions(CoinType coinType, int currentChainHeight, int confirmations = 0)
+        public IEnumerable<UnspentOutputReference> GetAllSpendableTransactions(CoinType coinType, int currentChainHeight, int confirmations = 0, Func<HdAccount, bool> accountFilter = null)
         {
-            IEnumerable<HdAccount> accounts = this.GetAccountsByCoinType(coinType);
+            IEnumerable<HdAccount> accounts = this.GetAccountsByCoinType(coinType, accountFilter);
 
-            return accounts
-                .SelectMany(x => x.GetSpendableTransactions(currentChainHeight, confirmations));
+            return accounts.SelectMany(x => x.GetSpendableTransactions(currentChainHeight, this.Network, confirmations));
         }
     }
 
@@ -304,7 +343,7 @@ namespace Stratis.Bitcoin.Features.Wallet
             if (this.Accounts == null)
                 return null;
 
-            List<HdAccount> unusedAccounts = this.Accounts.Where(acc => !acc.ExternalAddresses.Any() && !acc.InternalAddresses.Any()).ToList();
+            List<HdAccount> unusedAccounts = this.Accounts.Where(Wallet.NormalAccounts).Where(acc => !acc.ExternalAddresses.SelectMany(add => add.Transactions).Any() && !acc.InternalAddresses.SelectMany(add => add.Transactions).Any()).ToList();
             if (!unusedAccounts.Any())
                 return null;
 
@@ -317,23 +356,23 @@ namespace Stratis.Bitcoin.Features.Wallet
         /// Gets the account matching the name passed as a parameter.
         /// </summary>
         /// <param name="accountName">The name of the account to get.</param>
-        /// <returns></returns>
-        /// <exception cref="System.Exception"></exception>
+        /// <returns>The HD account specified by the parameter.</returns>
+        /// <exception cref="WalletException">An exception thrown if no account could be found.</exception>
         public HdAccount GetAccountByName(string accountName)
         {
             if (this.Accounts == null)
-                throw new WalletException($"No account with the name {accountName} could be found.");
+                throw new WalletException($"No account with the name '{accountName}' could be found.");
 
-            // get the account
+            // Get the requested account.
             HdAccount account = this.Accounts.SingleOrDefault(a => a.Name == accountName);
             if (account == null)
-                throw new WalletException($"No account with the name {accountName} could be found.");
+                throw new WalletException($"No account with the name '{accountName}' could be found.");
 
             return account;
         }
 
         /// <summary>
-        /// Adds an account to the current account root.
+        /// Adds an account to the current account root using encrypted seed and password.
         /// </summary>
         /// <remarks>The name given to the account is of the form "account (i)" by default, where (i) is an incremental index starting at 0.
         /// According to BIP44, an account at index (i) can only be created when the account at index (i - 1) contains transactions.
@@ -343,20 +382,62 @@ namespace Stratis.Bitcoin.Features.Wallet
         /// <param name="chainCode">The chain code for this wallet.</param>
         /// <param name="network">The network for which this account will be created.</param>
         /// <param name="accountCreationTime">Creation time of the account to be created.</param>
+        /// <param name="accountIndex">The index at which an account will be created. If left null, a new account will be created after the last used one.</param>
+        /// <param name="accountName">The name of the account to be created. If left null, an account will be created according to the <see cref="AccountNamePattern"/>.</param>
         /// <returns>A new HD account.</returns>
-        public HdAccount AddNewAccount(string password, string encryptedSeed, byte[] chainCode, Network network, DateTimeOffset accountCreationTime)
+        public HdAccount AddNewAccount(string password, string encryptedSeed, byte[] chainCode, Network network, DateTimeOffset accountCreationTime, int? accountIndex = null, string accountName = null)
         {
             Guard.NotEmpty(password, nameof(password));
             Guard.NotEmpty(encryptedSeed, nameof(encryptedSeed));
             Guard.NotNull(chainCode, nameof(chainCode));
 
-            // Get the current collection of accounts.
-            List<HdAccount> accounts = this.Accounts.ToList();
+            ICollection<HdAccount> hdAccounts = this.Accounts;
 
-            int newAccountIndex = 0;
-            if (accounts.Any())
+            // If an account needs to be created at a specific index or with a specific name, make sure it doesn't already exist.
+            if (hdAccounts.Any(a => a.Index == accountIndex || a.Name == accountName))
             {
-                newAccountIndex = accounts.Max(a => a.Index) + 1;
+                throw new WalletException($"An account at index {accountIndex} or with name {accountName} already exists.");
+            }
+
+            if (accountIndex == null)
+            {
+                if (hdAccounts.Any())
+                {
+                    // Hide account indexes used for cold staking from the "Max" calculation.
+                    accountIndex = hdAccounts.Where(Wallet.NormalAccounts).Max(a => a.Index) + 1;
+                }
+                else
+                {
+                    accountIndex = 0;
+                }
+            }
+
+            HdAccount newAccount = this.CreateAccount(password, encryptedSeed, chainCode, network, accountCreationTime, accountIndex.Value, accountName);
+
+            hdAccounts.Add(newAccount);
+            this.Accounts = hdAccounts;
+
+            return newAccount;
+        }
+
+        /// <summary>
+        /// Create an account for a specific account index and account name pattern.
+        /// </summary>
+        /// <param name="password">The password used to decrypt the wallet's encrypted seed.</param>
+        /// <param name="encryptedSeed">The encrypted private key for this wallet.</param>
+        /// <param name="chainCode">The chain code for this wallet.</param>
+        /// <param name="network">The network for which this account will be created.</param>
+        /// <param name="accountCreationTime">Creation time of the account to be created.</param>
+        /// <param name="newAccountIndex">The optional account index to use.</param>
+        /// <param name="newAccountName">The optional account name to use.</param>
+        /// <returns>A new HD account.</returns>
+        public HdAccount CreateAccount(string password, string encryptedSeed, byte[] chainCode,
+            Network network, DateTimeOffset accountCreationTime,
+            int newAccountIndex, string newAccountName = null)
+        {
+            if (string.IsNullOrEmpty(newAccountName))
+            {
+                newAccountName = string.Format(Wallet.AccountNamePattern, newAccountIndex);
             }
 
             // Get the extended pub key used to generate addresses for this account.
@@ -364,19 +445,54 @@ namespace Stratis.Bitcoin.Features.Wallet
             Key privateKey = HdOperations.DecryptSeed(encryptedSeed, password, network);
             ExtPubKey accountExtPubKey = HdOperations.GetExtendedPublicKey(privateKey, chainCode, accountHdPath);
 
-            var newAccount = new HdAccount
+            return new HdAccount
             {
                 Index = newAccountIndex,
                 ExtendedPubKey = accountExtPubKey.ToString(network),
                 ExternalAddresses = new List<HdAddress>(),
                 InternalAddresses = new List<HdAddress>(),
-                Name = $"account {newAccountIndex}",
+                Name = newAccountName,
+                HdPath = accountHdPath,
+                CreationTime = accountCreationTime
+            };
+        }
+
+        /// <inheritdoc cref="AddNewAccount(string, string, byte[], Network, DateTimeOffset)"/>
+        /// <summary>
+        /// Adds an account to the current account root using extended public key and account index.
+        /// </summary>
+        /// <param name="accountExtPubKey">The extended public key for the account.</param>
+        /// <param name="accountIndex">The zero-based account index.</param>
+        public HdAccount AddNewAccount(ExtPubKey accountExtPubKey, int accountIndex, Network network, DateTimeOffset accountCreationTime)
+        {
+            ICollection<HdAccount> hdAccounts = this.Accounts.ToList();
+
+            if (hdAccounts.Any(a => a.Index == accountIndex))
+            {
+                throw new WalletException("There is already an account in this wallet with index: " + accountIndex);
+            }
+
+            if (hdAccounts.Any(x => x.ExtendedPubKey == accountExtPubKey.ToString(network)))
+            {
+                throw new WalletException("There is already an account in this wallet with this xpubkey: " +
+                                            accountExtPubKey.ToString(network));
+            }
+
+            string accountHdPath = HdOperations.GetAccountHdPath((int) this.CoinType, accountIndex);
+
+            var newAccount = new HdAccount
+            {
+                Index = accountIndex,
+                ExtendedPubKey = accountExtPubKey.ToString(network),
+                ExternalAddresses = new List<HdAddress>(),
+                InternalAddresses = new List<HdAddress>(),
+                Name = $"account {accountIndex}",
                 HdPath = accountHdPath,
                 CreationTime = accountCreationTime
             };
 
-            accounts.Add(newAccount);
-            this.Accounts = accounts;
+            hdAccounts.Add(newAccount);
+            this.Accounts = hdAccounts;
 
             return newAccount;
         }
@@ -643,11 +759,14 @@ namespace Stratis.Bitcoin.Features.Wallet
         /// Lists all spendable transactions in the current account.
         /// </summary>
         /// <param name="currentChainHeight">The current height of the chain. Used for calculating the number of confirmations a transaction has.</param>
+        /// <param name="network">The network this account holds transactions for.</param>
         /// <param name="confirmations">The minimum number of confirmations required for transactions to be considered.</param>
         /// <returns>A collection of spendable outputs that belong to the given account.</returns>
-        public IEnumerable<UnspentOutputReference> GetSpendableTransactions(int currentChainHeight, int confirmations = 0)
+        /// <remarks>Note that coinbase and coinstake transaction outputs also have to mature with a sufficient number of confirmations before
+        /// they are considered spendable. This is independent of the confirmations parameter.</remarks>
+        public IEnumerable<UnspentOutputReference> GetSpendableTransactions(int currentChainHeight, Network network, int confirmations = 0)
         {
-            // This will take all the spendable coins that belong to the account and keep the reference to the HDAddress and HDAccount.
+            // This will take all the spendable coins that belong to the account and keep the reference to the HdAddress and HdAccount.
             // This is useful so later the private key can be calculated just from a given UTXO.
             foreach (HdAddress address in this.GetCombinedAddresses())
             {
@@ -661,13 +780,22 @@ namespace Stratis.Bitcoin.Features.Wallet
                     if (transactionData.BlockHeight != null)
                         confirmationCount = countFrom >= transactionData.BlockHeight ? countFrom - transactionData.BlockHeight : 0;
 
-                    if (confirmationCount >= confirmations)
+                    if (confirmationCount < confirmations)
+                        continue;
+
+                    bool isCoinBase = transactionData.IsCoinBase ?? false;
+                    bool isCoinStake = transactionData.IsCoinStake ?? false;
+
+                    // This output can unconditionally be included in the results.
+                    // Or this output is a CoinBase or CoinStake and has reached maturity.
+                    if ((!isCoinBase && !isCoinStake) || (confirmationCount > network.Consensus.CoinbaseMaturity))
                     {
                         yield return new UnspentOutputReference
                         {
                             Account = this,
                             Address = address,
-                            Transaction = transactionData
+                            Transaction = transactionData,
+                            Confirmations = confirmationCount.Value
                         };
                     }
                 }
@@ -737,7 +865,8 @@ namespace Stratis.Bitcoin.Features.Wallet
         /// <summary>
         /// List all spendable transactions in an address.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>List of spendable transactions.</returns>
+        [NoTrace]
         public IEnumerable<TransactionData> UnspentTransactions()
         {
             if (this.Transactions == null)
@@ -782,7 +911,13 @@ namespace Stratis.Bitcoin.Features.Wallet
         public Money Amount { get; set; }
 
         /// <summary>
-        /// A value indicating whether this is a coin stake transaction or not.
+        /// A value indicating whether this is a coinbase transaction or not.
+        /// </summary>
+        [JsonProperty(PropertyName = "isCoinBase", NullValueHandling = NullValueHandling.Ignore)]
+        public bool? IsCoinBase { get; set; }
+
+        /// <summary>
+        /// A value indicating whether this is a coinstake transaction or not.
         /// </summary>
         [JsonProperty(PropertyName = "isCoinStake", NullValueHandling = NullValueHandling.Ignore)]
         public bool? IsCoinStake { get; set; }
@@ -852,6 +987,7 @@ namespace Stratis.Bitcoin.Features.Wallet
         /// <summary>
         /// Determines whether this transaction is confirmed.
         /// </summary>
+        [NoTrace]
         public bool IsConfirmed()
         {
             return this.BlockHeight != null;
@@ -860,11 +996,13 @@ namespace Stratis.Bitcoin.Features.Wallet
         /// <summary>
         /// Indicates an output is spendable.
         /// </summary>
+        [NoTrace]
         public bool IsSpendable()
         {
             return this.SpendingDetails == null;
         }
 
+        [NoTrace]
         public Money SpendableAmount(bool confirmedOnly)
         {
             // This method only returns a UTXO that has no spending output.
@@ -986,6 +1124,11 @@ namespace Stratis.Bitcoin.Features.Wallet
         /// The transaction representing the UTXO.
         /// </summary>
         public TransactionData Transaction { get; set; }
+
+        /// <summary>
+        /// Number of confirmations for this UTXO.
+        /// </summary>
+        public int Confirmations { get; set; }
 
         /// <summary>
         /// Convert the <see cref="TransactionData"/> to an <see cref="OutPoint"/>

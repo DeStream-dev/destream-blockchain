@@ -16,7 +16,7 @@ namespace Stratis.Bitcoin.Features.BlockStore.Tests
         public void InitializesGenBlockAndTxIndexOnFirstLoad()
         {
             string dir = CreateTestDir(this);
-            using (IBlockRepository repository = this.SetupRepository(Network.Main, dir))
+            using (IBlockRepository repository = this.SetupRepository(this.Network, dir))
             {
             }
 
@@ -24,10 +24,10 @@ namespace Stratis.Bitcoin.Features.BlockStore.Tests
             {
                 DBreeze.Transactions.Transaction transaction = engine.GetTransaction();
 
-                Row<byte[], uint256> blockRow = transaction.Select<byte[], uint256>("Common", new byte[0]);
+                Row<byte[], HashHeightPair> blockRow = transaction.Select<byte[], HashHeightPair>("Common", new byte[0]);
                 Row<byte[], bool> txIndexRow = transaction.Select<byte[], bool>("Common", new byte[1]);
 
-                Assert.Equal(Network.Main.GetGenesis().GetHash(), blockRow.Value);
+                Assert.Equal(this.Network.GetGenesis().GetHash(), blockRow.Value.Hash);
                 Assert.False(txIndexRow.Value);
             }
         }
@@ -41,12 +41,12 @@ namespace Stratis.Bitcoin.Features.BlockStore.Tests
             {
                 DBreeze.Transactions.Transaction transaction = engine.GetTransaction();
 
-                transaction.Insert<byte[], byte[]>("Common", new byte[0], new uint256(56).ToBytes());
+                transaction.Insert<byte[], HashHeightPair>("Common", new byte[0], new HashHeightPair(new uint256(56), 1));
                 transaction.Insert<byte[], bool>("Common", new byte[1], true);
                 transaction.Commit();
             }
 
-            using (IBlockRepository repository = this.SetupRepository(Network.Main, dir))
+            using (IBlockRepository repository = this.SetupRepository(this.Network, dir))
             {
             }
 
@@ -54,10 +54,10 @@ namespace Stratis.Bitcoin.Features.BlockStore.Tests
             {
                 DBreeze.Transactions.Transaction transaction = engine.GetTransaction();
 
-                Row<byte[], uint256> blockRow = transaction.Select<byte[], uint256>("Common", new byte[0]);
+                Row<byte[], HashHeightPair> blockRow = transaction.Select<byte[], HashHeightPair>("Common", new byte[0]);
                 Row<byte[], bool> txIndexRow = transaction.Select<byte[], bool>("Common", new byte[1]);
 
-                Assert.Equal(new uint256(56), blockRow.Value);
+                Assert.Equal(new HashHeightPair(new uint256(56), 1), blockRow.Value);
                 Assert.True(txIndexRow.Value);
             }
         }
@@ -71,14 +71,14 @@ namespace Stratis.Bitcoin.Features.BlockStore.Tests
             {
                 DBreeze.Transactions.Transaction transaction = engine.GetTransaction();
 
-                transaction.Insert<byte[], byte[]>("Common", new byte[0], uint256.Zero.ToBytes());
+                transaction.Insert<byte[], HashHeightPair>("Common", new byte[0], new HashHeightPair(uint256.Zero, 1));
                 transaction.Insert<byte[], bool>("Common", new byte[1], false);
                 transaction.Commit();
             }
 
-            using (IBlockRepository repository = this.SetupRepository(Network.Main, dir))
+            using (IBlockRepository repository = this.SetupRepository(this.Network, dir))
             {
-                Task<Transaction> task = repository.GetTrxAsync(uint256.Zero);
+                Task<Transaction> task = repository.GetTransactionByIdAsync(uint256.Zero);
                 task.Wait();
 
                 Assert.Equal(default(Transaction), task.Result);
@@ -94,14 +94,14 @@ namespace Stratis.Bitcoin.Features.BlockStore.Tests
             {
                 DBreeze.Transactions.Transaction transaction = engine.GetTransaction();
                 var blockId = new uint256(8920);
-                transaction.Insert<byte[], byte[]>("Common", new byte[0], uint256.Zero.ToBytes());
+                transaction.Insert<byte[], HashHeightPair>("Common", new byte[0], new HashHeightPair(uint256.Zero, 1));
                 transaction.Insert<byte[], bool>("Common", new byte[1], true);
                 transaction.Commit();
             }
 
-            using (IBlockRepository repository = this.SetupRepository(Network.Main, dir))
+            using (IBlockRepository repository = this.SetupRepository(this.Network, dir))
             {
-                Task<Transaction> task = repository.GetTrxAsync(new uint256(65));
+                Task<Transaction> task = repository.GetTransactionByIdAsync(new uint256(65));
                 task.Wait();
 
                 Assert.Null(task.Result);
@@ -112,26 +112,26 @@ namespace Stratis.Bitcoin.Features.BlockStore.Tests
         public void GetTrxAsyncWithTransactionReturnsExistingTransaction()
         {
             string dir = CreateTestDir(this);
-            Transaction trans = Network.Main.CreateTransaction();
+            Transaction trans = this.Network.CreateTransaction();
             trans.Version = 125;
 
             using (var engine = new DBreezeEngine(dir))
             {
-                Block block = Network.Main.Consensus.ConsensusFactory.CreateBlock();
+                Block block = this.Network.CreateBlock();
                 block.Header.GetHash();
                 block.Transactions.Add(trans);
 
                 DBreeze.Transactions.Transaction transaction = engine.GetTransaction();
                 transaction.Insert<byte[], byte[]>("Block", block.Header.GetHash().ToBytes(), block.ToBytes());
                 transaction.Insert<byte[], byte[]>("Transaction", trans.GetHash().ToBytes(), block.Header.GetHash().ToBytes());
-                transaction.Insert<byte[], byte[]>("Common", new byte[0], uint256.Zero.ToBytes());
+                transaction.Insert<byte[], HashHeightPair>("Common", new byte[0], new HashHeightPair(uint256.Zero, 1));
                 transaction.Insert<byte[], bool>("Common", new byte[1], true);
                 transaction.Commit();
             }
 
-            using (IBlockRepository repository = this.SetupRepository(Network.Main, dir))
+            using (IBlockRepository repository = this.SetupRepository(this.Network, dir))
             {
-                Task<Transaction> task = repository.GetTrxAsync(trans.GetHash());
+                Task<Transaction> task = repository.GetTransactionByIdAsync(trans.GetHash());
                 task.Wait();
 
                 Assert.Equal((uint)125, task.Result.Version);
@@ -146,14 +146,14 @@ namespace Stratis.Bitcoin.Features.BlockStore.Tests
             using (var engine = new DBreezeEngine(dir))
             {
                 DBreeze.Transactions.Transaction transaction = engine.GetTransaction();
-                transaction.Insert<byte[], byte[]>("Common", new byte[0], uint256.Zero.ToBytes());
+                transaction.Insert<byte[], HashHeightPair>("Common", new byte[0], new HashHeightPair(uint256.Zero, 1));
                 transaction.Insert<byte[], bool>("Common", new byte[1], false);
                 transaction.Commit();
             }
 
-            using (IBlockRepository repository = this.SetupRepository(Network.Main, dir))
+            using (IBlockRepository repository = this.SetupRepository(this.Network, dir))
             {
-                Task<uint256> task = repository.GetTrxBlockIdAsync(new uint256(26));
+                Task<uint256> task = repository.GetBlockIdByTransactionIdAsync(new uint256(26));
                 task.Wait();
 
                 Assert.Equal(default(uint256), task.Result);
@@ -168,14 +168,14 @@ namespace Stratis.Bitcoin.Features.BlockStore.Tests
             using (var engine = new DBreezeEngine(dir))
             {
                 DBreeze.Transactions.Transaction transaction = engine.GetTransaction();
-                transaction.Insert<byte[], byte[]>("Common", new byte[0], uint256.Zero.ToBytes());
+                transaction.Insert<byte[], HashHeightPair>("Common", new byte[0], new HashHeightPair(uint256.Zero, 1));
                 transaction.Insert<byte[], bool>("Common", new byte[1], true);
                 transaction.Commit();
             }
 
-            using (IBlockRepository repository = this.SetupRepository(Network.Main, dir))
+            using (IBlockRepository repository = this.SetupRepository(this.Network, dir))
             {
-                Task<uint256> task = repository.GetTrxBlockIdAsync(new uint256(26));
+                Task<uint256> task = repository.GetBlockIdByTransactionIdAsync(new uint256(26));
                 task.Wait();
 
                 Assert.Null(task.Result);
@@ -191,14 +191,14 @@ namespace Stratis.Bitcoin.Features.BlockStore.Tests
             {
                 DBreeze.Transactions.Transaction transaction = engine.GetTransaction();
                 transaction.Insert<byte[], byte[]>("Transaction", new uint256(26).ToBytes(), new uint256(42).ToBytes());
-                transaction.Insert<byte[], byte[]>("Common", new byte[0], uint256.Zero.ToBytes());
+                transaction.Insert<byte[], HashHeightPair>("Common", new byte[0], new HashHeightPair(uint256.Zero, 1));
                 transaction.Insert<byte[], bool>("Common", new byte[1], true);
                 transaction.Commit();
             }
 
-            using (IBlockRepository repository = this.SetupRepository(Network.Main, dir))
+            using (IBlockRepository repository = this.SetupRepository(this.Network, dir))
             {
-                Task<uint256> task = repository.GetTrxBlockIdAsync(new uint256(26));
+                Task<uint256> task = repository.GetBlockIdByTransactionIdAsync(new uint256(26));
                 task.Wait();
 
                 Assert.Equal(new uint256(42), task.Result);
@@ -212,19 +212,19 @@ namespace Stratis.Bitcoin.Features.BlockStore.Tests
 
             var nextBlockHash = new uint256(1241256);
             var blocks = new List<Block>();
-            Block block = Network.Main.Consensus.ConsensusFactory.CreateBlock();
+            Block block = this.Network.Consensus.ConsensusFactory.CreateBlock();
             BlockHeader blockHeader = block.Header;
             blockHeader.Bits = new Target(12);
-            Transaction transaction = Network.Main.CreateTransaction();
+            Transaction transaction = this.Network.CreateTransaction();
             transaction.Version = 32;
             block.Transactions.Add(transaction);
-            transaction = Network.Main.CreateTransaction();
+            transaction = this.Network.CreateTransaction();
             transaction.Version = 48;
             block.Transactions.Add(transaction);
             blocks.Add(block);
-            
-            Block block2 = Network.Main.Consensus.ConsensusFactory.CreateBlock();
-            transaction = Network.Main.CreateTransaction();
+
+            Block block2 = this.Network.Consensus.ConsensusFactory.CreateBlock();
+            transaction = this.Network.CreateTransaction();
             transaction.Version = 15;
             block2.Transactions.Add(transaction);
             blocks.Add(block2);
@@ -232,14 +232,14 @@ namespace Stratis.Bitcoin.Features.BlockStore.Tests
             using (var engine = new DBreezeEngine(dir))
             {
                 DBreeze.Transactions.Transaction trans = engine.GetTransaction();
-                trans.Insert<byte[], byte[]>("Common", new byte[0], uint256.Zero.ToBytes());
+                trans.Insert<byte[], HashHeightPair>("Common", new byte[0], new HashHeightPair(uint256.Zero, 1));
                 trans.Insert<byte[], bool>("Common", new byte[1], true);
                 trans.Commit();
             }
 
-            using (IBlockRepository repository = this.SetupRepository(Network.Main, dir))
+            using (IBlockRepository repository = this.SetupRepository(this.Network, dir))
             {
-                Task task = repository.PutAsync(nextBlockHash, blocks);
+                Task task = repository.PutAsync(new HashHeightPair(nextBlockHash, 100), blocks);
                 task.Wait();
             }
 
@@ -247,18 +247,18 @@ namespace Stratis.Bitcoin.Features.BlockStore.Tests
             {
                 DBreeze.Transactions.Transaction trans = engine.GetTransaction();
 
-                Row<byte[], uint256> blockHashKeyRow = trans.Select<byte[], uint256>("Common", new byte[0]);
+                Row<byte[], HashHeightPair> blockHashKeyRow = trans.Select<byte[], HashHeightPair>("Common", new byte[0]);
                 Dictionary<byte[], byte[]> blockDict = trans.SelectDictionary<byte[], byte[]>("Block");
                 Dictionary<byte[], byte[]> transDict = trans.SelectDictionary<byte[], byte[]>("Transaction");
 
-                Assert.Equal(nextBlockHash, blockHashKeyRow.Value);
+                Assert.Equal(new HashHeightPair(nextBlockHash, 100), blockHashKeyRow.Value);
                 Assert.Equal(2, blockDict.Count);
                 Assert.Equal(3, transDict.Count);
 
                 foreach (KeyValuePair<byte[], byte[]> item in blockDict)
                 {
                     Block bl = blocks.Single(b => b.GetHash() == new uint256(item.Key));
-                    Assert.Equal(bl.Header.GetHash(), Block.Load(item.Value, Network.Main).Header.GetHash());
+                    Assert.Equal(bl.Header.GetHash(), Block.Load(item.Value, this.Network).Header.GetHash());
                 }
 
                 foreach (KeyValuePair<byte[], byte[]> item in transDict)
@@ -280,7 +280,7 @@ namespace Stratis.Bitcoin.Features.BlockStore.Tests
                 trans.Commit();
             }
 
-            using (IBlockRepository repository = this.SetupRepository(Network.Main, dir))
+            using (IBlockRepository repository = this.SetupRepository(this.Network, dir))
             {
                 Task task = repository.SetTxIndexAsync(false);
                 task.Wait();
@@ -296,36 +296,10 @@ namespace Stratis.Bitcoin.Features.BlockStore.Tests
         }
 
         [Fact]
-        public void SetBlockHashUpdatesBlockHash()
-        {
-            string dir = CreateTestDir(this);
-            using (var engine = new DBreezeEngine(dir))
-            {
-                DBreeze.Transactions.Transaction trans = engine.GetTransaction();
-                trans.Insert<byte[], byte[]>("Common", new byte[0], new uint256(41).ToBytes());
-                trans.Commit();
-            }
-
-            using (IBlockRepository repository = this.SetupRepository(Network.Main, dir))
-            {
-                Task task = repository.SetBlockHashAsync(new uint256(56));
-                task.Wait();
-            }
-
-            using (var engine = new DBreezeEngine(dir))
-            {
-                DBreeze.Transactions.Transaction trans = engine.GetTransaction();
-
-                Row<byte[], byte[]> blockHashKeyRow = trans.Select<byte[], byte[]>("Common", new byte[0]);
-                Assert.Equal(new uint256(56), new uint256(blockHashKeyRow.Value));
-            }
-        }
-
-        [Fact]
         public void GetAsyncWithExistingBlockReturnsBlock()
         {
             string dir = CreateTestDir(this);
-            Block block = Network.Main.Consensus.ConsensusFactory.CreateBlock();
+            Block block = this.Network.Consensus.ConsensusFactory.CreateBlock();
 
             using (var engine = new DBreezeEngine(dir))
             {
@@ -334,9 +308,9 @@ namespace Stratis.Bitcoin.Features.BlockStore.Tests
                 transaction.Commit();
             }
 
-            using (IBlockRepository repository = this.SetupRepository(Network.Main, dir))
+            using (IBlockRepository repository = this.SetupRepository(this.Network, dir))
             {
-                Task<Block> task = repository.GetAsync(block.GetHash());
+                Task<Block> task = repository.GetBlockAsync(block.GetHash());
                 task.Wait();
 
                 Assert.Equal(block.GetHash(), task.Result.GetHash());
@@ -349,10 +323,10 @@ namespace Stratis.Bitcoin.Features.BlockStore.Tests
             string dir = CreateTestDir(this);
             var blocks = new Block[10];
 
-            blocks[0] = Network.Main.Consensus.ConsensusFactory.CreateBlock();
+            blocks[0] = this.Network.Consensus.ConsensusFactory.CreateBlock();
             for (int i = 1; i < blocks.Length; i++)
             {
-                blocks[i] = Network.Main.Consensus.ConsensusFactory.CreateBlock();
+                blocks[i] = this.Network.Consensus.ConsensusFactory.CreateBlock();
                 blocks[i].Header.HashPrevBlock = blocks[i - 1].Header.GetHash();
             }
 
@@ -364,7 +338,7 @@ namespace Stratis.Bitcoin.Features.BlockStore.Tests
                 transaction.Commit();
             }
 
-            using (IBlockRepository repository = this.SetupRepository(Network.Main, dir))
+            using (IBlockRepository repository = this.SetupRepository(this.Network, dir))
             {
                 Task<List<Block>> task = repository.GetBlocksAsync(blocks.Select(b => b.GetHash()).ToList());
                 task.Wait();
@@ -380,9 +354,9 @@ namespace Stratis.Bitcoin.Features.BlockStore.Tests
         {
             string dir = CreateTestDir(this);
 
-            using (IBlockRepository repository = this.SetupRepository(Network.Main, dir))
+            using (IBlockRepository repository = this.SetupRepository(this.Network, dir))
             {
-                Task<Block> task = repository.GetAsync(new uint256());
+                Task<Block> task = repository.GetBlockAsync(new uint256());
                 task.Wait();
 
                 Assert.Null(task.Result);
@@ -393,7 +367,7 @@ namespace Stratis.Bitcoin.Features.BlockStore.Tests
         public void ExistAsyncWithExistingBlockReturnsTrue()
         {
             string dir = CreateTestDir(this);
-            Block block = Network.Main.Consensus.ConsensusFactory.CreateBlock();
+            Block block = this.Network.Consensus.ConsensusFactory.CreateBlock();
 
             using (var engine = new DBreezeEngine(dir))
             {
@@ -402,7 +376,7 @@ namespace Stratis.Bitcoin.Features.BlockStore.Tests
                 transaction.Commit();
             }
 
-            using (IBlockRepository repository = this.SetupRepository(Network.Main, dir))
+            using (IBlockRepository repository = this.SetupRepository(this.Network, dir))
             {
                 Task<bool> task = repository.ExistAsync(block.GetHash());
                 task.Wait();
@@ -416,7 +390,7 @@ namespace Stratis.Bitcoin.Features.BlockStore.Tests
         {
             string dir = CreateTestDir(this);
 
-            using (IBlockRepository repository = this.SetupRepository(Network.Main, dir))
+            using (IBlockRepository repository = this.SetupRepository(this.Network, dir))
             {
                 Task<bool> task = repository.ExistAsync(new uint256());
                 task.Wait();
@@ -429,8 +403,8 @@ namespace Stratis.Bitcoin.Features.BlockStore.Tests
         public void DeleteAsyncRemovesBlocksAndTransactions()
         {
             string dir = CreateTestDir(this);
-            Block block = Network.Main.Consensus.ConsensusFactory.CreateBlock();
-            block.Transactions.Add(Network.Main.CreateTransaction());
+            Block block = this.Network.CreateBlock();
+            block.Transactions.Add(this.Network.CreateTransaction());
 
             using (var engine = new DBreezeEngine(dir))
             {
@@ -441,9 +415,11 @@ namespace Stratis.Bitcoin.Features.BlockStore.Tests
                 transaction.Commit();
             }
 
-            using (IBlockRepository repository = this.SetupRepository(Network.Main, dir))
+            var tip = new HashHeightPair(new uint256(45), 100);
+
+            using (IBlockRepository repository = this.SetupRepository(this.Network, dir))
             {
-                Task task = repository.DeleteAsync(new uint256(45), new List<uint256> { block.GetHash() });
+                Task task = repository.DeleteAsync(tip, new List<uint256> { block.GetHash() });
                 task.Wait();
             }
 
@@ -451,12 +427,100 @@ namespace Stratis.Bitcoin.Features.BlockStore.Tests
             {
                 DBreeze.Transactions.Transaction trans = engine.GetTransaction();
 
-                Row<byte[], uint256> blockHashKeyRow = trans.Select<byte[], uint256>("Common", new byte[0]);
+                Row<byte[], HashHeightPair> blockHashKeyRow = trans.Select<byte[], HashHeightPair>("Common", new byte[0]);
                 Dictionary<byte[], byte[]> blockDict = trans.SelectDictionary<byte[], byte[]>("Block");
                 Dictionary<byte[], byte[]> transDict = trans.SelectDictionary<byte[], byte[]>("Transaction");
 
-                Assert.Equal(new uint256(45), blockHashKeyRow.Value);
+                Assert.Equal(tip, blockHashKeyRow.Value);
                 Assert.Empty(blockDict);
+                Assert.Empty(transDict);
+            }
+        }
+
+        [Fact]
+        public void ReIndexAsync_TxIndex_OffToOn()
+        {
+            string dir = CreateTestDir(this);
+            Block block = this.Network.CreateBlock();
+            Transaction transaction = this.Network.CreateTransaction();
+            block.Transactions.Add(transaction);
+
+            // Set up database to mimic that created when TxIndex was off. No transactions stored.
+            using (var engine = new DBreezeEngine(dir))
+            {
+                DBreeze.Transactions.Transaction dbreezeTransaction = engine.GetTransaction();
+                dbreezeTransaction.Insert<byte[], byte[]>("Block", block.GetHash().ToBytes(), block.ToBytes());
+                dbreezeTransaction.Commit();
+            }
+
+            // Turn TxIndex on and then reindex database, as would happen on node startup if -txindex and -reindex are set.
+            using (IBlockRepository repository = this.SetupRepository(this.Network, dir))
+            {
+                Task setIndexTask = repository.SetTxIndexAsync(true);
+                setIndexTask.Wait();
+
+                Task reindexTask = repository.ReIndexAsync();
+                reindexTask.Wait();
+            }
+
+            // Check that after indexing database, the transaction inside the block is now indexed.
+            using (var engine = new DBreezeEngine(dir))
+            {
+                DBreeze.Transactions.Transaction dbreezeTransaction = engine.GetTransaction();
+                Dictionary<byte[], Block> blockDict = dbreezeTransaction.SelectDictionary<byte[], Block>("Block");
+                Dictionary<byte[], byte[]> transDict = dbreezeTransaction.SelectDictionary<byte[], byte[]>("Transaction");
+
+                // Block stored as expected.
+                Assert.Single(blockDict);
+                Assert.Equal(block.GetHash(), blockDict.FirstOrDefault().Value.GetHash());
+
+                // Transaction row in database stored as expected.
+                Assert.Single(transDict);
+                KeyValuePair<byte[], byte[]> savedTransactionRow = transDict.FirstOrDefault();
+                Assert.Equal(transaction.GetHash().ToBytes(), savedTransactionRow.Key);
+                Assert.Equal(block.GetHash().ToBytes(), savedTransactionRow.Value);
+            }
+        }
+
+        [Fact]
+        public void ReIndexAsync_TxIndex_OnToOff()
+        {
+            string dir = CreateTestDir(this);
+            Block block = this.Network.CreateBlock();
+            Transaction transaction = this.Network.CreateTransaction();
+            block.Transactions.Add(transaction);
+
+            // Set up database to mimic that created when TxIndex was on. Transaction from block is stored.
+            using (var engine = new DBreezeEngine(dir))
+            {
+                DBreeze.Transactions.Transaction dbreezeTransaction = engine.GetTransaction();
+                dbreezeTransaction.Insert<byte[], byte[]>("Block", block.GetHash().ToBytes(), block.ToBytes());
+                dbreezeTransaction.Insert<byte[], byte[]>("Transaction", transaction.GetHash().ToBytes(), block.GetHash().ToBytes());
+                dbreezeTransaction.Commit();
+            }
+
+            // Turn TxIndex off and then reindex database, as would happen on node startup if -txindex=0 and -reindex are set.
+            using (IBlockRepository repository = this.SetupRepository(this.Network, dir))
+            {
+                Task setIndexTask = repository.SetTxIndexAsync(false);
+                setIndexTask.Wait();
+
+                Task reindexTask = repository.ReIndexAsync();
+                reindexTask.Wait();
+            }
+
+            // Check that after indexing database, the transaction is no longer stored.
+            using (var engine = new DBreezeEngine(dir))
+            {
+                DBreeze.Transactions.Transaction dbreezeTransaction = engine.GetTransaction();
+                Dictionary<byte[], Block> blockDict = dbreezeTransaction.SelectDictionary<byte[], Block>("Block");
+                Dictionary<byte[], byte[]> transDict = dbreezeTransaction.SelectDictionary<byte[], byte[]>("Transaction");
+
+                // Block still stored as expected.
+                Assert.Single(blockDict);
+                Assert.Equal(block.GetHash(), blockDict.FirstOrDefault().Value.GetHash());
+
+                // No transactions indexed.
                 Assert.Empty(transDict);
             }
         }

@@ -1,110 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
 using NBitcoin;
 using NBitcoin.Protocol;
-using Stratis.Bitcoin.Base;
+using NLog;
 using Stratis.Bitcoin.Builder;
-using Stratis.Bitcoin.Configuration;
 using Stratis.Bitcoin.Features.BlockStore;
 using Stratis.Bitcoin.Features.Consensus;
-using Stratis.Bitcoin.Features.Consensus.CoinViews;
-using Stratis.Bitcoin.Features.Consensus.Interfaces;
 using Stratis.Bitcoin.Features.MemoryPool;
 using Stratis.Bitcoin.Features.Miner;
 using Stratis.Bitcoin.Features.RPC;
 using Stratis.Bitcoin.Features.Wallet;
-using Stratis.Bitcoin.Features.Wallet.Interfaces;
 using Stratis.Bitcoin.IntegrationTests.Common.Runners;
 using Stratis.Bitcoin.Tests.Common;
 
 namespace Stratis.Bitcoin.IntegrationTests.Common.EnvironmentMockUpHelpers
 {
-    public static class FullNodeExt
-    {
-        public static WalletManager WalletManager(this FullNode fullNode)
-        {
-            return fullNode.NodeService<IWalletManager>() as WalletManager;
-        }
-
-        public static WalletTransactionHandler WalletTransactionHandler(this FullNode fullNode)
-        {
-            return fullNode.NodeService<IWalletTransactionHandler>() as WalletTransactionHandler;
-        }
-
-        public static ConsensusLoop ConsensusLoop(this FullNode fullNode)
-        {
-            return fullNode.NodeService<IConsensusLoop>() as ConsensusLoop;
-        }
-
-        public static CoinView CoinView(this FullNode fullNode)
-        {
-            return fullNode.NodeService<CoinView>();
-        }
-
-        public static MempoolManager MempoolManager(this FullNode fullNode)
-        {
-            return fullNode.NodeService<MempoolManager>();
-        }
-
-        public static BlockStoreManager BlockStoreManager(this FullNode fullNode)
-        {
-            return fullNode.NodeService<BlockStoreManager>();
-        }
-
-        public static ChainedHeader GetBlockStoreTip(this FullNode fullNode)
-        {
-            return fullNode.NodeService<IChainState>().BlockStoreTip;
-        }
-    }
-
-    public enum CoreNodeState
-    {
-        Stopped,
-        Starting,
-        Running,
-        Killed
-    }
-
-    public class NodeConfigParameters : Dictionary<string, string>
-    {
-        public void Import(NodeConfigParameters configParameters)
-        {
-            foreach (KeyValuePair<string, string> kv in configParameters)
-            {
-                if (!this.ContainsKey(kv.Key))
-                    this.Add(kv.Key, kv.Value);
-            }
-        }
-
-        public override string ToString()
-        {
-            var builder = new StringBuilder();
-            foreach (KeyValuePair<string, string> kv in this)
-                builder.AppendLine(kv.Key + "=" + kv.Value);
-            return builder.ToString();
-        }
-    }
-
     public class NodeBuilder : IDisposable
     {
         public List<CoreNode> Nodes { get; }
 
         public NodeConfigParameters ConfigParameters { get; }
 
-        private int lastDataFolderIndex;
-
-        private string rootFolder;
+        private readonly string rootFolder;
 
         public NodeBuilder(string rootFolder)
         {
-            this.lastDataFolderIndex = 0;
             this.Nodes = new List<CoreNode>();
             this.ConfigParameters = new NodeConfigParameters();
 
@@ -113,16 +37,26 @@ namespace Stratis.Bitcoin.IntegrationTests.Common.EnvironmentMockUpHelpers
 
         public static NodeBuilder Create(object caller, [CallerMemberName] string callingMethod = null)
         {
-            KillAnyBitcoinInstances();
             string testFolderPath = TestBase.CreateTestDir(caller, callingMethod);
-            return new NodeBuilder(testFolderPath);
+            return CreateNodeBuilder(testFolderPath);
         }
 
         public static NodeBuilder Create(string testDirectory)
         {
-            KillAnyBitcoinInstances();
             string testFolderPath = TestBase.CreateTestDir(testDirectory);
-            return new NodeBuilder(testFolderPath);
+            return CreateNodeBuilder(testFolderPath);
+        }
+
+        /// <summary>
+        /// Creates a node builder instance and disable logs.
+        /// To enable logs please refer to the <see cref="WithLogsEnabled"/> method.
+        /// </summary>
+        /// <param name="testFolderPath">The test folder path.</param>
+        /// <returns>A <see cref="NodeBuilder"/> instance with logs disabled.</returns>
+        private static NodeBuilder CreateNodeBuilder(string testFolderPath)
+        {
+            return new NodeBuilder(testFolderPath)
+                .WithLogsDisabled();
         }
 
         private static string GetBitcoinCorePath(string version)
@@ -130,11 +64,11 @@ namespace Stratis.Bitcoin.IntegrationTests.Common.EnvironmentMockUpHelpers
             string path;
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                path = $"../../../../External Libs/Bitcoin Core/{version}/Windows/bitcoind.exe";
+                path = $"../../../../External libs/Bitcoin Core/{version}/Windows/bitcoind.exe";
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                path = $"../../../../External Libs/Bitcoin Core/{version}/Linux/bitcoind";
+                path = $"../../../../External libs/Bitcoin Core/{version}/Linux/bitcoind";
             else
-                path = $"../../../../External Libs/Bitcoin Core/{version}/OSX/bitcoind";
+                path = $"../../../../External libs/Bitcoin Core/{version}/OSX/bitcoind";
 
             if (File.Exists(path))
                 return path;
@@ -142,93 +76,120 @@ namespace Stratis.Bitcoin.IntegrationTests.Common.EnvironmentMockUpHelpers
             throw new FileNotFoundException($"Could not load the file {path}.");
         }
 
-        private CoreNode CreateNode(NodeRunner runner, bool start, string configFile = "bitcoin.conf")
+        private static string GetStratisXPath(string version)
         {
-            var node = new CoreNode(runner, this, configFile);
+            string path;
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                path = $"../../../../External libs/StratisX/{version}/Windows/stratisd.exe";
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                path = $"../../../../External libs/StratisX/{version}/Linux/stratisd";
+            else
+                path = $"../../../../External libs/StratisX/{version}/OSX/stratisd";
+
+            if (File.Exists(path))
+                return path;
+
+            throw new FileNotFoundException($"Could not load the file {path}.");
+        }
+
+        protected CoreNode CreateNode(NodeRunner runner, string configFile = "bitcoin.conf", bool useCookieAuth = false)
+        {
+            var node = new CoreNode(runner, this.ConfigParameters, configFile, useCookieAuth);
             this.Nodes.Add(node);
-            if (start) node.Start();
             return node;
         }
 
-        public CoreNode CreateBitcoinCoreNode(string version = "0.13.1")
+        public CoreNode CreateBitcoinCoreNode(string version = "0.13.1", bool useCookieAuth = false)
         {
             string bitcoinDPath = GetBitcoinCorePath(version);
-            return CreateNode(new BitcoinCoreRunner(this.GetNextDataFolderName(), bitcoinDPath), false);
+            return CreateNode(new BitcoinCoreRunner(this.GetNextDataFolderName(), bitcoinDPath), useCookieAuth: useCookieAuth);
         }
 
-        public CoreNode CreateStratisPowNode(bool start = false)
+        public CoreNode CreateStratisXNode(string version = "2.0.0.5", bool useCookieAuth = false)
         {
-            return CreateNode(new StratisBitcoinPowRunner(this.GetNextDataFolderName()), start);
+            string stratisDPath = GetStratisXPath(version);
+            return CreateNode(new StratisXRunner(this.GetNextDataFolderName(), stratisDPath), "stratis.conf", useCookieAuth);
         }
 
-        public CoreNode CreateStratisCustomPowNode(IEnumerable<string> args, bool start = false)
+        /// <summary>
+        /// Creates a Stratis Proof-of-Work node.
+        /// <para>
+        /// <see cref="P2P.PeerDiscovery"/> and <see cref="P2P.PeerConnectorDiscovery"/> are disabled by default.
+        /// </para>
+        /// </summary>
+        /// <param name="network">The network the node will run on.</param>
+        /// <param name="agent">Overrides the node's agent prefix.</param>
+        /// <returns>The constructed PoW node.</returns>
+        public CoreNode CreateStratisPowNode(Network network, string agent = null)
         {
-            var callback = new Action<IFullNodeBuilder>( builder => builder
-                .UseBlockStore()
-                .UsePowConsensus()
-                .UseMempool()
-                .AddMining()
-                .UseWallet()
-                .AddRPC()
-                .MockIBD());
-
-            return CreateCustomNode(start, callback, Network.RegTest, ProtocolVersion.PROTOCOL_VERSION, args);
+            return CreateNode(new StratisBitcoinPowRunner(this.GetNextDataFolderName(), network, agent));
         }
 
-        public CoreNode CreateStratisPosNode()
+        public CoreNode CreateStratisCustomPowNode(Network network, NodeConfigParameters configParameters)
         {
-            return CreateNode(new StratisBitcoinPosRunner(this.GetNextDataFolderName()), false, "stratis.conf");
+            var callback = new Action<IFullNodeBuilder>(builder => builder
+               .UseBlockStore()
+               .UsePowConsensus()
+               .UseMempool()
+               .AddMining()
+               .UseWallet()
+               .AddRPC()
+               .UseTestChainedHeaderTree()
+               .MockIBD());
+
+            return CreateCustomNode(callback, network, ProtocolVersion.PROTOCOL_VERSION, configParameters: configParameters);
         }
 
-        public CoreNode CreateStratisPosApiNode()
+        /// <summary>
+        /// Creates a Stratis Proof-of-Stake node.
+        /// <para>
+        /// <see cref="P2P.PeerDiscovery"/> and <see cref="P2P.PeerConnectorDiscovery"/> are disabled by default.
+        /// </para>
+        /// </summary>
+        /// <returns>The constructed PoS node.</returns>
+        public CoreNode CreateStratisPosNode(Network network, string agent = "StratisBitcoin")
         {
-            return CreateNode(new StratisPosApiRunner(this.GetNextDataFolderName()), false, "stratis.conf");
+            return CreateNode(new StratisBitcoinPosRunner(this.GetNextDataFolderName(), network, agent), "stratis.conf");
         }
 
-        public CoreNode CloneStratisNode(CoreNode cloneNode)
+        public CoreNode CloneStratisNode(CoreNode cloneNode, string agent = "StratisBitcoin")
         {
-            var node = new CoreNode(new StratisBitcoinPowRunner(cloneNode.FullNode.Settings.DataFolder.RootPath), this, "bitcoin.conf");
+            var node = new CoreNode(new StratisBitcoinPowRunner(cloneNode.FullNode.Settings.DataFolder.RootPath, cloneNode.FullNode.Network, agent), this.ConfigParameters, "bitcoin.conf");
             this.Nodes.Add(node);
             this.Nodes.Remove(cloneNode);
             return node;
         }
 
         /// <summary>A helper method to create a node instance with a non-standard set of features enabled. The node can be PoW or PoS, as long as the appropriate features are provided.</summary>
-        /// <param name="dataDir">The node's data directory where downloaded chain data gets stored.</param>
         /// <param name="callback">A callback accepting an instance of <see cref="IFullNodeBuilder"/> that constructs a node with a custom feature set.</param>
         /// <param name="network">The network the node will be running on.</param>
         /// <param name="protocolVersion">Use <see cref="ProtocolVersion.PROTOCOL_VERSION"/> for BTC PoW-like networks and <see cref="ProtocolVersion.ALT_PROTOCOL_VERSION"/> for Stratis PoS-like networks.</param>
-        /// <param name="configFileName">The name for the node's configuration file.</param>
         /// <param name="agent">A user agent string to distinguish different node versions from each other.</param>
-        public CoreNode CreateCustomNode(bool start, Action<IFullNodeBuilder> callback, Network network, ProtocolVersion protocolVersion = ProtocolVersion.PROTOCOL_VERSION, IEnumerable<string> args = null, string agent = "Custom")
+        /// <param name="configParameters">Use this to pass in any custom configuration parameters used to set up the CoreNode</param>
+        public CoreNode CreateCustomNode(Action<IFullNodeBuilder> callback, Network network, ProtocolVersion protocolVersion = ProtocolVersion.PROTOCOL_VERSION, string agent = "Custom", NodeConfigParameters configParameters = null, ProtocolVersion minProtocolVersion = ProtocolVersion.PROTOCOL_VERSION)
         {
-            var argsList = args as List<string> ?? args?.ToList() ?? new List<string>();
+            configParameters = configParameters ?? new NodeConfigParameters();
 
-            string configFileName = "custom.conf";
-            if (!argsList.Any(a => a.StartsWith("-conf="))) argsList.Add($"-conf={configFileName}");
-            else configFileName = argsList.First(a => a.StartsWith("-conf=")).Replace("-conf=", "");
+            configParameters.SetDefaultValueIfUndefined("conf", "custom.conf");
+            string configFileName = configParameters["conf"];
 
-            string dataDir = this.GetNextDataFolderName(agent);
-            if (!argsList.Any(a => a.StartsWith("-datadir="))) argsList.Add($"-datadir={dataDir}");
+            configParameters.SetDefaultValueIfUndefined("datadir", this.GetNextDataFolderName(agent));
+            string dataDir = configParameters["datadir"];
 
-            return CreateNode(new CustomNodeRunner(dataDir, callback, network, protocolVersion, argsList, agent), start, configFileName);
+            configParameters.ToList().ForEach(p => this.ConfigParameters[p.Key] = p.Value);
+            return CreateNode(new CustomNodeRunner(dataDir, callback, network, protocolVersion, configParameters, agent, minProtocolVersion), configFileName);
         }
 
-        private string GetNextDataFolderName(string folderName = null)
+        protected string GetNextDataFolderName(string folderName = null)
         {
-            var numberedFolderName = string.Join(".",
-                new[] { this.lastDataFolderIndex.ToString(), folderName }.Where(s => s != null));
+            string hash = Guid.NewGuid().ToString("N").Substring(0, 7);
+            string numberedFolderName = string.Join(
+                ".",
+                new[] { hash, folderName }.Where(s => s != null));
             string dataFolderName = Path.Combine(this.rootFolder, numberedFolderName);
-            this.lastDataFolderIndex++;
-            return dataFolderName;
-        }
 
-        public void StartAll()
-        {
-            foreach (CoreNode node in this.Nodes.Where(n => n.State == CoreNodeState.Stopped))
-            {
-                node.Start();
-            }
+            return dataFolderName;
         }
 
         public void Dispose()
@@ -236,24 +197,57 @@ namespace Stratis.Bitcoin.IntegrationTests.Common.EnvironmentMockUpHelpers
             foreach (CoreNode node in this.Nodes)
                 node.Kill();
 
-            KillAnyBitcoinInstances();
+            // Logs are static so clear them after every run.
+            LogManager.Configuration.LoggingRules.Clear();
+            LogManager.ReconfigExistingLoggers();
         }
 
-        internal static void KillAnyBitcoinInstances()
+        /// <summary>
+        /// By default, logs are disabled when using <see cref="Create(string)"/> or <see cref="Create(object, string)"/> methods,
+        /// by using this fluent method the caller can enable the logs at will.
+        /// </summary>
+        /// <returns>Current <see cref="NodeBuilder"/> instance, used for fluent API style</returns>
+        /// <example>
+        /// //default use (without logs)
+        /// using (NodeBuilder builder = NodeBuilder.Create(this))
+        /// {
+        ///     //your test code here
+        /// }
+        ///
+        /// //with logs enabled
+        /// using (NodeBuilder builder = NodeBuilder.Create(this).WithLogsEnabled())
+        /// {
+        ///     //your test code here
+        /// }
+        /// </example>
+        public NodeBuilder WithLogsEnabled()
         {
-            while (true)
+            // NLog Enable/Disable logging is based on internal counter. To ensure logs are enabled
+            // keep calling EnableLogging until IsLoggingEnabled returns true.
+            while (!LogManager.IsLoggingEnabled())
             {
-                Process[] bitcoinDProcesses = Process.GetProcessesByName("bitcoind");
-                IEnumerable<Process> applicableBitcoinDProcesses = bitcoinDProcesses.Where(b => b.MainModule.FileName.Contains("External Libs"));
-                if (!applicableBitcoinDProcesses.Any())
-                    break;
-
-                foreach (Process process in applicableBitcoinDProcesses)
-                {
-                    process.Kill();
-                    Thread.Sleep(1000);
-                }
+                LogManager.EnableLogging();
             }
+
+            return this;
+        }
+
+        /// <summary>
+        /// If logs have been enabled by calling WithLogsEnabled you can disable it manually by calling this method.
+        /// If the test is running within an "using block" where the nodebuilder is created, without using <see cref="WithLogsEnabled"/>,
+        /// you shouldn't need to call this method.
+        /// </summary>
+        /// <returns>Current <see cref="NodeBuilder"/> instance, used for fluent API style.</returns>
+        public NodeBuilder WithLogsDisabled()
+        {
+            // NLog Enable/Disable logging is based on internal counter. To ensure logs are disabled
+            // keep calling DisableLogging until IsLoggingEnabled returns false.
+            while (LogManager.IsLoggingEnabled())
+            {
+                LogManager.DisableLogging();
+            }
+
+            return this;
         }
     }
 }

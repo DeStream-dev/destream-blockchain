@@ -6,6 +6,7 @@ using DBreeze.DataTypes;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
 using Stratis.Bitcoin.Base;
+using Stratis.Bitcoin.Networks;
 using Stratis.Bitcoin.Tests.Common;
 using Xunit;
 
@@ -13,52 +14,15 @@ namespace Stratis.Bitcoin.Tests.Base
 {
     public class ChainRepositoryTest : TestBase
     {
-        public ChainRepositoryTest() : base(Network.StratisRegTest)
+        public ChainRepositoryTest() : base(KnownNetworks.StratisRegTest)
         {
-        }
-
-        [Fact]
-        public async Task FinalizedHeightSavedOnDiskAsync()
-        {
-            string dir = CreateTestDir(this);
-
-            using (var repo = new ChainRepository(dir, new LoggerFactory()))
-            {
-                await repo.SaveFinalizedBlockHeightAsync(777);
-            }
-
-            using (var repo = new ChainRepository(dir, new LoggerFactory()))
-            {
-                await repo.LoadFinalizedBlockHeightAsync();
-                Assert.Equal(777, repo.GetFinalizedBlockHeight());
-            }
-        }
-
-        [Fact]
-        public async Task FinalizedHeightCantBeDecreasedAsync()
-        {
-            string dir = CreateTestDir(this);
-
-            using (var repo = new ChainRepository(dir, new LoggerFactory()))
-            {
-                await repo.SaveFinalizedBlockHeightAsync(777);
-                await repo.SaveFinalizedBlockHeightAsync(555);
-                
-                Assert.Equal(777, repo.GetFinalizedBlockHeight());
-            }
-
-            using (var repo = new ChainRepository(dir, new LoggerFactory()))
-            {
-                await repo.LoadFinalizedBlockHeightAsync();
-                Assert.Equal(777, repo.GetFinalizedBlockHeight());
-            }
         }
 
         [Fact]
         public void SaveWritesChainToDisk()
         {
             string dir = CreateTestDir(this);
-            var chain = new ConcurrentChain(Network.StratisRegTest);
+            var chain = new ConcurrentChain(KnownNetworks.StratisRegTest);
             this.AppendBlock(chain);
 
             using (var repo = new ChainRepository(dir, new LoggerFactory()))
@@ -83,7 +47,7 @@ namespace Stratis.Bitcoin.Tests.Base
         public void GetChainReturnsConcurrentChainFromDisk()
         {
             string dir = CreateTestDir(this);
-            var chain = new ConcurrentChain(Network.StratisRegTest);
+            var chain = new ConcurrentChain(KnownNetworks.StratisRegTest);
             ChainedHeader tip = this.AppendBlock(chain);
 
             using (var engine = new DBreezeEngine(dir))
@@ -108,8 +72,8 @@ namespace Stratis.Bitcoin.Tests.Base
             }
             using (var repo = new ChainRepository(dir, new LoggerFactory()))
             {
-                var testChain = new ConcurrentChain(Network.StratisRegTest);
-                repo.LoadAsync(testChain).GetAwaiter().GetResult();
+                var testChain = new ConcurrentChain(KnownNetworks.StratisRegTest);
+                testChain.SetTip(repo.LoadAsync(testChain.Genesis).GetAwaiter().GetResult());
                 Assert.Equal(tip, testChain.Tip);
             }
         }

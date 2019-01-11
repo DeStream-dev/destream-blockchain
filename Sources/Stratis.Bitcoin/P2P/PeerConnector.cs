@@ -54,7 +54,7 @@ namespace Stratis.Bitcoin.P2P
         /// <summary>
         /// Collection of connected peers that is managed by the <see cref="ConnectionManager"/>.
         /// </summary>
-        private IReadOnlyNetworkPeerCollection connectedPeers;
+        protected IConnectionManager connectionManager;
 
         /// <inheritdoc/>
         public NetworkPeerCollection ConnectorPeers { get; private set; }
@@ -96,7 +96,7 @@ namespace Stratis.Bitcoin.P2P
         private readonly TimeSpan defaultConnectionInterval;
 
         /// <summary>Burst time interval between making a connection attempt.</summary>
-        private readonly TimeSpan burstConnectionInterval;
+        protected TimeSpan burstConnectionInterval;
 
         /// <summary>Maintains a list of connected peers and ensures their proper disposal.</summary>
         private readonly NetworkPeerDisposer networkPeerDisposer;
@@ -126,7 +126,7 @@ namespace Stratis.Bitcoin.P2P
             this.peerAddressManager = peerAddressManager;
             this.networkPeerDisposer = new NetworkPeerDisposer(this.loggerFactory, this.OnPeerDisposed);
             this.selfEndpointTracker = selfEndpointTracker;
-            this.Requirements = new NetworkPeerRequirement { MinVersion = nodeSettings.ProtocolVersion };
+            this.Requirements = new NetworkPeerRequirement { MinVersion = nodeSettings.MinProtocolVersion ?? nodeSettings.ProtocolVersion };
 
             this.defaultConnectionInterval = TimeSpans.Second;
             this.burstConnectionInterval = TimeSpan.Zero;
@@ -135,10 +135,9 @@ namespace Stratis.Bitcoin.P2P
         /// <inheritdoc/>
         public void Initialize(IConnectionManager connectionManager)
         {
-            this.connectedPeers = connectionManager.ConnectedPeers;
+            this.connectionManager = connectionManager;
 
             this.CurrentParameters = connectionManager.Parameters.Clone();
-            this.CurrentParameters.TemplateBehaviors.Add(new ConnectionManagerBehavior(false, connectionManager, this.loggerFactory));
 
             this.OnInitialize();
         }
@@ -153,10 +152,10 @@ namespace Stratis.Bitcoin.P2P
         private void AddPeer(INetworkPeer peer)
         {
             Guard.NotNull(peer, nameof(peer));
-            
+
             this.ConnectorPeers.Add(peer);
 
-            if (this.asyncLoop != null && this.ConnectorPeers.Count >= this.ConnectionSettings.BurstModeTargetConnections)
+            if ((this.asyncLoop != null) && (this.ConnectorPeers.Count >= this.ConnectionSettings.BurstModeTargetConnections))
                 this.asyncLoop.RepeatEvery = this.defaultConnectionInterval;
         }
 
@@ -193,7 +192,7 @@ namespace Stratis.Bitcoin.P2P
         /// <param name="ipEndpoint">The endpoint to check.</param>
         internal bool IsPeerConnected(IPEndPoint ipEndpoint)
         {
-            return this.connectedPeers.FindByEndpoint(ipEndpoint) != null;
+            return this.connectionManager.ConnectedPeers.FindByEndpoint(ipEndpoint) != null;
         }
 
         /// <inheritdoc/>
@@ -221,12 +220,9 @@ namespace Stratis.Bitcoin.P2P
         /// <summary>Attempts to connect to a random peer.</summary>
         internal async Task ConnectAsync(PeerAddress peerAddress)
         {
-            this.logger.LogTrace("({0}:'{1}')", nameof(peerAddress), peerAddress.Endpoint);
-
             if (this.selfEndpointTracker.IsSelf(peerAddress.Endpoint))
             {
                 this.logger.LogTrace("{0} is self. Therefore not connecting.", peerAddress.Endpoint);
-                this.logger.LogTrace("(-)");
                 return;
             }
 
@@ -258,16 +254,22 @@ namespace Stratis.Bitcoin.P2P
                 else
                 {
                     this.logger.LogDebug("Peer {0} connection timeout.", peerAddress.Endpoint);
+                    peerAddress.SetHandshakeAttempted(this.dateTimeProvider.GetUtcNow());
                     peer?.Disconnect("Connection timeout");
                 }
+            }
+            catch (NBitcoin.Protocol.ProtocolException)
+            {
+                this.logger.LogDebug("Handshake rejected by peer '{0}'.", peerAddress.Endpoint);
+                peerAddress.SetHandshakeAttempted(this.dateTimeProvider.GetUtcNow());
+                peer?.Disconnect("Error while handshaking");
             }
             catch (Exception exception)
             {
                 this.logger.LogTrace("Exception occurred while connecting: {0}", exception.ToString());
+                peerAddress.SetHandshakeAttempted(this.dateTimeProvider.GetUtcNow());
                 peer?.Disconnect("Error while connecting", exception);
             }
-
-            this.logger.LogTrace("(-)");
         }
 
         /// <summary>

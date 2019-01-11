@@ -31,36 +31,13 @@ namespace Stratis.Bitcoin.Utilities
         }
 
         /// <summary>
-        /// Determines whether this network is a Stratis-network.
-        /// </summary>
-        /// <param name="network">The network.</param>
-        /// <returns><c>true</c> if the specified network is Stratis, <c>false</c> otherwise.</returns>
-        public static bool IsStratis(this Network network)
-        {
-            return network.Name.ToLowerInvariant().Contains("stratis");
-        }
-
-
-        /// <summary>
-        /// Determines whether this network is a DeStream-network.
-        /// </summary>
-        /// <param name="network">The network.</param>
-        /// <returns><c>true</c> if the specified network is DeStream, <c>false</c> otherwise.</returns>
-        public static bool IsDeStream(this Network network)
-        {
-            return network.Name.ToLowerInvariant().Contains("destream");
-        }
-
-        /// <summary>
         /// Determines whether this network is a bitcoin network.
         /// </summary>
         /// <param name="network">The network.</param>
         /// <returns><c>true</c> if the specified network is bitcoin, <c>false</c> otherwise.</returns>
         public static bool IsBitcoin(this Network network)
         {
-            //return !(new string[] { "stratis", "destream" }.Any(s => network.Name.ToLowerInvariant().Contains(s)));
-
-            return !IsStratis(network) && !IsDeStream(network);
+            return !network.Name.ToLowerInvariant().Contains("stratis");
         }
     }
 }

@@ -97,11 +97,14 @@ namespace Stratis.Bitcoin.Configuration
         /// <param name="value">Argument value.</param>
         private void Add(string key, string value)
         {
+            key = key.ToLowerInvariant();
+
             if (!this.args.TryGetValue(key, out List<string> list))
             {
                 list = new List<string>();
                 this.args.Add(key, list);
             }
+
             list.Add(value);
         }
 
@@ -126,11 +129,13 @@ namespace Stratis.Bitcoin.Configuration
         /// <returns>Values for the specified argument.</returns>
         public string[] GetAll(string key, ILogger logger = null)
         {
+            key = key.ToLowerInvariant();
+
             // Get the values with the - prefix.
             if (!this.args.TryGetValue($"-{key}", out List<string> values))
                 values = new List<string>();
 
-            logger?.LogDebug("{0} entries were returned for the key '{1}': {2}", 
+            logger?.LogDebug("{0} entries were returned for the key '{1}': {2}",
                 values.Count, key, string.Join(",", values.Select(str => $"'{str}'")));
 
             return values.ToArray();
@@ -146,6 +151,8 @@ namespace Stratis.Bitcoin.Configuration
         /// <returns>Value of the argument or a default value if no value was set.</returns>
         public T GetOrDefault<T>(string key, T defaultValue, ILogger logger = null)
         {
+            key = key.ToLowerInvariant();
+
             if (!this.args.TryGetValue($"-{key}", out List<string> values))
             {
                 logger?.LogDebug("Default value '{0}' was selected for the key '{1}'.", defaultValue, key);
@@ -196,6 +203,11 @@ namespace Stratis.Bitcoin.Configuration
             if (typeof(T) == typeof(int))
             {
                 return (T)(object)int.Parse(str, CultureInfo.InvariantCulture);
+            }
+
+            if (typeof(T) == typeof(ulong))
+            {
+                return (T)(object)ulong.Parse(str, CultureInfo.InvariantCulture);
             }
 
             if (typeof(T) == typeof(Uri))

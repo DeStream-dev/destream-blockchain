@@ -60,8 +60,6 @@ namespace Stratis.Bitcoin.P2P
 
         public override async Task OnConnectAsync()
         {
-            this.logger.LogTrace("()");
-
             int peerSelectionFailed = 0;
 
             PeerAddress peer = null;
@@ -122,17 +120,48 @@ namespace Stratis.Bitcoin.P2P
                 break;
             }
 
-            //If the peer selector returns nothing, we wait 2 seconds to
-            //effectively override the connector's burst mode.
+            // If the peer selector returns nothing, we wait 2 seconds to
+            // effectively override the connector's burst mode.
             if (peer == null)
             {
-                this.logger.LogTrace("Peer selection failed, executing selection delay...");
+                this.logger.LogTrace("Peer selection failed, executing selection delay.");
                 await Task.Delay(2000, this.nodeLifetime.ApplicationStopping).ConfigureAwait(false);
             }
             else
-                await this.ConnectAsync(peer).ConfigureAwait(false);
+            {
+                // Connect if local, ip range filtering disabled or ip range filtering enabled and peer in a different group.
+                if (peer.Endpoint.Address.IsRoutable(false) && this.ConnectionSettings.IpRangeFiltering && this.PeerIsPartOfExistingGroup(peer))
+                {
+                    this.logger.LogTrace("(-)[RANGE_FILTERED]");
+                    return;
+                }
 
-            this.logger.LogTrace("(-)");
+                await this.ConnectAsync(peer).ConfigureAwait(false);
+            }
+        }
+
+        private bool PeerIsPartOfExistingGroup(PeerAddress peerAddress)
+        {
+            if (this.connectionManager.ConnectedPeers == null)
+            {
+                this.logger.LogTrace("(-)[NO_CONNECTED_PEERS]:false");
+                return false;
+            }
+
+            byte[] peerAddressGroup = peerAddress.Endpoint.MapToIpv6().Address.GetGroup();
+
+            foreach (INetworkPeer endPoint in this.connectionManager.ConnectedPeers.ToList())
+            {
+                byte[] endPointGroup = endPoint.PeerEndPoint.MapToIpv6().Address.GetGroup();
+                if (endPointGroup.SequenceEqual(peerAddressGroup))
+                {
+                    this.logger.LogTrace("(-)[SAME_GROUP]:true");
+                    return true;
+                }
+            }
+
+            this.logger.LogTrace("(-):false");
+            return false;
         }
     }
 }

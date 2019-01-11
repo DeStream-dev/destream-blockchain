@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using NBitcoin;
+using NBitcoin.BuilderExtensions;
 
 namespace Stratis.Bitcoin.Features.Wallet.Interfaces
 {
@@ -32,6 +33,24 @@ namespace Stratis.Bitcoin.Features.Wallet.Interfaces
         IEnumerable<UnspentOutputReference> GetSpendableTransactionsInWallet(string walletName, int confirmations = 0);
 
         /// <summary>
+        /// Lists all spendable transactions from the accounts in the wallet participating in staking.
+        /// </summary>
+        /// <returns>A collection of spendable outputs</returns>
+        IEnumerable<UnspentOutputReference> GetSpendableTransactionsInWalletForStaking(string walletName, int confirmations = 0);
+
+        /// <summary>
+        /// Helps identify UTXO's that can participate in staking.
+        /// </summary>
+        /// <returns>A dictionary containing string and template pairs - e.g. { "P2PK", PayToPubkeyTemplate.Instance }</returns>
+        Dictionary<string, ScriptTemplate> GetValidStakingTemplates();
+
+        /// <summary>
+        /// Returns additional transaction builder extensions to use for building staking transactions.
+        /// </summary>
+        /// <returns>Transaction builder extensions to use for building staking transactions.</returns>
+        IEnumerable<BuilderExtension> GetTransactionBuilderExtensionsForStaking();
+
+        /// <summary>
         /// Lists all spendable transactions from the account specified in <see cref="WalletAccountReference"/>.
         /// </summary>
         /// <returns>A collection of spendable outputs that belong to the given account.</returns>
@@ -45,7 +64,7 @@ namespace Stratis.Bitcoin.Features.Wallet.Interfaces
         /// <param name="passphrase">The passphrase used in the seed.</param>
         /// <param name="mnemonic">The user's mnemonic for the wallet.</param>
         /// <returns>A mnemonic defining the wallet's seed used to generate addresses.</returns>
-        Mnemonic CreateWallet(string password, string name, string passphrase = null, string mnemonic = null);
+        Mnemonic CreateWallet(string password, string name, string passphrase = null, Mnemonic mnemonic = null);
 
         /// <summary>
         /// Loads a wallet from a file.
@@ -56,7 +75,7 @@ namespace Stratis.Bitcoin.Features.Wallet.Interfaces
         Wallet LoadWallet(string password, string name);
 
         /// <summary>
-        /// Recovers a wallet.
+        /// Recovers a wallet using mnemonic and password.
         /// </summary>
         /// <param name="password">The user's password.</param>
         /// <param name="name">The name of the wallet.</param>
@@ -65,6 +84,16 @@ namespace Stratis.Bitcoin.Features.Wallet.Interfaces
         /// <param name="creationTime">The date and time this wallet was created.</param>
         /// <returns>The recovered wallet.</returns>
         Wallet RecoverWallet(string password, string name, string mnemonic, DateTime creationTime, string passphrase = null);
+
+        /// <summary>
+        /// Recovers a wallet using extended public key and account index.
+        /// </summary>
+        /// <param name="name">The name of the wallet.</param>
+        /// <param name="extPubKey">The extended public key.</param>
+        /// <param name="accountIndex">The account number.</param>
+        /// <param name="creationTime">The date and time this wallet was created.</param>
+        /// <returns></returns>
+        Wallet RecoverWallet(string name, ExtPubKey extPubKey, int accountIndex, DateTime creationTime);
 
         /// <summary>
         /// Deletes a wallet.
@@ -240,7 +269,7 @@ namespace Stratis.Bitcoin.Features.Wallet.Interfaces
         /// </summary>
         /// <returns></returns>
         ICollection<uint256> GetFirstWalletBlockLocator();
-        
+
         /// <summary>
         /// Gets the list of the wallet filenames, along with the folder in which they're contained.
         /// </summary>
@@ -278,7 +307,7 @@ namespace Stratis.Bitcoin.Features.Wallet.Interfaces
         /// <param name="walletName">The name of the wallet to remove transactions from.</param>
         /// <param name="transactionsIds">The IDs of transactions to remove.</param>
         /// <returns>A list of objects made up of a transactions ID along with the time at which they were created.</returns>
-        HashSet<(uint256, DateTimeOffset)> RemoveTransactionsByIds(string walletName, IEnumerable<uint256> transactionsIds);
+        HashSet<(uint256, DateTimeOffset)> RemoveTransactionsByIdsLocked(string walletName, IEnumerable<uint256> transactionsIds);
 
         /// <summary>
         /// Removes all the transactions from the wallet and persist it.

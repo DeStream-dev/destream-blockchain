@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Collections.Generic;
+using System.Net;
 using Microsoft.Extensions.Logging;
 using Stratis.Bitcoin.Configuration.Settings;
 using Stratis.Bitcoin.P2P;
@@ -24,6 +25,14 @@ namespace Stratis.Bitcoin.Connection
         void BanAndDisconnectPeer(IPEndPoint endpoint, int banTimeSeconds, string reason = null);
 
         /// <summary>
+        /// Bans and disconnects the peer using the connection manager's default ban interval.
+        /// This allows features to depend solely on the peer banning interface and not the connection manager directly.
+        /// </summary>
+        /// <param name="endpoint">The endpoint to set that it was banned.</param>
+        /// <param name="reason">An optional reason for the ban, the 'reason' is only use for tracing.</param>
+        void BanAndDisconnectPeer(IPEndPoint endpoint, string reason = null);
+
+        /// <summary>
         /// Check if a peer is banned.
         /// </summary>
         /// <param name="endpoint">The endpoint to check if it was banned.</param>
@@ -46,7 +55,7 @@ namespace Stratis.Bitcoin.Connection
         /// <summary>Functionality of date and time.</summary>
         private readonly IDateTimeProvider dateTimeProvider;
 
-        /// <summary>Keeps a set of peers discovered on the network in cache and on disk.</summary> 
+        /// <summary>Keeps a set of peers discovered on the network in cache and on disk.</summary>
         private readonly IPeerAddressManager peerAddressManager;
 
         public PeerBanning(IConnectionManager connectionManager, ILoggerFactory loggerFactory, IDateTimeProvider dateTimeProvider, IPeerAddressManager peerAddressManager)
@@ -61,49 +70,51 @@ namespace Stratis.Bitcoin.Connection
         public void BanAndDisconnectPeer(IPEndPoint endpoint, int banTimeSeconds, string reason = null)
         {
             Guard.NotNull(endpoint, nameof(endpoint));
-            this.logger.LogTrace("({0}:'{1}',{2}:'{3}')", nameof(endpoint), endpoint, nameof(reason), reason);
 
             reason = reason ?? "unknown";
 
-            INetworkPeer peer = this.connectionManager.ConnectedPeers.FindByEndpoint(endpoint);
-
-            if (peer != null)
+            // Find all connected peers from the same IP and disconnect them.
+            List<INetworkPeer> peers = this.connectionManager.ConnectedPeers.FindByIp(endpoint.Address);
+            foreach (var peer in peers)
             {
-                var peerBehavior = peer.Behavior<ConnectionManagerBehavior>();
-                if (!peerBehavior.Whitelisted)
-                {
-                    peer.Disconnect($"The peer was banned, reason: {reason}");
-                }
-                else
+                var peerBehavior = peer.Behavior<IConnectionManagerBehavior>();
+                if (peerBehavior.Whitelisted)
                 {
                     this.logger.LogTrace("(-)[WHITELISTED]");
                     return;
                 }
+
+                peer.Disconnect($"The peer was banned, reason: {reason}");
             }
 
-            PeerAddress peerAddress = this.peerAddressManager.FindPeer(endpoint);
-
-            if (peerAddress == null)
+            // Find all peers from the same IP and ban them.
+            List<PeerAddress> peerAddresses = this.peerAddressManager.FindPeersByIp(endpoint);
+            if (peerAddresses.Count == 0)
             {
-                this.logger.LogTrace("(-)[PEERNOTFOUND]");
+                this.logger.LogTrace("(-)[NO_PEERS_TO_BAN]");
                 return;
             }
 
-            peerAddress.BanTimeStamp = this.dateTimeProvider.GetUtcNow();
-            peerAddress.BanUntil = this.dateTimeProvider.GetUtcNow().AddSeconds(banTimeSeconds);
-            peerAddress.BanReason = reason;
+            foreach (var peerAddress in peerAddresses)
+            {
+                peerAddress.BanTimeStamp = this.dateTimeProvider.GetUtcNow();
+                peerAddress.BanUntil = this.dateTimeProvider.GetUtcNow().AddSeconds(banTimeSeconds);
+                peerAddress.BanReason = reason;
 
-            this.logger.LogDebug("Peer '{0}' banned for reason '{1}', until {2}.", endpoint, reason, peerAddress.BanUntil.ToString());
+                this.logger.LogDebug("Peer '{0}' banned for reason '{1}', until {2}.", endpoint, reason, peerAddress.BanUntil.ToString());
+            }
+        }
 
-            this.logger.LogTrace("(-)");
+        /// <inheritdoc />
+        public void BanAndDisconnectPeer(IPEndPoint endpoint, string reason = null)
+        {
+            this.BanAndDisconnectPeer(endpoint, this.connectionManager.ConnectionSettings.BanTimeSeconds, reason);
         }
 
         /// <inheritdoc />
         public bool IsBanned(IPEndPoint endpoint)
         {
             Guard.NotNull(endpoint, nameof(endpoint));
-
-            this.logger.LogTrace("({0}:'{1}')", nameof(endpoint), endpoint);
 
             PeerAddress peerAddress = this.peerAddressManager.FindPeer(endpoint);
 
@@ -112,8 +123,6 @@ namespace Stratis.Bitcoin.Connection
                 this.logger.LogTrace("(-)[PEERNOTFOUND]");
                 return false;
             }
-
-            this.logger.LogTrace("(-)");
 
             return peerAddress.BanUntil > this.dateTimeProvider.GetUtcNow();
         }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using Stratis.Bitcoin.Features.Consensus;
@@ -14,14 +15,14 @@ namespace Stratis.Bitcoin.Features.MemoryPool
     /// Memory pool coin view.
     /// Provides coin view representation of memory pool transactions via a backed coin view.
     /// </summary>
-    public class MempoolCoinView : CoinView, IBackedCoinView
+    public class MempoolCoinView : ICoinView, IBackedCoinView
     {
         /// <summary>Transaction memory pool for managing transactions in the memory pool.</summary>
         /// <remarks>All access to this object has to be protected by <see cref="mempoolLock"/>.</remarks>
-        protected readonly ITxMempool memPool;
+        private readonly ITxMempool memPool;
 
         /// <summary>A lock for protecting access to <see cref="memPool"/>.</summary>
-        protected readonly SchedulerLock mempoolLock;
+        private readonly SchedulerLock mempoolLock;
 
         /// <summary>Memory pool validator for validating transactions.</summary>
         private readonly IMempoolValidator mempoolValidator;
@@ -33,7 +34,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         /// <param name="memPool">Transaction memory pool for managing transactions in the memory pool.</param>
         /// <param name="mempoolLock">A lock for managing asynchronous access to memory pool.</param>
         /// <param name="mempoolValidator">Memory pool validator for validating transactions.</param>
-        public MempoolCoinView(CoinView inner, ITxMempool memPool, SchedulerLock mempoolLock, IMempoolValidator mempoolValidator)
+        public MempoolCoinView(ICoinView inner, ITxMempool memPool, SchedulerLock mempoolLock, IMempoolValidator mempoolValidator)
         {
             this.Inner = inner;
             this.memPool = memPool;
@@ -45,28 +46,39 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         /// <summary>
         /// Gets the unspent transaction output set.
         /// </summary>
-        public UnspentOutputSet Set { get; protected set; }
+        public UnspentOutputSet Set { get; private set; }
 
         /// <summary>
         /// Backing coin view instance.
         /// </summary>
-        public CoinView Inner { get; }
+        public ICoinView Inner { get; }
 
         /// <inheritdoc />
-        public override Task SaveChangesAsync(IEnumerable<UnspentOutputs> unspentOutputs, IEnumerable<TxOut[]> originalOutputs, uint256 oldBlockHash,
-            uint256 nextBlockHash)
+        public Task SaveChangesAsync(IList<UnspentOutputs> unspentOutputs, IEnumerable<TxOut[]> originalOutputs, uint256 oldBlockHash,
+            uint256 nextBlockHash, int height, List<RewindData> rewindDataList = null)
         {
             throw new NotImplementedException();
         }
 
         /// <inheritdoc />
-        public override Task<FetchCoinsResponse> FetchCoinsAsync(uint256[] txIds)
+        public Task<uint256> GetTipHashAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotImplementedException();
         }
 
         /// <inheritdoc />
-        public override Task<uint256> Rewind()
+        public Task<FetchCoinsResponse> FetchCoinsAsync(uint256[] txIds, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public Task<uint256> RewindAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<RewindData> GetRewindData(int height)
         {
             throw new NotImplementedException();
         }
@@ -75,7 +87,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         /// Load the coin view for a memory pool transaction.
         /// </summary>
         /// <param name="trx">Memory pool transaction.</param>
-        public virtual async Task LoadViewAsync(Transaction trx)
+        public async Task LoadViewAsync(Transaction trx)
         {
             // lookup all ids (duplicate ids are ignored in case a trx spends outputs from the same parent).
             List<uint256> ids = trx.Inputs.Select(n => n.PrevOut.Hash).Distinct().Concat(new[] { trx.GetHash() }).ToList();

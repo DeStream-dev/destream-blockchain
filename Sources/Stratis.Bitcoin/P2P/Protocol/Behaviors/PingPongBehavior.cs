@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Stratis.Bitcoin.P2P.Peer;
 using Stratis.Bitcoin.P2P.Protocol.Payloads;
+using TracerAttributes;
 
 namespace Stratis.Bitcoin.P2P.Protocol.Behaviors
 {
@@ -34,6 +35,7 @@ namespace Stratis.Bitcoin.P2P.Protocol.Behaviors
             {
                 return this.mode;
             }
+
             set
             {
                 this.AssertNotAttached();
@@ -52,6 +54,7 @@ namespace Stratis.Bitcoin.P2P.Protocol.Behaviors
             {
                 return this.timeoutInterval;
             }
+
             set
             {
                 this.AssertNotAttached();
@@ -70,6 +73,7 @@ namespace Stratis.Bitcoin.P2P.Protocol.Behaviors
             {
                 return this.pingInterval;
             }
+
             set
             {
                 this.AssertNotAttached();
@@ -90,6 +94,7 @@ namespace Stratis.Bitcoin.P2P.Protocol.Behaviors
             this.PingInterval = TimeSpan.FromMinutes(2.0);
         }
 
+        [NoTrace]
         protected override void AttachCore()
         {
             if ((this.AttachedPeer.PeerVersion != null) && !this.PingVersion()) // If not handshaked, still attach (the callback will also check version).
@@ -99,7 +104,7 @@ namespace Stratis.Bitcoin.P2P.Protocol.Behaviors
             this.AttachedPeer.StateChanged.Register(this.OnStateChangedAsync);
             this.callbacksRegistered = true;
 
-            this.timer = new Timer(Ping, null, 0, (int)this.PingInterval.TotalMilliseconds);
+            this.timer = new Timer(this.Ping, null, 0, (int)this.PingInterval.TotalMilliseconds);
         }
 
         private bool PingVersion()
@@ -132,7 +137,7 @@ namespace Stratis.Bitcoin.P2P.Protocol.Behaviors
                     this.currentPing = new PingPayload();
                     this.dateSent = DateTimeOffset.UtcNow;
                     peer.SendMessageAsync(this.currentPing).GetAwaiter().GetResult();
-                    this.pingTimeoutTimer = new Timer(PingTimeout, this.currentPing, (int)this.TimeoutInterval.TotalMilliseconds, Timeout.Infinite);
+                    this.pingTimeoutTimer = new Timer(this.PingTimeout, this.currentPing, (int)this.TimeoutInterval.TotalMilliseconds, Timeout.Infinite);
                 }
                 catch (OperationCanceledException)
                 {
@@ -209,6 +214,7 @@ namespace Stratis.Bitcoin.P2P.Protocol.Behaviors
             }
         }
 
+        [NoTrace]
         protected override void DetachCore()
         {
             if (this.callbacksRegistered)
@@ -216,10 +222,11 @@ namespace Stratis.Bitcoin.P2P.Protocol.Behaviors
                 this.AttachedPeer.MessageReceived.Unregister(this.OnMessageReceivedAsync);
                 this.AttachedPeer.StateChanged.Unregister(this.OnStateChangedAsync);
             }
+
             this.ClearCurrentPing();
         }
 
-        ///  <inheritdoc />
+        /// <inheritdoc />
         public override void Dispose()
         {
             this.timer?.Dispose();
@@ -227,18 +234,10 @@ namespace Stratis.Bitcoin.P2P.Protocol.Behaviors
             base.Dispose();
         }
 
-        #region ICloneable Members
-
+        [NoTrace]
         public override object Clone()
         {
-            return new PingPongBehavior()
-            {
-                Mode = this.Mode,
-                PingInterval = this.PingInterval,
-                TimeoutInterval = this.TimeoutInterval
-            };
+            return new PingPongBehavior();
         }
-
-        #endregion
     }
 }

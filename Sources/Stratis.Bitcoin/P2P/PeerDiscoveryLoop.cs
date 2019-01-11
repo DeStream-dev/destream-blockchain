@@ -65,6 +65,8 @@ namespace Stratis.Bitcoin.P2P
         /// <summary>Indicates the dns and seed nodes were attempted.</summary>
         private bool isSeedAndDnsAttempted;
 
+        private const int TargetAmountOfPeersToDiscover = 2000;
+
         public PeerDiscovery(
             IAsyncLoopFactory asyncLoopFactory,
             ILoggerFactory loggerFactory,
@@ -87,29 +89,22 @@ namespace Stratis.Bitcoin.P2P
         /// <inheritdoc/>
         public void DiscoverPeers(IConnectionManager connectionManager)
         {
-            this.logger.LogTrace("()");
-
-            // If peers are specified in the -connect arg then discovery does not happen.            
+            // If peers are specified in the -connect arg then discovery does not happen.
             if (connectionManager.ConnectionSettings.Connect.Any())
                 return;
 
             if (!connectionManager.Parameters.PeerAddressManagerBehaviour().Mode.HasFlag(PeerAddressManagerBehaviourMode.Discover))
                 return;
 
-            this.currentParameters = connectionManager.Parameters.Clone(); //TODO we shouldn't add all the behaviors, only those that we need.
-            this.currentParameters.TemplateBehaviors.Add(new ConnectionManagerBehavior(false, connectionManager, this.loggerFactory));
-
-            this.peersToFind = this.currentParameters.PeerAddressManagerBehaviour().PeersToDiscover;
+            this.currentParameters = connectionManager.Parameters.Clone(); // TODO we shouldn't add all the behaviors, only those that we need.
 
             this.asyncLoop = this.asyncLoopFactory.Run(nameof(this.DiscoverPeersAsync), async token =>
             {
-                if (this.peerAddressManager.Peers.Count < this.peersToFind)
+                if (this.peerAddressManager.Peers.Count < TargetAmountOfPeersToDiscover)
                     await this.DiscoverPeersAsync();
             },
             this.nodeLifetime.ApplicationStopping,
             TimeSpans.TenSeconds);
-
-            this.logger.LogTrace("(-)");
         }
 
         /// <summary>
@@ -117,8 +112,6 @@ namespace Stratis.Bitcoin.P2P
         /// </summary>
         private async Task DiscoverPeersAsync()
         {
-            this.logger.LogTrace("()");
-
             var peersToDiscover = new List<IPEndPoint>();
             List<PeerAddress> foundPeers = this.peerAddressManager.PeerSelector.SelectPeersForDiscovery(1000).ToList();
             peersToDiscover.AddRange(foundPeers.Select(p => p.Endpoint));
@@ -155,7 +148,7 @@ namespace Stratis.Bitcoin.P2P
                     this.isSeedAndDnsAttempted = true;
                 }
             }
-            
+
             await peersToDiscover.ForEachAsync(5, this.nodeLifetime.ApplicationStopping, async (endPoint, cancellation) =>
             {
                 using (CancellationTokenSource connectTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellation))
@@ -171,7 +164,7 @@ namespace Stratis.Bitcoin.P2P
                         NetworkPeerConnectionParameters clonedParameters = this.currentParameters.Clone();
                         clonedParameters.ConnectCancellation = connectTokenSource.Token;
 
-                        var addressManagerBehaviour = clonedParameters.TemplateBehaviors.Find<PeerAddressManagerBehaviour>();
+                        PeerAddressManagerBehaviour addressManagerBehaviour = clonedParameters.TemplateBehaviors.OfType<PeerAddressManagerBehaviour>().FirstOrDefault();
                         clonedParameters.TemplateBehaviors.Clear();
                         clonedParameters.TemplateBehaviors.Add(addressManagerBehaviour);
 
@@ -195,8 +188,6 @@ namespace Stratis.Bitcoin.P2P
                     this.logger.LogTrace("Discovery from '{0}' finished", endPoint);
                 }
             }).ConfigureAwait(false);
-
-            this.logger.LogTrace("(-)");
         }
 
         /// <summary>

@@ -2,20 +2,25 @@
 using System.Collections.Generic;
 using Stratis.Bitcoin.P2P.Peer;
 using Stratis.Bitcoin.Utilities;
+using TracerAttributes;
 
 namespace Stratis.Bitcoin.P2P.Protocol.Behaviors
 {
     public interface INetworkPeerBehavior : IDisposable
     {
         INetworkPeer AttachedPeer { get; }
+
         void Attach(INetworkPeer peer);
+
         void Detach();
+
         INetworkPeerBehavior Clone();
     }
 
     public abstract class NetworkPeerBehavior : INetworkPeerBehavior
     {
         private object cs = new object();
+
         public INetworkPeer AttachedPeer { get; private set; }
 
         protected abstract void AttachCore();
@@ -24,6 +29,7 @@ namespace Stratis.Bitcoin.P2P.Protocol.Behaviors
 
         public abstract object Clone();
 
+        [NoTrace]
         public void Attach(INetworkPeer peer)
         {
             Guard.NotNull(peer, nameof(peer));
@@ -37,11 +43,12 @@ namespace Stratis.Bitcoin.P2P.Protocol.Behaviors
                     return;
 
                 this.AttachedPeer = peer;
-                 
+
                 this.AttachCore();
             }
         }
 
+        [NoTrace]
         protected void AssertNotAttached()
         {
             if (this.AttachedPeer != null)
@@ -54,6 +61,7 @@ namespace Stratis.Bitcoin.P2P.Protocol.Behaviors
                    (peer.State == NetworkPeerState.Failed) || (peer.State == NetworkPeerState.Offline);
         }
 
+        [NoTrace]
         public void Detach()
         {
             lock (this.cs)
@@ -65,12 +73,13 @@ namespace Stratis.Bitcoin.P2P.Protocol.Behaviors
             }
         }
 
-        ///  <inheritdoc />
+        /// <inheritdoc />
         public virtual void Dispose()
         {
             this.AttachedPeer = null;
         }
 
+        [NoTrace]
         INetworkPeerBehavior INetworkPeerBehavior.Clone()
         {
             return (INetworkPeerBehavior)this.Clone();

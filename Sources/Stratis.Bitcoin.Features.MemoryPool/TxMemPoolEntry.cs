@@ -44,7 +44,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
     /// <summary>
     /// A transaction entry in the memory pool.
     /// </summary>
-    public class TxMempoolEntry : IComparable, ITxMempoolFees
+    public class TxMempoolEntry:IComparable, ITxMempoolFees
     {
         /// <summary>Index in memory pools vTxHashes.</summary>
         public volatile uint vTxHashesIdx;
@@ -74,7 +74,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         public TxMempoolEntry(Transaction transaction, Money nFee,
             long nTime, double entryPriority, int entryHeight,
             Money inChainInputValue, bool spendsCoinbase,
-            long nSigOpsCost, LockPoints lp, PowConsensusOptions consensusOptions)
+            long nSigOpsCost, LockPoints lp, ConsensusOptions consensusOptions)
         {
             this.Transaction = transaction;
             this.TransactionHash = transaction.GetHash();
@@ -311,7 +311,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         /// <param name="a">The first object to compare.</param>
         /// <param name="b">The second object to compare.</param>
         /// <returns>Returns -1 if a less than b, 0 if a equals b, and 1 if a greater than b.</returns>
-        public static int CompareFees<T>(T a, T b) where T : IComparable, ITxMempoolFees
+        public static int CompareFees<T>(T a, T b) where T:IComparable,ITxMempoolFees
         {
             // Avoid division by rewriting (a/b > c/d) as (a*d > c*b).
             Money f1 = a.ModFeesWithAncestors * b.SizeWithAncestors;

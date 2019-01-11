@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
 using NBitcoin.Crypto;
+using Stratis.Bitcoin.Consensus;
 using Stratis.Bitcoin.Consensus.Rules;
 
 namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
@@ -12,7 +12,7 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
     /// This rule will validate that the calculated merkle tree matches the merkle root in the header.
     /// </summary>
     /// <remarks>
-    /// Transactions in a block are hashed together using SHA256 in to a merkel tree, 
+    /// Transactions in a block are hashed together using SHA256 in to a merkel tree,
     /// the root of that tree is included in the block header.
     /// </remarks>
     /// <remarks>
@@ -20,21 +20,18 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
     /// of transactions in a block without affecting the merkle root of a block,
     /// while still invalidating it.
     /// Validation cannot be skipped for this rule, someone might have been able to create a mutated
-    /// block (block with a duplicate transaction) with a valid hash, but we don't want to accept these 
+    /// block (block with a duplicate transaction) with a valid hash, but we don't want to accept these
     /// kind of blocks.
     /// <seealso cref="https://bitcointalk.org/index.php?topic=102395.0"/>
     /// </remarks>
-    [ValidationRule(CanSkipValidation = false)]
-    public class BlockMerkleRootRule : ConsensusRule
+    public class BlockMerkleRootRule : IntegrityValidationConsensusRule
     {
         /// <inheritdoc />
         /// <exception cref="ConsensusErrors.BadMerkleRoot">The block merkle root is different from the computed merkle root.</exception>
         /// <exception cref="ConsensusErrors.BadTransactionDuplicate">One of the leaf nodes on the merkle tree has a duplicate hash within the subtree.</exception>
-        public override Task RunAsync(RuleContext context)
+        public override void Run(RuleContext context)
         {
-            if (context.MinedBlock) return Task.CompletedTask;
-            
-            Block block = context.ValidationContext.Block;
+            Block block = context.ValidationContext.BlockToValidate;
 
             uint256 hashMerkleRoot2 = BlockMerkleRoot(block, out bool mutated);
             if (block.Header.HashMerkleRoot != hashMerkleRoot2)
@@ -48,8 +45,6 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
                 this.Logger.LogTrace("(-)[BAD_TX_DUP]");
                 ConsensusErrors.BadTransactionDuplicate.Throw();
             }
-
-            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -62,7 +57,12 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
         {
             var leaves = new List<uint256>(block.Transactions.Count);
             foreach (Transaction tx in block.Transactions)
+            {
+                // Mark the transaction to cache the hash next time its calculated
+                tx.PrecomputeHash(true, true);
+
                 leaves.Add(tx.GetHash());
+            }
 
             return ComputeMerkleRoot(leaves, out mutated);
         }

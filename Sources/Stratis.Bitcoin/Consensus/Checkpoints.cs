@@ -53,7 +53,7 @@ namespace Stratis.Bitcoin.Consensus
         private readonly Network network;
 
         /// <summary>Consensus settings for the full node.</summary>
-        private ConsensusSettings consensusSettings { get; }
+        private readonly ConsensusSettings consensusSettings;
 
         /// <summary>
         /// Initializes a new instance of the object.
@@ -81,6 +81,25 @@ namespace Stratis.Bitcoin.Consensus
         {
             Dictionary<int, CheckpointInfo> checkpoints = this.GetCheckpoints();
             return checkpoints.Count > 0 ? checkpoints.Keys.Last() : 0;
+        }
+
+        /// <summary>
+        /// Gets the last checkpoint.
+        /// </summary>
+        /// <returns>Last <see cref="CheckpointInfo"/> or null.</returns>
+        public CheckpointInfo GetLastCheckpoint(out int height)
+        {
+            var checkpoints = this.GetCheckpoints();
+            if (checkpoints.Count == 0)
+            {
+                height = 0;
+                return null;
+            }
+            else
+            {
+                height = checkpoints.Keys.Max();
+                return checkpoints[height];
+            }
         }
 
         /// <inheritdoc />

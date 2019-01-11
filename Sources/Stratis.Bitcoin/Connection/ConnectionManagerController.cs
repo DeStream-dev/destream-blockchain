@@ -28,7 +28,7 @@ namespace Stratis.Bitcoin.Connection
         }
 
         /// <summary>
-        /// RPC method for adding a node connection. 
+        /// RPC method for adding a node connection.
         /// </summary>
         /// <param name="command">The command to run. {add, remove, onetry}</param>
         /// <param name="endpointStr">The endpoint in string format.</param>
@@ -110,19 +110,19 @@ namespace Stratis.Bitcoin.Connection
                         Address = peer.RemoteSocketEndpoint.ToString()
                     };
 
-                    if (peer.MyVersion != null)
+                    if (peer.PeerVersion != null)
                     {
-                        peerNode.LocalAddress = peer.MyVersion.AddressReceiver?.ToString();
-                        peerNode.Services = ((ulong)peer.MyVersion.Services).ToString("X");
-                        peerNode.Version = (uint)peer.MyVersion.Version;
-                        peerNode.SubVersion = peer.MyVersion.UserAgent;
-                        peerNode.StartingHeight = peer.MyVersion.StartHeight;
+                        peerNode.LocalAddress = peer.PeerVersion.AddressReceiver?.ToString();
+                        peerNode.Services = ((ulong)peer.PeerVersion.Services).ToString("X");
+                        peerNode.Version = (uint)peer.PeerVersion.Version;
+                        peerNode.SubVersion = peer.PeerVersion.UserAgent;
+                        peerNode.StartingHeight = peer.PeerVersion.StartHeight;
                     }
 
-                    var connectionManagerBehavior = peer.Behavior<ConnectionManagerBehavior>();
+                    var connectionManagerBehavior = peer.Behavior<IConnectionManagerBehavior>();
                     if (connectionManagerBehavior != null)
                     {
-                        peerNode.Inbound = connectionManagerBehavior.Inbound;
+                        peerNode.Inbound = peer.Inbound;
                         peerNode.IsWhiteListed = connectionManagerBehavior.Whitelisted;
                     }
 

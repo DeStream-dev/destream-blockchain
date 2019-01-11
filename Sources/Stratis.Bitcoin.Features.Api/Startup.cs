@@ -18,6 +18,7 @@ namespace Stratis.Bitcoin.Features.Api
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
                 .AddEnvironmentVariables();
+
             this.Configuration = builder.Build();
         }
 
@@ -37,7 +38,7 @@ namespace Stratis.Bitcoin.Features.Api
 
                         builder =>
                         {
-                            var allowedDomains = new[] { "http://localhost", "http://localhost:4200", "http://localhost:6060" };
+                            var allowedDomains = new[] { "http://localhost", "http://localhost:4200" };
 
                             builder
                             .WithOrigins(allowedDomains)
@@ -83,6 +84,8 @@ namespace Stratis.Bitcoin.Features.Api
                 {
                     setup.IncludeXmlComments(walletXmlPath);
                 }
+
+                setup.DescribeAllEnumsAsStrings();
             });
         }
 
@@ -102,6 +105,7 @@ namespace Stratis.Bitcoin.Features.Api
             // Enable middleware to serve swagger-ui (HTML, JS, CSS etc.), specifying the Swagger JSON endpoint.
             app.UseSwaggerUI(c =>
             {
+                c.DefaultModelRendering(ModelRendering.Model);
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Stratis.Bitcoin.Api V1");
             });
         }

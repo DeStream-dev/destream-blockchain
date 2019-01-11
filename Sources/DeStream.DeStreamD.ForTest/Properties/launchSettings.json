@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "DeStream.DeStreamD.ForTest": {
-      "commandName": "Project",
-      "commandLineArgs": "-testnet -debug -loglevel=trace"
-    }
-  }
-}

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using NBitcoin.DataEncoders;
+using NBitcoin.Networks;
 using NBitcoin.Protocol;
 using NBitcoin.Stealth;
 
@@ -32,14 +33,29 @@ namespace NBitcoin
         WITNESS_SCRIPT_ADDRESS
     }
 
-    public abstract partial class Network
+    /// <summary>
+    /// A container of all network instances of a certain high level network.
+    /// Every network normally comes in 3 flavors mainnet, testnet and regtest.
+    /// </summary>
+    public class NetworksSelector
+    {
+        public NetworksSelector(Func<Network> mainnet, Func<Network> testnet, Func<Network> regtest)
+        {
+            this.Mainnet = mainnet;
+            this.Testnet = testnet;
+            this.Regtest = regtest;
+        }
+
+        public Func<Network> Mainnet { get; }
+
+        public Func<Network> Testnet { get; }
+
+        public Func<Network> Regtest { get; }
+    }
+
+    public abstract class Network
     {
         protected Block Genesis;
-
-        protected Network()
-        {
-            this.Consensus = new Consensus();
-        }
 
         /// <summary>
         /// Maximal value for the calculated time offset.
@@ -55,7 +71,14 @@ namespace NBitcoin
         /// <summary>
         /// Mininum fee rate for all transactions.
         /// Fees smaller than this are considered zero fee for transaction creation.
+        /// Be careful setting this: if you set it to zero then a transaction spammer can cheaply fill blocks using
+        /// 1-satoshi-fee transactions. It should be set above the real cost to you of processing a transaction.
         /// </summary>
+        /// <remarks>
+        /// The <see cref="MinRelayTxFee"/> and <see cref="MinTxFee"/> are typically the same value to prevent dos attacks on the network. 
+        /// If <see cref="MinRelayTxFee"/> is less than <see cref="MinTxFee"/>, an attacker can broadcast a lot of transactions with fees between these two values, 
+        /// which will lead to transactions filling the mempool without ever being mined.
+        /// </remarks>
         public long MinTxFee { get; protected set; }
 
         /// <summary>
@@ -66,6 +89,11 @@ namespace NBitcoin
         /// <summary>
         /// The minimum fee under which transactions may be rejected from being relayed.
         /// </summary>
+        /// <remarks>
+        /// The <see cref="MinRelayTxFee"/> and <see cref="MinTxFee"/> are typically the same value to prevent dos attacks on the network. 
+        /// If <see cref="MinRelayTxFee"/> is less than <see cref="MinTxFee"/>, an attacker can broadcast a lot of transactions with fees between these two values, 
+        /// which will lead to transactions filling the mempool without ever being mined.
+        /// </remarks>
         public long MinRelayTxFee { get; protected set; }
 
         /// <summary>
@@ -79,9 +107,19 @@ namespace NBitcoin
         public int DefaultPort { get; protected set; }
 
         /// <summary>
+        /// The default maximum number of outbound connections a node on this network will form.
+        /// </summary>
+        public int DefaultMaxOutboundConnections { get; protected set; }
+
+        /// <summary>
+        /// The default maximum number of inbound connections a node on this network will accept.
+        /// </summary>
+        public int DefaultMaxInboundConnections { get; protected set; }
+
+        /// <summary>
         /// The consensus for this network.
         /// </summary>
-        public Consensus Consensus { get; protected set; }
+        public IConsensus Consensus { get; protected set; }
 
         /// <summary>
         /// The name of the network.
@@ -197,8 +235,6 @@ namespace NBitcoin
         /// The reward for the genesis block, which is unspendable.
         /// </summary>
         public Money GenesisReward { get; protected set; }
-
-        public string GenesisWalletAddress { get; protected set; }
 
         /// <summary>
         /// Mines a new genesis block, to use with a new network.
@@ -334,7 +370,7 @@ namespace NBitcoin
             throw new FormatException("Invalid Base58 version");
         }
 
-        internal Base58Type? GetBase58Type(string base58)
+        public Base58Type? GetBase58Type(string base58)
         {
             byte[] bytes = Encoders.Base58Check.DecodeData(base58);
             for (int i = 0; i < this.Base58Prefixes.Length; i++)
@@ -370,7 +406,7 @@ namespace NBitcoin
             if (str == null)
                 throw new ArgumentNullException("str");
 
-            IEnumerable<Network> networks = expectedNetwork == null ? NetworksContainer.GetNetworks() : new[] { expectedNetwork };
+            IEnumerable<Network> networks = expectedNetwork == null ? NetworkRegistration.GetNetworks() : new[] { expectedNetwork };
             bool maybeb58 = true;
             for (int i = 0; i < str.Length; i++)
             {
@@ -697,6 +733,11 @@ namespace NBitcoin
                     Endpoint = Utils.ParseIpEndpoint(seed, defaultPort)
                 };
             }
+        }
+
+        public Block CreateBlock()
+        {
+            return this.Consensus.ConsensusFactory.CreateBlock();
         }
 
         public Transaction CreateTransaction()

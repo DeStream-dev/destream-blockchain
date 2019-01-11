@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using FluentAssertions;
 using NBitcoin;
 using Stratis.Bitcoin.Features.Wallet;
@@ -9,6 +8,7 @@ using Stratis.Bitcoin.Features.Wallet.Controllers;
 using Stratis.Bitcoin.Features.Wallet.Models;
 using Stratis.Bitcoin.IntegrationTests.Common;
 using Stratis.Bitcoin.IntegrationTests.Common.EnvironmentMockUpHelpers;
+using Stratis.Bitcoin.Networks;
 using Stratis.Bitcoin.Tests.Common.TestFramework;
 using Xunit.Abstractions;
 
@@ -16,17 +16,13 @@ namespace Stratis.Bitcoin.IntegrationTests.BlockStore
 {
     public partial class RetrieveFromBlockStoreSpecification : BddSpecification
     {
-        private readonly SharedSteps sharedSteps;
-
         private NodeBuilder builder;
         private CoreNode node;
         private List<uint256> blockIds;
         private IList<Block> retrievedBlocks;
-        private string password = "P@ssw0rd";
+        private const string password = "password";
+        private const string walletName = "mywallet";
         private WalletAccountReference miningWalletAccountReference;
-        private HdAddress minerAddress;
-        private Features.Wallet.Wallet miningWallet;
-        private Key key;
         private int maturity;
         private uint256 wrongBlockId;
         private IEnumerable<uint256> retrievedBlockHashes;
@@ -40,12 +36,9 @@ namespace Stratis.Bitcoin.IntegrationTests.BlockStore
         private Transaction wontRetrieveTransaction;
         private uint256 retrievedBlockId;
         private Transaction wontRetrieveBlockId;
+        private readonly Network network = new BitcoinRegTest();
 
-
-        public RetrieveFromBlockStoreSpecification(ITestOutputHelper output) : base(output)
-        {
-            this.sharedSteps = new SharedSteps();
-        }
+        public RetrieveFromBlockStoreSpecification(ITestOutputHelper output) : base(output) { }
 
         protected override void BeforeTest()
         {
@@ -57,45 +50,32 @@ namespace Stratis.Bitcoin.IntegrationTests.BlockStore
             this.builder?.Dispose();
         }
 
-        public void a_pow_node_running()
+        private void a_pow_node_running()
         {
-            this.node = this.builder.CreateStratisPowNode();
-            this.node.Start();
-            this.node.NotInIBD();
+            this.node = this.builder.CreateStratisPowNode(this.network).WithWallet().Start();
         }
 
         private void a_pow_node_to_transact_with()
         {
-            this.transactionNode = this.builder.CreateStratisPowNode();
-            this.transactionNode.Start();
-            this.transactionNode.NotInIBD();
+            this.transactionNode = this.builder.CreateStratisPowNode(this.network).WithWallet().Start();
+            TestHelper.Connect(this.transactionNode, this.node);
+            TestHelper.WaitForNodeToSync(this.node, this.transactionNode);
 
-            this.transactionNode.CreateRPCClient().AddNode(this.node.Endpoint, true);
-            this.sharedSteps.WaitForNodeToSync(this.node, this.transactionNode);
-
-            this.transactionNode.FullNode.WalletManager().CreateWallet(this.password, "receiver");
-            this.receiverAddress = this.transactionNode.FullNode.WalletManager()
-                .GetUnusedAddress(new WalletAccountReference("receiver", "account 0"));
+            this.receiverAddress = this.transactionNode.FullNode.WalletManager().GetUnusedAddress();
         }
 
         private void a_miner_validating_blocks()
         {
-            this.node.FullNode.WalletManager().CreateWallet(this.password, "miner");
-            this.miningWalletAccountReference = new WalletAccountReference("miner", "account 0");
-            this.minerAddress = this.node.FullNode.WalletManager().GetUnusedAddress(this.miningWalletAccountReference);
-            this.miningWallet = this.node.FullNode.WalletManager().GetWalletByName("miner");
-
-            this.key = this.miningWallet.GetExtendedPrivateKeyForAddress(this.password, this.minerAddress).PrivateKey;
-            this.node.SetDummyMinerSecret(new BitcoinSecret(this.key, this.node.FullNode.Network));
+            this.miningWalletAccountReference = new WalletAccountReference(walletName, "account 0");
         }
 
-        public void some_real_blocks_with_a_uint256_identifier()
+        private void some_real_blocks_with_a_uint256_identifier()
         {
             this.maturity = (int)this.node.FullNode.Network.Consensus.CoinbaseMaturity;
-            this.blockIds = this.node.GenerateStratisWithMiner(this.maturity + 1);
+            this.blockIds = TestHelper.MineBlocks(this.node, this.maturity + 1).BlockHashes;
         }
 
-        public void some_blocks_creating_reward()
+        private void some_blocks_creating_reward()
         {
             this.some_real_blocks_with_a_uint256_identifier();
         }
@@ -112,23 +92,26 @@ namespace Stratis.Bitcoin.IntegrationTests.BlockStore
             this.transaction.GetHash().Should().NotBe(this.wrongTransactionId, "it would corrupt the test");
         }
 
-        public void the_node_is_synced()
+        private void the_node_is_synced()
         {
-            this.sharedSteps.WaitForNodeToSync(this.node);
+            TestHelper.WaitForNodeToSync(this.node);
         }
 
-        public void the_nodes_are_synced()
+        private void the_nodes_are_synced()
         {
-            this.sharedSteps.WaitForNodeToSync(this.node, this.transactionNode);
+            TestHelper.WaitForNodeToSync(this.node, this.transactionNode);
         }
 
-        public void a_real_transaction()
-        {           
-            var transactionBuildContext = new TransactionBuildContext(
-                    this.miningWalletAccountReference,
-                    new List<Recipient>() { new Recipient() { Amount = this.transferAmount, ScriptPubKey = this.receiverAddress.ScriptPubKey } },
-                    this.password)
-            { MinConfirmations = this.maturity };
+        private void a_real_transaction()
+        {
+            var transactionBuildContext = new TransactionBuildContext(this.node.FullNode.Network)
+            {
+                AccountReference = this.miningWalletAccountReference,
+                MinConfirmations = this.maturity,
+                WalletPassword = password,
+                Recipients = new List<Recipient>() { new Recipient() { Amount = this.transferAmount, ScriptPubKey = this.receiverAddress.ScriptPubKey } }
+            };
+
             this.transaction = this.node.FullNode.WalletTransactionHandler().BuildTransaction(transactionBuildContext);
 
             this.node.FullNode.NodeService<WalletController>()
@@ -137,17 +120,14 @@ namespace Stratis.Bitcoin.IntegrationTests.BlockStore
 
         private void the_block_with_the_transaction_is_mined()
         {
-            this.blockWithTransactionId = this.node.GenerateStratisWithMiner(1).Single();
-            this.node.GenerateStratisWithMiner(1);
-            this.sharedSteps.WaitForNodeToSync(this.node, this.transactionNode);
+            this.blockWithTransactionId = TestHelper.MineBlocks(this.node, 2).BlockHashes[0];
+            TestHelper.WaitForNodeToSync(this.node, this.transactionNode);
         }
 
-        public async Task trying_to_retrieve_the_blocks_from_the_blockstore()
+        private void trying_to_retrieve_the_blocks_from_the_blockstore()
         {
             this.retrievedBlocks = this.blockIds.Concat(new[] { this.wrongBlockId })
-                .Select(async id =>
-                    await this.node.FullNode.BlockStoreManager().BlockRepository
-                        .GetAsync(id)).Select(b => b.Result).ToList();
+                .Select(id => this.node.FullNode.BlockStore().GetBlockAsync(id).GetAwaiter().GetResult()).Select(b => b).ToList();
 
             this.retrievedBlocks.Count(b => b != null).Should().Be(this.blockIds.Count);
             this.retrievedBlocks.Count(b => b == null).Should().Be(1);
@@ -156,23 +136,21 @@ namespace Stratis.Bitcoin.IntegrationTests.BlockStore
             this.retrievedBlockHashes.Should().OnlyHaveUniqueItems();
         }
 
-        public async Task trying_to_retrieve_the_transactions_by_Id_from_the_blockstore()
+        private void trying_to_retrieve_the_transactions_by_Id_from_the_blockstore()
         {
-            this.retrievedTransaction = await this.node.FullNode.BlockStoreManager().BlockRepository
-                .GetTrxAsync(this.transaction.GetHash());
-            this.wontRetrieveTransaction = await this.node.FullNode.BlockStoreManager().BlockRepository
-                .GetTrxAsync(this.wrongTransactionId);
+            this.retrievedTransaction = this.node.FullNode.BlockStore().GetTransactionByIdAsync(this.transaction.GetHash()).GetAwaiter().GetResult();
+            this.wontRetrieveTransaction = this.node.FullNode.BlockStore().GetTransactionByIdAsync(this.wrongTransactionId).GetAwaiter().GetResult();
         }
 
-        public async Task trying_to_retrieve_the_block_containing_the_transactions_from_the_blockstore()
+        private void trying_to_retrieve_the_block_containing_the_transactions_from_the_blockstore()
         {
-            this.retrievedBlockId = await this.node.FullNode.BlockStoreManager().BlockRepository
-                .GetTrxBlockIdAsync(this.transaction.GetHash());
-            this.wontRetrieveBlockId = await this.node.FullNode.BlockStoreManager().BlockRepository
-                .GetTrxAsync(this.wrongTransactionId);
+            this.retrievedBlockId = this.node.FullNode.BlockStore()
+                .GetBlockIdByTransactionIdAsync(this.transaction.GetHash()).GetAwaiter().GetResult();
+            this.wontRetrieveBlockId = this.node.FullNode.BlockStore()
+                .GetTransactionByIdAsync(this.wrongTransactionId).GetAwaiter().GetResult();
         }
 
-        public void real_blocks_should_be_retrieved()
+        private void real_blocks_should_be_retrieved()
         {
             this.retrievedBlockHashes.Should().BeEquivalentTo(this.blockIds);
         }
@@ -189,7 +167,6 @@ namespace Stratis.Bitcoin.IntegrationTests.BlockStore
             this.retrievedTransaction.Outputs.Should()
                 .Contain(t => t.Value == this.transferAmount.Satoshi
                               && t.ScriptPubKey.GetDestinationAddress(this.node.FullNode.Network).ScriptPubKey == this.receiverAddress.ScriptPubKey);
-
         }
 
         private void the_wrong_transaction_id_should_return_null()

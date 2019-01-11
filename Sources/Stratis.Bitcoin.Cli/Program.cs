@@ -5,9 +5,11 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using NBitcoin;
+using NBitcoin.Networks;
 using Newtonsoft.Json;
 using Stratis.Bitcoin.Configuration;
 using Stratis.Bitcoin.Features.RPC;
+using Stratis.Bitcoin.Networks;
 using Stratis.Bitcoin.Utilities.Extensions;
 
 namespace Stratis.Bitcoin.Cli
@@ -92,15 +94,13 @@ namespace Stratis.Bitcoin.Cli
                 if (networkName.Contains("stratis"))
                 {
                     defaultRestApiPort = 37221;
-                    network = Network.StratisMain;
+                    network = NetworkRegistration.Register(new StratisMain());
                 }
                 else
                 {
                     defaultRestApiPort = 37220;
-                    network = Network.Main;
+                    network = NetworkRegistration.Register(new BitcoinMain());
                 }
-
-
 
                 // API calls require both the contoller name and the method name separated by "/".
                 // If this is not an API call then assume it is an RPC call.
@@ -138,13 +138,13 @@ namespace Stratis.Bitcoin.Cli
                         rpcSettings.RpcUser = options.GetValueOf("-rpcuser") ?? rpcSettings.RpcUser;
                         rpcSettings.RpcPassword = options.GetValueOf("-rpcpassword") ?? rpcSettings.RpcPassword;
 
-                        Console.WriteLine($"Connecting to the following RPC node: http://{rpcSettings.RpcUser}:{rpcSettings.RpcPassword}@{rpcUri.Authority}...");
+                        Console.WriteLine($"Connecting to the following RPC node: http://{rpcSettings.RpcUser}:{rpcSettings.RpcPassword}@{rpcUri.Authority}.");
 
                         // Initialize the RPC client with the configured or passed userid, password and endpoint.
                         var rpcClient = new RPCClient($"{rpcSettings.RpcUser}:{rpcSettings.RpcPassword}", rpcUri, network);
 
                         // Execute the RPC command
-                        Console.WriteLine($"Sending RPC command '{command} {string.Join(" ", commandArgList)}' to '{rpcUri}'...");
+                        Console.WriteLine($"Sending RPC command '{command} {string.Join(" ", commandArgList)}' to '{rpcUri}'.");
                         RPCResponse response = rpcClient.SendCommand(command, commandArgList.ToArray());
 
                         // Return the result as a string to the console.
@@ -167,7 +167,7 @@ namespace Stratis.Bitcoin.Cli
                         try
                         {
                             // Get the response.
-                            Console.WriteLine($"Sending API command to {url}...");
+                            Console.WriteLine($"Sending API command to {url}.");
                             string response = client.GetStringAsync(url).GetAwaiter().GetResult();
 
                             // Format and return the result as a string to the console.

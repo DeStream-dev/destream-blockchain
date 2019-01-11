@@ -57,6 +57,7 @@ namespace Stratis.Bitcoin.Utilities
                     serializedItems[itemIndex] = serializedObject;
                     itemIndex++;
                 }
+
                 return ConcatArrays(serializedItems);
             }
 
@@ -78,6 +79,7 @@ namespace Stratis.Bitcoin.Utilities
                 Buffer.BlockCopy(array, 0, res, offset, array.Length);
                 offset += array.Length;
             }
+
             return res;
         }
 
@@ -118,6 +120,25 @@ namespace Stratis.Bitcoin.Utilities
 
             if (type == typeof(BlockStake))
                 return BlockStake.Load(bytes, this.Network);
+
+            if (type == typeof(HashHeightPair))
+                return HashHeightPair.Load(bytes);
+
+            if (type == typeof(ProvenBlockHeader))
+            {
+                ProvenBlockHeader provenBlockHeader =
+                    ((PosConsensusFactory)this.Network.Consensus.ConsensusFactory).CreateProvenBlockHeader();
+
+                provenBlockHeader.ReadWrite(bytes, this.Network.Consensus.ConsensusFactory);
+                return provenBlockHeader;
+            }
+
+            if (typeof(IBitcoinSerializable).IsAssignableFrom(type))
+            {
+                var result = (IBitcoinSerializable)Activator.CreateInstance(type);
+                result.ReadWrite(bytes);
+                return result;
+            }
 
             throw new NotSupportedException();
         }

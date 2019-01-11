@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
+using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Moq;
 using NBitcoin;
 using NBitcoin.DataEncoders;
@@ -14,6 +15,7 @@ using Stratis.Bitcoin.Controllers;
 using Stratis.Bitcoin.Controllers.Models;
 using Stratis.Bitcoin.Interfaces;
 using Stratis.Bitcoin.P2P.Peer;
+using Stratis.Bitcoin.Tests.Common;
 using Stratis.Bitcoin.Tests.Common.Logging;
 using Stratis.Bitcoin.Tests.Wallet.Common;
 using Stratis.Bitcoin.Utilities;
@@ -24,7 +26,8 @@ namespace Stratis.Bitcoin.Tests.Controllers
 {
     public class NodeControllerTest : LogsTestBase
     {
-        private ConcurrentChain chain;
+        private readonly ConcurrentChain chain;
+        private readonly Mock<IBlockStore> blockStore;
         private readonly Mock<IDateTimeProvider> dateTimeProvider;
         private readonly Mock<IFullNode> fullNode;
         private readonly Mock<IChainState> chainState;
@@ -35,39 +38,41 @@ namespace Stratis.Bitcoin.Tests.Controllers
         private readonly Mock<IPooledGetUnspentTransaction> pooledGetUnspentTransaction;
         private readonly Mock<IGetUnspentTransaction> getUnspentTransaction;
         private readonly Mock<INetworkDifficulty> networkDifficulty;
-        private readonly Mock<ILoggerFactory> LoggerFactory;
         private NodeController controller;
 
         public NodeControllerTest()
         {
             this.fullNode = new Mock<IFullNode>();
-            this.dateTimeProvider = new Mock<IDateTimeProvider>();
+            this.blockStore = new Mock<IBlockStore>();
             this.chainState = new Mock<IChainState>();
+            this.dateTimeProvider = new Mock<IDateTimeProvider>();
             this.connectionManager = new Mock<IConnectionManager>();
-            this.network = Network.TestNet;
+            this.network = KnownNetworks.TestNet;
             this.connectionManager.Setup(c => c.Network).Returns(this.network);
             this.chain = WalletTestsHelpers.GenerateChainWithHeight(3, this.network);
-            this.nodeSettings = new NodeSettings();
+            this.nodeSettings = new NodeSettings(networksSelector: Networks.Networks.Bitcoin);
             this.pooledTransaction = new Mock<IPooledTransaction>();
             this.pooledGetUnspentTransaction = new Mock<IPooledGetUnspentTransaction>();
             this.getUnspentTransaction = new Mock<IGetUnspentTransaction>();
             this.networkDifficulty = new Mock<INetworkDifficulty>();
-            this.LoggerFactory = new Mock<ILoggerFactory>();
-            this.LoggerFactory.Setup(i => i.CreateLogger(It.IsAny<string>())).Returns(new Mock<ILogger>().Object);
 
-
-            this.controller = new NodeController(this.fullNode.Object, this.LoggerFactory.Object, 
-                this.dateTimeProvider.Object, this.chainState.Object, this.nodeSettings, 
-                this.connectionManager.Object, this.chain, this.network, this.pooledTransaction.Object, 
-                this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object);
+            this.controller = new NodeController(this.fullNode.Object, this.LoggerFactory.Object,
+                this.dateTimeProvider.Object, this.chainState.Object, this.nodeSettings,
+                this.connectionManager.Object, this.chain, this.network, this.pooledTransaction.Object,
+                this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object, this.blockStore.Object);
         }
 
         [Fact]
-        public void Stop_WithFullNode_DisposesFullNodeAsync()
+        public void Stop_WithFullNode_DisposesFullNode()
         {
-            IActionResult result = this.controller.Shutdown();
+            var isDisposed = false;
+            this.fullNode.Setup(f => f.NodeLifetime.StopApplication()).Callback(() => isDisposed = true);
 
-            this.fullNode.Verify(f => f.Dispose());
+            IActionResult result = this.controller.Shutdown(true);
+
+            result.Should().BeOfType<OkResult>();
+            Thread.Sleep(100);
+            isDisposed.Should().BeTrue();
         }
 
         [Fact]
@@ -75,8 +80,8 @@ namespace Stratis.Bitcoin.Tests.Controllers
         {
             string txid = "abcd1234";
             bool verbose = false;
-            
-            IActionResult result = await this.controller.GetRawTransactionAsync(txid,verbose).ConfigureAwait(false);
+
+            IActionResult result = await this.controller.GetRawTransactionAsync(txid, verbose).ConfigureAwait(false);
 
             var errorResult = Assert.IsType<ErrorResult>(result);
             var errorResponse = Assert.IsType<ErrorResponse>(errorResult.Value);
@@ -93,24 +98,21 @@ namespace Stratis.Bitcoin.Tests.Controllers
             this.pooledTransaction.Setup(p => p.GetTransaction(txId))
                 .ReturnsAsync((Transaction)null)
                 .Verifiable();
-            var blockStore = new Mock<IBlockStore>();
-            blockStore.Setup(b => b.GetTrxAsync(txId))
+            this.blockStore.Setup(b => b.GetTransactionByIdAsync(txId))
                 .ReturnsAsync((Transaction)null)
                 .Verifiable();
-            this.fullNode.Setup(f => f.NodeFeature<IBlockStore>(false))
-                .Returns(blockStore.Object);
             this.controller = new NodeController(this.fullNode.Object, this.LoggerFactory.Object,
                 this.dateTimeProvider.Object, this.chainState.Object, this.nodeSettings,
                 this.connectionManager.Object, this.chain, this.network, this.pooledTransaction.Object,
-                this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object);
+                this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object, this.blockStore.Object);
             string txid = txId.ToString();
             bool verbose = false;
-            
+
             var json = (JsonResult)await this.controller.GetRawTransactionAsync(txid, verbose).ConfigureAwait(false);
 
             Assert.Null(json.Value);
             this.pooledTransaction.Verify();
-            blockStore.Verify();
+            this.blockStore.Verify();
         }
 
         [Fact]
@@ -120,15 +122,12 @@ namespace Stratis.Bitcoin.Tests.Controllers
             this.pooledTransaction.Setup(p => p.GetTransaction(txId))
                 .ReturnsAsync((Transaction)null);
             Transaction transaction = this.CreateTransaction();
-            var blockStore = new Mock<IBlockStore>();
-            blockStore.Setup(b => b.GetTrxAsync(txId))
+            this.blockStore.Setup(b => b.GetTransactionByIdAsync(txId))
                 .ReturnsAsync(transaction);
-            this.fullNode.Setup(f => f.NodeFeature<IBlockStore>(false))
-                .Returns(blockStore.Object);
             this.controller = new NodeController(this.fullNode.Object, this.LoggerFactory.Object,
                 this.dateTimeProvider.Object, this.chainState.Object, this.nodeSettings,
                 this.connectionManager.Object, this.chain, this.network, this.pooledTransaction.Object,
-                this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object);
+                this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object, this.blockStore.Object);
             string txid = txId.ToString();
             bool verbose = false;
 
@@ -145,18 +144,11 @@ namespace Stratis.Bitcoin.Tests.Controllers
         {
             var txId = new uint256(12142124);
             Transaction transaction = this.CreateTransaction();
-            var blockStore = new Mock<IBlockStore>();
-            blockStore.Setup(b => b.GetTrxAsync(txId))
+            this.blockStore.Setup(b => b.GetTransactionByIdAsync(txId))
                 .ReturnsAsync(transaction);
-            this.fullNode.Setup(f => f.NodeFeature<IBlockStore>(false))
-                .Returns(blockStore.Object);
-            this.controller = new NodeController(this.fullNode.Object, this.LoggerFactory.Object,
-                this.dateTimeProvider.Object, this.chainState.Object, this.nodeSettings,
-                this.connectionManager.Object, this.chain, this.network, this.pooledTransaction.Object,
-                this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object);
             string txid = txId.ToString();
 
-            var json = (JsonResult) await this.controller.GetRawTransactionAsync(txid).ConfigureAwait(false);
+            var json = (JsonResult)await this.controller.GetRawTransactionAsync(txid).ConfigureAwait(false);
             var resultModel = (TransactionBriefModel)json.Value;
 
             Assert.NotNull(resultModel);
@@ -169,15 +161,12 @@ namespace Stratis.Bitcoin.Tests.Controllers
         {
             var txId = new uint256(12142124);
             Transaction transaction = this.CreateTransaction();
-            var blockStore = new Mock<IBlockStore>();
-            blockStore.Setup(b => b.GetTrxAsync(txId))
+            this.blockStore.Setup(b => b.GetTransactionByIdAsync(txId))
                 .ReturnsAsync(transaction);
-            this.fullNode.Setup(f => f.NodeFeature<IBlockStore>(false))
-                .Returns(blockStore.Object);
             this.controller = new NodeController(this.fullNode.Object, this.LoggerFactory.Object,
                 this.dateTimeProvider.Object, this.chainState.Object, this.nodeSettings,
                 this.connectionManager.Object, this.chain, this.network, null,
-                this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object);
+                this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object, this.blockStore.Object);
             string txid = txId.ToString();
             bool verbose = false;
 
@@ -192,13 +181,13 @@ namespace Stratis.Bitcoin.Tests.Controllers
         public async Task GetRawTransactionAsync_PooledTransactionAndBlockStoreServiceNotAvailable_ReturnsNullAsync()
         {
             var txId = new uint256(12142124);
-            this.fullNode.Setup(f => f.NodeFeature<IBlockStore>(false))
-                .Returns(default(IBlockStore))
+            this.blockStore.Setup(f => f.GetTransactionByIdAsync(txId))
+                .ReturnsAsync((Transaction)null)
                 .Verifiable();
             this.controller = new NodeController(this.fullNode.Object, this.LoggerFactory.Object,
                 this.dateTimeProvider.Object, this.chainState.Object, this.nodeSettings,
                 this.connectionManager.Object, this.chain, this.network, null,
-                this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object);
+                this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object, this.blockStore.Object);
             string txid = txId.ToString();
             bool verbose = false;
 
@@ -206,6 +195,27 @@ namespace Stratis.Bitcoin.Tests.Controllers
 
             Assert.Null(json.Value);
             this.fullNode.Verify();
+        }
+
+        [Fact]
+        public void DecodeRawTransaction_ReturnsTransaction()
+        {
+            var txId = new uint256(12142124);
+            this.pooledTransaction.Setup(p => p.GetTransaction(txId))
+                .ReturnsAsync((Transaction)null);
+            Transaction transaction = this.CreateTransaction();
+
+            this.controller = new NodeController(this.fullNode.Object, this.LoggerFactory.Object,
+                this.dateTimeProvider.Object, this.chainState.Object, this.nodeSettings,
+                this.connectionManager.Object, this.chain, this.network, this.pooledTransaction.Object,
+                this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object, this.blockStore.Object);
+
+            var json = (JsonResult)this.controller.DecodeRawTransaction(new DecodeRawTransactionModel() { RawHex = transaction.ToHex() });
+            var resultModel = (TransactionVerboseModel)json.Value;
+
+            Assert.NotNull(json);
+            var model = Assert.IsType<TransactionVerboseModel>(resultModel);
+            Assert.Equal(transaction.ToHex(), model.Hex);
         }
 
         [Fact]
@@ -219,14 +229,10 @@ namespace Stratis.Bitcoin.Tests.Controllers
             this.pooledTransaction.Setup(p => p.GetTransaction(txId))
                 .ReturnsAsync(transaction);
             var blockStore = new Mock<IBlockStore>();
-            blockStore.Setup(b => b.GetTrxBlockIdAsync(txId))
+            blockStore.Setup(b => b.GetBlockIdByTransactionIdAsync(txId))
                 .ReturnsAsync(block.HashBlock);
             this.fullNode.Setup(f => f.NodeFeature<IBlockStore>(false))
                 .Returns(blockStore.Object);
-            this.controller = new NodeController(this.fullNode.Object, this.LoggerFactory.Object,
-                this.dateTimeProvider.Object, this.chainState.Object, this.nodeSettings,
-                this.connectionManager.Object, this.chain, this.network, this.pooledTransaction.Object,
-                this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object);
             string txid = txId.ToString();
             bool verbose = true;
 
@@ -268,15 +274,12 @@ namespace Stratis.Bitcoin.Tests.Controllers
             var txId = new uint256(12142124);
             this.pooledTransaction.Setup(p => p.GetTransaction(txId))
                 .ReturnsAsync(transaction);
+
             var blockStore = new Mock<IBlockStore>();
-            blockStore.Setup(b => b.GetTrxBlockIdAsync(txId))
+            blockStore.Setup(b => b.GetBlockIdByTransactionIdAsync(txId))
                 .ReturnsAsync(block.HashBlock);
             this.fullNode.Setup(f => f.NodeFeature<IBlockStore>(false))
                 .Returns(blockStore.Object);
-            this.controller = new NodeController(this.fullNode.Object, this.LoggerFactory.Object,
-                this.dateTimeProvider.Object, this.chainState.Object, this.nodeSettings,
-                this.connectionManager.Object, this.chain, this.network, this.pooledTransaction.Object,
-                this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object);
             string txid = txId.ToString();
             bool verbose = true;
 
@@ -296,14 +299,10 @@ namespace Stratis.Bitcoin.Tests.Controllers
             this.pooledTransaction.Setup(p => p.GetTransaction(txId))
                 .ReturnsAsync(transaction);
             var blockStore = new Mock<IBlockStore>();
-            blockStore.Setup(b => b.GetTrxBlockIdAsync(txId))
+            blockStore.Setup(b => b.GetBlockIdByTransactionIdAsync(txId))
                 .ReturnsAsync((uint256)null);
             this.fullNode.Setup(f => f.NodeFeature<IBlockStore>(false))
                 .Returns(blockStore.Object);
-            this.controller = new NodeController(this.fullNode.Object, this.LoggerFactory.Object,
-                this.dateTimeProvider.Object, this.chainState.Object, this.nodeSettings,
-                this.connectionManager.Object, this.chain, this.network, this.pooledTransaction.Object,
-                this.pooledGetUnspentTransaction.Object, this.getUnspentTransaction.Object, this.networkDifficulty.Object);
             string txid = txId.ToString();
             bool verbose = true;
 
@@ -323,7 +322,7 @@ namespace Stratis.Bitcoin.Tests.Controllers
         {
             string txid = "abcd1234";
             uint vout = 0;
-            bool includeMemPool = false;            
+            bool includeMemPool = false;
 
             IActionResult result = await this.controller.GetTxOutAsync(txid, vout, includeMemPool).ConfigureAwait(false);
 
@@ -344,9 +343,9 @@ namespace Stratis.Bitcoin.Tests.Controllers
             this.pooledGetUnspentTransaction.Setup(s => s.GetUnspentTransactionAsync(txId))
                 .ReturnsAsync(unspentOutputs)
                 .Verifiable();
-            string txid = txId.ToString();            
+            string txid = txId.ToString();
 
-            var json = (JsonResult) await this.controller.GetTxOutAsync(txid).ConfigureAwait(false);
+            var json = (JsonResult)await this.controller.GetTxOutAsync(txid).ConfigureAwait(false);
             var resultModel = (GetTxOutModel)json.Value;
 
             this.getUnspentTransaction.Verify();
@@ -367,7 +366,7 @@ namespace Stratis.Bitcoin.Tests.Controllers
             string txid = txId.ToString();
             uint vout = 0;
             bool includeMemPool = false;
-            
+
             var json = (JsonResult)await this.controller.GetTxOutAsync(txid, vout, includeMemPool).ConfigureAwait(false);
 
             Assert.Null(json.Value);
@@ -600,7 +599,7 @@ namespace Stratis.Bitcoin.Tests.Controllers
         public void ValidateAddress_ValidAddressOfDifferentNetwork_ReturnsFalse()
         {
             // P2PKH
-            BitcoinPubKeyAddress pubkeyaddress = new Key().PubKey.GetAddress(Network.Main);
+            BitcoinPubKeyAddress pubkeyaddress = new Key().PubKey.GetAddress(KnownNetworks.Main);
             string address = pubkeyaddress.ToString();
 
             var json = (JsonResult)this.controller.ValidateAddress(address);
@@ -718,7 +717,7 @@ namespace Stratis.Bitcoin.Tests.Controllers
                 return null;
             }
 
-            public INetworkPeer FindByIp(IPAddress ip)
+            public List<INetworkPeer> FindByIp(IPAddress ip)
             {
                 return null;
             }

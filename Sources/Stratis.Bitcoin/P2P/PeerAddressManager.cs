@@ -8,82 +8,10 @@ using NBitcoin;
 using Stratis.Bitcoin.Configuration;
 using Stratis.Bitcoin.Utilities;
 using Stratis.Bitcoin.Utilities.Extensions;
+using TracerAttributes;
 
 namespace Stratis.Bitcoin.P2P
 {
-    /// <summary>Contract for <see cref="PeerAddressManager"/>.</summary>
-    public interface IPeerAddressManager : IDisposable
-    {
-        /// <summary>Data folder of where the json peer file is located.</summary>
-        DataFolder PeerFilePath { get; set; }
-
-        /// <summary>A collection of all discovered peers.</summary>
-        List<PeerAddress> Peers { get; }
-
-        /// <summary>
-        /// Adds a peer to the <see cref="Peers"/> dictionary.
-        /// <para>
-        /// Only routable IP addresses will be added. See <see cref="IpExtensions.IsRoutable(IPAddress, bool)"/>.
-        /// </para>
-        /// </summary>
-        void AddPeer(IPEndPoint endPoint, IPAddress source);
-
-        /// <summary>
-        /// Add a set of peers to the <see cref="Peers"/> dictionary.
-        /// <para>
-        /// Only routable IP addresses will be added. <see cref="IpExtensions.IsRoutable(IPAddress, bool)"/>
-        /// </para>
-        /// </summary>
-        void AddPeers(IPEndPoint[] endPoints, IPAddress source);
-
-        /// <summary> Find a peer by endpoint.</summary>
-        PeerAddress FindPeer(IPEndPoint endPoint);
-
-        /// <summary>Loads peers from a json formatted file on disk.</summary>
-        void LoadPeers();
-
-        /// <summary>Persist peers to disk in json format.</summary>
-        void SavePeers();
-
-        /// <summary>
-        /// A connection attempt was made to a peer.
-        /// <para>
-        /// Increments <see cref="PeerAddress.ConnectionAttempts"/> of the peer as well as the <see cref="PeerAddress.LastConnectionSuccess"/>
-        /// </para>
-        /// </summary>
-        void PeerAttempted(IPEndPoint endpoint, DateTime peerAttemptedAt);
-
-        /// <summary>
-        /// A peer was successfully connected to.
-        /// <para>
-        /// Resets the <see cref="PeerAddress.ConnectionAttempts"/> and <see cref="PeerAddress.LastAttempt"/> of the peer.
-        /// Sets the peer's <see cref="PeerAddress.LastConnectionSuccess"/> to now.
-        /// </para>
-        /// </summary>
-        void PeerConnected(IPEndPoint endpoint, DateTimeOffset peerAttemptedAt);
-
-        /// <summary>
-        /// Sets the last time the peer was asked for addresses via discovery.
-        /// </summary>
-        void PeerDiscoveredFrom(IPEndPoint endpoint, DateTime peerDiscoveredFrom);
-
-        /// <summary>
-        /// A version handshake between two peers was successful.
-        /// <para>
-        /// Sets the peer's <see cref="PeerAddress.LastConnectionHandshake"/> time to now.
-        /// </para>
-        /// </summary>
-        void PeerHandshaked(IPEndPoint endpoint, DateTimeOffset peerAttemptedAt);
-
-        /// <summary>
-        /// Sets the last time the peer was seen.
-        /// </summary>
-        void PeerSeen(IPEndPoint endpoint, DateTime peerSeenAt);
-
-        /// <summary>Peer selector instance, used to select peers to connect to.</summary>
-        IPeerSelector PeerSelector { get; }
-    }
-
     /// <summary>
     /// This manager keeps a set of peers discovered on the network in cache and on disk.
     /// <para>
@@ -98,14 +26,11 @@ namespace Stratis.Bitcoin.P2P
         /// <summary>Instance logger.</summary>
         private readonly ILogger logger;
 
-        /// <summary>Logger factory to create loggers.</summary>
-        private readonly ILoggerFactory loggerFactory;
-
         /// <summary>Key value store that indexes all discovered peers by their end point.</summary>
-        private readonly ConcurrentDictionary<IPEndPoint, PeerAddress> peers;
+        private ConcurrentDictionary<IPEndPoint, PeerAddress> peerInfoByPeerAddress;
 
         /// <inheritdoc />
-        public List<PeerAddress> Peers => this.peers.Select(item => item.Value).ToList();
+        public ICollection<PeerAddress> Peers => this.peerInfoByPeerAddress.Values;
 
         /// <summary>The file name of the peers file.</summary>
         internal const string PeerFileName = "peers.json";
@@ -116,27 +41,32 @@ namespace Stratis.Bitcoin.P2P
         /// <summary>Peer selector instance, used to select peers to connect to.</summary>
         public IPeerSelector PeerSelector { get; private set; }
 
+        /// <summary>An object capable of storing a list of <see cref="PeerAddress"/>s to the file system.</summary>
+        private readonly FileStorage<List<PeerAddress>> fileStorage;
+
+        private const int MaxAddressesToStoreFromSingleIp = 1500;
+
         /// <summary>Constructor used by dependency injection.</summary>
         public PeerAddressManager(IDateTimeProvider dateTimeProvider, DataFolder peerFilePath, ILoggerFactory loggerFactory, ISelfEndpointTracker selfEndpointTracker)
         {
             this.dateTimeProvider = dateTimeProvider;
-            this.loggerFactory = loggerFactory;
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
-            this.peers = new ConcurrentDictionary<IPEndPoint, PeerAddress>();
+            this.peerInfoByPeerAddress = new ConcurrentDictionary<IPEndPoint, PeerAddress>();
             this.PeerFilePath = peerFilePath;
-            this.PeerSelector = new PeerSelector(this.dateTimeProvider, this.loggerFactory, this.peers, selfEndpointTracker);
+            this.PeerSelector = new PeerSelector(this.dateTimeProvider, loggerFactory, this.peerInfoByPeerAddress, selfEndpointTracker);
+            this.fileStorage = new FileStorage<List<PeerAddress>>(this.PeerFilePath.AddressManagerFilePath);
         }
 
         /// <inheritdoc />
+        [NoTrace]
         public void LoadPeers()
         {
-            var fileStorage = new FileStorage<List<PeerAddress>>(this.PeerFilePath.AddressManagerFilePath);
-            List<PeerAddress> peers = fileStorage.LoadByFileName(PeerFileName);
-            peers.ForEach(peer =>
-            {
-                // Ensure that any address already in store is mapped.
-                peer.Endpoint = peer.Endpoint.MapToIpv6();
+            List<PeerAddress> loadedPeers = this.fileStorage.LoadByFileName(PeerFileName);
 
+            this.logger.LogTrace("{0} peers were loaded.", loadedPeers.Count);
+
+            foreach (PeerAddress peer in loadedPeers)
+            {
                 // If no longer banned reset ban details.
                 if (peer.BanUntil.HasValue && peer.BanUntil < this.dateTimeProvider.GetUtcNow())
                 {
@@ -147,37 +77,63 @@ namespace Stratis.Bitcoin.P2P
                     this.logger.LogTrace("{0} no longer banned.", peer.Endpoint);
                 }
 
-                this.peers.AddOrUpdate(peer.Endpoint, peer, (key, oldValue) => peer);
-            });
+                this.peerInfoByPeerAddress.TryAdd(peer.Endpoint, peer);
+            }
         }
 
         /// <inheritdoc />
         public void SavePeers()
         {
-            if (this.peers.Any() == false)
+            if (!this.peerInfoByPeerAddress.Any())
                 return;
 
-            var fileStorage = new FileStorage<List<PeerAddress>>(this.PeerFilePath.AddressManagerFilePath);
-            fileStorage.SaveToFile(this.peers.OrderByDescending(p => p.Value.LastConnectionSuccess).Select(p => p.Value).ToList(), PeerFileName);
+            this.fileStorage.SaveToFile(this.peerInfoByPeerAddress.Values.ToList(), PeerFileName);
         }
 
         /// <inheritdoc/>
         public void AddPeer(IPEndPoint endPoint, IPAddress source)
         {
+            this.AddPeerWithoutCleanup(endPoint, source);
+
+            this.EnsureMaxItemsPerSource(source);
+        }
+
+        private void AddPeerWithoutCleanup(IPEndPoint endPoint, IPAddress source)
+        {
             if (!endPoint.Address.IsRoutable(true))
                 return;
-            
-            PeerAddress peerToAdd = PeerAddress.Create(endPoint, source);
-            this.peers.TryAdd(peerToAdd.Endpoint, peerToAdd);
+
+            IPEndPoint ipv6EndPoint = endPoint.MapToIpv6();
+
+            PeerAddress peerToAdd = PeerAddress.Create(ipv6EndPoint, source.MapToIPv6());
+            this.peerInfoByPeerAddress.TryAdd(ipv6EndPoint, peerToAdd);
         }
 
         /// <inheritdoc/>
-        public void AddPeers(IPEndPoint[] endPoints, IPAddress source)
+        public void AddPeers(IEnumerable<IPEndPoint> endPoints, IPAddress source)
         {
             foreach (IPEndPoint endPoint in endPoints)
+                this.AddPeerWithoutCleanup(endPoint, source);
+
+            this.EnsureMaxItemsPerSource(source);
+        }
+
+        private void EnsureMaxItemsPerSource(IPAddress source)
+        {
+            IEnumerable<IPEndPoint> itemsFromSameSource = this.peerInfoByPeerAddress.Values.Where(x => x.Loopback.Equals(source.MapToIPv6())).Select(x => x.Endpoint);
+            List<IPEndPoint> itemsToRemove = itemsFromSameSource.Skip(MaxAddressesToStoreFromSingleIp).ToList();
+
+            if (itemsToRemove.Count > 0)
             {
-                this.AddPeer(endPoint, source);
+                foreach (IPEndPoint toRemove in itemsToRemove)
+                    this.RemovePeer(toRemove);
             }
+        }
+
+        /// <inheritdoc/>
+        public void RemovePeer(IPEndPoint endPoint)
+        {
+            this.peerInfoByPeerAddress.TryRemove(endPoint.MapToIpv6(), out PeerAddress addr);
         }
 
         /// <inheritdoc/>
@@ -187,9 +143,9 @@ namespace Stratis.Bitcoin.P2P
             if (peer == null)
                 return;
 
-            //Reset the attempted count if:
-            //1: The last attempt was more than the threshold time ago.
-            //2: More than the threshold attempts was made.
+            // Reset the attempted count if:
+            // 1: The last attempt was more than the threshold time ago.
+            // 2: More than the threshold attempts was made.
             if (peer.Attempted &&
                 peer.LastAttempt < this.dateTimeProvider.GetUtcNow().AddHours(-PeerAddress.AttemptResetThresholdHours) &&
                 peer.ConnectionAttempts >= PeerAddress.AttemptThreshold)
@@ -204,49 +160,46 @@ namespace Stratis.Bitcoin.P2P
         public void PeerConnected(IPEndPoint endpoint, DateTimeOffset peerConnectedAt)
         {
             PeerAddress peer = this.FindPeer(endpoint);
-            if (peer == null)
-                return;
 
-            peer.SetConnected(peerConnectedAt);
+            peer?.SetConnected(peerConnectedAt);
         }
 
         /// <inheritdoc/>
         public void PeerDiscoveredFrom(IPEndPoint endpoint, DateTime peerDiscoveredFrom)
         {
             PeerAddress peer = this.FindPeer(endpoint);
-            if (peer == null)
-                return;
 
-            peer.SetDiscoveredFrom(peerDiscoveredFrom);
+            peer?.SetDiscoveredFrom(peerDiscoveredFrom);
         }
 
         /// <inheritdoc/>
         public void PeerHandshaked(IPEndPoint endpoint, DateTimeOffset peerHandshakedAt)
         {
             PeerAddress peer = this.FindPeer(endpoint);
-            if (peer == null)
-                return;
 
-            peer.SetHandshaked(peerHandshakedAt);
+            peer?.SetHandshaked(peerHandshakedAt);
         }
 
         /// <inheritdoc/>
         public void PeerSeen(IPEndPoint endpoint, DateTime peerSeenAt)
         {
             PeerAddress peer = this.FindPeer(endpoint);
-            if (peer == null)
-                return;
 
-            peer.SetLastSeen(peerSeenAt);
+            peer?.SetLastSeen(peerSeenAt);
         }
 
         /// <inheritdoc/>
         public PeerAddress FindPeer(IPEndPoint endPoint)
         {
-            KeyValuePair<IPEndPoint, PeerAddress> peer = this.peers.Skip(0).SingleOrDefault(p => p.Key.Match(endPoint));
-            if (peer.Value != null)
-                return peer.Value;
-            return null;
+            KeyValuePair<IPEndPoint, PeerAddress> peer = this.peerInfoByPeerAddress.Skip(0).SingleOrDefault(p => p.Key.Match(endPoint));
+            return peer.Value;
+        }
+
+        /// <inheritdoc/>
+        public List<PeerAddress> FindPeersByIp(IPEndPoint endPoint)
+        {
+            IEnumerable<KeyValuePair<IPEndPoint, PeerAddress>> peers = this.peerInfoByPeerAddress.Skip(0).Where(p => p.Key.MatchIpOnly(endPoint));
+            return peers.Select(p => p.Value).ToList();
         }
 
         /// <inheritdoc />

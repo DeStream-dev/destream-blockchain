@@ -10,14 +10,14 @@ namespace Stratis.Bitcoin.Features.Consensus.Tests.Rules.CommonRules
 {
     public class CheckPowTransactionRuleTest : TestConsensusRulesUnitTestBase
     {
-        private PowConsensusOptions options;
+        private ConsensusOptions options;
 
-        private NBitcoin.Consensus consensus;
+        private IConsensus consensus;
 
         public CheckPowTransactionRuleTest()
         {
             this.consensus = this.network.Consensus;
-            this.options = this.consensus.Option<PowConsensusOptions>();
+            this.options = this.consensus.Options;
         }
 
         [Fact]
@@ -50,7 +50,7 @@ namespace Stratis.Bitcoin.Features.Consensus.Tests.Rules.CommonRules
         {
             var transaction = new Transaction();
             transaction.Inputs.Add(new TxIn());
-            transaction = this.GenerateTransactionWithWeight(transaction, this.options.MaxBlockBaseSize + 1, TransactionOptions.None);
+            transaction = this.GenerateTransactionWithWeight(transaction,(int)this.options.MaxBlockBaseSize + 1, TransactionOptions.None);
 
             var exception = Assert.Throws<ConsensusErrorException>(() => this.consensusRules.RegisterRule<CheckPowTransactionRule>().CheckTransaction(this.network, this.options, transaction));
 
@@ -208,10 +208,9 @@ namespace Stratis.Bitcoin.Features.Consensus.Tests.Rules.CommonRules
             transaction.Outputs.Add(new TxOut(new Money(this.consensus.MaxMoney / 2), (IDestination)null));
             transaction.Outputs.Add(new TxOut(new Money(this.consensus.MaxMoney / 2), (IDestination)null));
 
-            this.ruleContext.ValidationContext.Block = new Block();
-            this.ruleContext.Consensus = this.network.Consensus;
-            this.ruleContext.ValidationContext.Block.Transactions.Add(transaction);
-            this.ruleContext.ValidationContext.Block.Transactions.Add(transaction);
+            this.ruleContext.ValidationContext.BlockToValidate = this.network.CreateBlock();
+            this.ruleContext.ValidationContext.BlockToValidate.Transactions.Add(transaction);
+            this.ruleContext.ValidationContext.BlockToValidate.Transactions.Add(transaction);
 
             var rule = this.consensusRules.RegisterRule<CheckPowTransactionRule>();
 
@@ -228,10 +227,9 @@ namespace Stratis.Bitcoin.Features.Consensus.Tests.Rules.CommonRules
 
             var invalidTransaction = new Transaction();
 
-            this.ruleContext.ValidationContext.Block = new Block();
-            this.ruleContext.Consensus = this.network.Consensus;
-            this.ruleContext.ValidationContext.Block.Transactions.Add(validTransaction);
-            this.ruleContext.ValidationContext.Block.Transactions.Add(invalidTransaction);
+            this.ruleContext.ValidationContext.BlockToValidate = this.network.CreateBlock();
+            this.ruleContext.ValidationContext.BlockToValidate.Transactions.Add(validTransaction);
+            this.ruleContext.ValidationContext.BlockToValidate.Transactions.Add(invalidTransaction);
 
             ConsensusErrorException exception = await Assert.ThrowsAsync<ConsensusErrorException>(() => this.consensusRules.RegisterRule<CheckPowTransactionRule>().RunAsync(this.ruleContext));
 

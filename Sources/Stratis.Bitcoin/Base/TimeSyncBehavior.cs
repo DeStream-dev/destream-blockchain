@@ -10,13 +10,14 @@ using Stratis.Bitcoin.P2P.Protocol;
 using Stratis.Bitcoin.P2P.Protocol.Behaviors;
 using Stratis.Bitcoin.P2P.Protocol.Payloads;
 using Stratis.Bitcoin.Utilities;
+using TracerAttributes;
 
 namespace Stratis.Bitcoin.Base
 {
     /// <summary>
     /// Methods related to network peers time synchronization feature.
     /// </summary>
-    public interface ITimeSyncBehaviorState
+    public interface ITimeSyncBehaviorState : IDisposable
     {
         /// <summary>
         /// Adds a time offset sample to the internal database of samples.
@@ -64,7 +65,7 @@ namespace Stratis.Bitcoin.Base
     /// samples separated from inbound samples. Our final offset is also a median of collected
     /// samples, but outbound samples have much greater weight in the median calculation
     /// as per the given weight, which is dynamically adjusted depending on the inbound outbound ratio
-    /// in order to protect us from all inbound and an accepted percentage of outbound. 
+    /// in order to protect us from all inbound and an accepted percentage of outbound.
     /// </para>
     /// <para>
     /// Bitcoin's implementation only allows certain number of samples to be collected
@@ -78,7 +79,7 @@ namespace Stratis.Bitcoin.Base
     /// the one in Bitcoin.
     /// </para>
     /// </remarks>
-    public class TimeSyncBehaviorState : ITimeSyncBehaviorState, IDisposable
+    public class TimeSyncBehaviorState : ITimeSyncBehaviorState
     {
         /// <summary>
         /// Description of a single timestamp offset sample from a peer.
@@ -199,8 +200,6 @@ namespace Stratis.Bitcoin.Base
         /// <inheritdoc />
         public bool AddTimeData(IPAddress peerAddress, TimeSpan offsetSample, bool isInboundConnection)
         {
-            this.logger.LogTrace("({0}:'{1}',{2}:{3},{4}:{5})", nameof(peerAddress), peerAddress, nameof(offsetSample), offsetSample.TotalSeconds, nameof(isInboundConnection), isInboundConnection);
-
             bool res = false;
 
             bool startWarningLoopNow = false;
@@ -249,7 +248,6 @@ namespace Stratis.Bitcoin.Base
             if (startWarningLoopNow)
                 this.StartWarningLoop();
 
-            this.logger.LogTrace("(-):{0}", res);
             return res;
         }
 
@@ -264,8 +262,8 @@ namespace Stratis.Bitcoin.Base
         /// </para>
         /// <para>
         /// When there are many more inbound samples than outbound, which could be the case
-        /// in a malicious attack, the security is still maintained by using a dynamic inbound/outbound 
-        /// ratio multiplier ratio on the outbound samples that maintains the accepted level of security. 
+        /// in a malicious attack, the security is still maintained by using a dynamic inbound/outbound
+        /// ratio multiplier ratio on the outbound samples that maintains the accepted level of security.
         /// </para>
         /// <para>
         /// We require to have at least <see cref="MinOutboundSampleCount"/> outbound samples to change the value of <see cref="timeOffset"/>.
@@ -273,8 +271,6 @@ namespace Stratis.Bitcoin.Base
         /// </remarks>
         private void RecalculateTimeOffsetLocked()
         {
-            this.logger.LogTrace("()");
-
             if (this.outboundTimestampOffsets.Count >= MinOutboundSampleCount)
             {
                 this.logger.LogTrace("We have {0} outbound samples and {1} inbound samples.", this.outboundTimestampOffsets.Count, this.inboundSampleSources.Count);
@@ -309,8 +305,6 @@ namespace Stratis.Bitcoin.Base
                 }
             }
             else this.logger.LogTrace("We have {0} outbound samples, which is below required minimum of {1} outbound samples.", this.outboundTimestampOffsets.Count, MinOutboundSampleCount);
-
-            this.logger.LogTrace("(-):{0}={1}", nameof(this.timeOffset), this.timeOffset.TotalSeconds);
         }
 
         /// <summary>
@@ -318,12 +312,8 @@ namespace Stratis.Bitcoin.Base
         /// </summary>
         private void StartWarningLoop()
         {
-            this.logger.LogTrace("()");
-
             this.warningLoop = this.asyncLoopFactory.Run($"{nameof(TimeSyncBehavior)}.WarningLoop", token =>
             {
-                this.logger.LogTrace("()");
-
                 if (!this.SwitchedOffLimitReached)
                 {
                     bool timeOffsetWrong = false;
@@ -360,24 +350,17 @@ namespace Stratis.Bitcoin.Base
                         this.network.MaxTimeOffsetSeconds);
                 }
 
-                this.logger.LogTrace("(-)");
                 return Task.CompletedTask;
             },
             this.nodeLifetime.ApplicationStopping,
             repeatEvery: TimeSpan.FromSeconds(57.3), // Weird number to prevent collisions with some other periodic console outputs.
             startAfter: TimeSpans.FiveSeconds);
-
-            this.logger.LogTrace("(-)");
         }
 
         /// <inheritdoc />
         public void Dispose()
         {
-            this.logger.LogTrace("()");
-
             this.warningLoop?.Dispose();
-
-            this.logger.LogTrace("(-)");
         }
     }
 
@@ -414,33 +397,24 @@ namespace Stratis.Bitcoin.Base
         }
 
         /// <inheritdoc />
+        [NoTrace]
         protected override void AttachCore()
         {
-            this.logger.LogTrace("()");
-
             this.AttachedPeer.MessageReceived.Register(this.OnMessageReceivedAsync);
-
-            this.logger.LogTrace("(-)");
         }
 
         /// <inheritdoc />
+        [NoTrace]
         protected override void DetachCore()
         {
-            this.logger.LogTrace("()");
-
             this.AttachedPeer.MessageReceived.Unregister(this.OnMessageReceivedAsync);
-
-            this.logger.LogTrace("(-)");
         }
 
         /// <inheritdoc />
+        [NoTrace]
         public override object Clone()
         {
-            this.logger.LogTrace("()");
-
             var res = new TimeSyncBehavior(this.state, this.dateTimeProvider, this.loggerFactory);
-
-            this.logger.LogTrace("(-)");
             return res;
         }
 
@@ -459,8 +433,6 @@ namespace Stratis.Bitcoin.Base
         /// </remarks>
         private Task OnMessageReceivedAsync(INetworkPeer peer, IncomingMessage message)
         {
-            this.logger.LogTrace("({0}:'{1}',{2}:'{3}')", nameof(peer), peer.RemoteSocketEndpoint, nameof(message), message.Message.Command);
-
             if (message.Message.Payload is VerAckPayload verack)
             {
                 IPAddress address = peer.RemoteSocketAddress;
@@ -477,7 +449,6 @@ namespace Stratis.Bitcoin.Base
                 else this.logger.LogTrace("Message received from unknown node's address.");
             }
 
-            this.logger.LogTrace("(-)");
             return Task.CompletedTask;
         }
     }

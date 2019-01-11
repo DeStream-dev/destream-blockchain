@@ -24,7 +24,7 @@ namespace Stratis.Bitcoin.Utilities
                 {
                     if (!cts.IsCancellationRequested)
                     {
-                        Console.WriteLine("Application is shutting down...");
+                        Console.WriteLine("Application is shutting down.");
                         try
                         {
                             cts.Cancel();
@@ -34,7 +34,7 @@ namespace Stratis.Bitcoin.Utilities
                             Console.WriteLine(exception.Message);
                         }
                     }
-                    
+
                     done.Wait();
                 };
 
@@ -69,7 +69,7 @@ namespace Stratis.Bitcoin.Utilities
         public static async Task RunAsync(this IFullNode node, CancellationToken cancellationToken, string shutdownMessage, string shutdownCompleteMessage)
         {
             node.Start();
-            
+
             if (!string.IsNullOrEmpty(shutdownMessage))
             {
                 Console.WriteLine();

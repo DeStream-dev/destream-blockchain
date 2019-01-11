@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
 using Stratis.Bitcoin.Consensus;
-using Stratis.Bitcoin.Features.Consensus;
-using Stratis.Bitcoin.Features.Consensus.Interfaces;
 using Stratis.Bitcoin.Features.MemoryPool;
 using Stratis.Bitcoin.Features.MemoryPool.Interfaces;
 using Stratis.Bitcoin.Features.Miner.Interfaces;
+using Stratis.Bitcoin.Interfaces;
 using Stratis.Bitcoin.Mining;
+using Stratis.Bitcoin.Primitives;
 using Stratis.Bitcoin.Utilities;
 
 namespace Stratis.Bitcoin.Features.Miner
@@ -41,24 +41,13 @@ namespace Stratis.Bitcoin.Features.Miner
         private readonly ConcurrentChain chain;
 
         /// <summary>Manager of the longest fully validated chain of blocks.</summary>
-        private readonly IConsensusLoop consensusLoop;
+        private readonly IConsensusManager consensusManager;
 
         /// <summary>Provider of time functions.</summary>
         private readonly IDateTimeProvider dateTimeProvider;
 
         /// <summary>Default for "-blockmintxfee", which sets the minimum feerate for a transaction in blocks created by mining code.</summary>
         public const int DefaultBlockMinTxFee = 1000;
-
-        /// <summary>Default for "-blockmaxsize", which controls the maximum size of block the mining code will create.</summary>
-        public const int DefaultBlockMaxSize = 750000;
-
-        /// <summary>
-        /// Default for "-blockmaxweight", which controls the maximum block weight the mining code can create.
-        /// Block is measured in weight units. Data which touches the UTXO (What addresses are involved in the transaction, how many coins are being transferred) costs
-        /// 4 weight units (WU) per byte. Witness data (signatures used to unlock existing coins so that they can be spent) costs 1 WU per byte.
-        /// <seealso cref="http://learnmeabitcoin.com/faq/segregated-witness"/>
-        /// </summary>
-        public const int DefaultBlockMaxWeight = 3000000;
 
         private uint256 hashPrevBlock;
 
@@ -69,6 +58,8 @@ namespace Stratis.Bitcoin.Features.Miner
 
         /// <summary>Factory for creating loggers.</summary>
         private readonly ILoggerFactory loggerFactory;
+
+        private readonly IInitialBlockDownloadState initialBlockDownloadState;
 
         /// <summary>Transaction memory pool for managing transactions in the memory pool.</summary>
         private readonly ITxMempool mempool;
@@ -93,21 +84,23 @@ namespace Stratis.Bitcoin.Features.Miner
         public PowMining(
             IAsyncLoopFactory asyncLoopFactory,
             IBlockProvider blockProvider,
-            IConsensusLoop consensusLoop,
+            IConsensusManager consensusManager,
             ConcurrentChain chain,
             IDateTimeProvider dateTimeProvider,
             ITxMempool mempool,
             MempoolSchedulerLock mempoolLock,
             Network network,
             INodeLifetime nodeLifetime,
-            ILoggerFactory loggerFactory)
+            ILoggerFactory loggerFactory,
+            IInitialBlockDownloadState initialBlockDownloadState)
         {
             this.asyncLoopFactory = asyncLoopFactory;
             this.blockProvider = blockProvider;
             this.chain = chain;
-            this.consensusLoop = consensusLoop;
+            this.consensusManager = consensusManager;
             this.dateTimeProvider = dateTimeProvider;
             this.loggerFactory = loggerFactory;
+            this.initialBlockDownloadState = initialBlockDownloadState;
             this.logger = loggerFactory.CreateLogger(this.GetType().FullName);
             this.mempool = mempool;
             this.mempoolLock = mempoolLock;
@@ -116,7 +109,7 @@ namespace Stratis.Bitcoin.Features.Miner
             this.miningCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(new[] { this.nodeLifetime.ApplicationStopping });
         }
 
-        ///<inheritdoc/>
+        /// <inheritdoc/>
         public void Mine(Script reserveScript)
         {
             if (this.miningLoop != null)
@@ -157,7 +150,7 @@ namespace Stratis.Bitcoin.Features.Miner
             startAfter: TimeSpans.TenSeconds);
         }
 
-        ///<inheritdoc/>
+        /// <inheritdoc/>
         public void StopMining()
         {
             this.miningCancellationTokenSource.Cancel();
@@ -167,7 +160,7 @@ namespace Stratis.Bitcoin.Features.Miner
             this.miningCancellationTokenSource = null;
         }
 
-        ///<inheritdoc/>
+        /// <inheritdoc/>
         public List<uint256> GenerateBlocks(ReserveScript reserveScript, ulong amountOfBlocksToMine, ulong maxTries)
         {
             var context = new MineBlockContext(amountOfBlocksToMine, (ulong)this.chain.Height, maxTries, reserveScript);
@@ -187,9 +180,6 @@ namespace Stratis.Bitcoin.Features.Miner
                     continue;
 
                 if (!this.ValidateAndConnectBlock(context))
-                    break;
-
-                if (!this.CheckValidationContextPreviousTip(context))
                     continue;
 
                 this.OnBlockMined(context);
@@ -205,8 +195,8 @@ namespace Stratis.Bitcoin.Features.Miner
         {
             this.miningCancellationTokenSource.Token.ThrowIfCancellationRequested();
 
-            context.ChainTip = this.consensusLoop.Tip;
-            if (this.chain.Tip != context.ChainTip)
+            context.ChainTip = this.consensusManager.Tip;
+            if (this.initialBlockDownloadState.IsInitialBlockDownload())
             {
                 Task.Delay(TimeSpan.FromMinutes(1), this.nodeLifetime.ApplicationStopping).GetAwaiter().GetResult();
                 return false;
@@ -218,7 +208,7 @@ namespace Stratis.Bitcoin.Features.Miner
         /// <summary>
         /// Creates a proof of work or proof of stake block depending on the network the node is running on.
         /// <para>
-        /// If the node is on a POS network, make sure the POS consensus rules are valid. This is required for 
+        /// If the node is on a POS network, make sure the POS consensus rules are valid. This is required for
         /// generation of blocks inside tests, where it is possible to generate multiple blocks within one second.
         /// </para>
         /// </summary>
@@ -275,40 +265,27 @@ namespace Stratis.Bitcoin.Features.Miner
         /// <summary>
         /// Validate the mined block by passing it to the consensus rule engine.
         /// <para>
-        /// On successfull block validation the block will be connected to the chain.
+        /// On successful block validation the block will be connected to the chain.
         /// </para>
         /// </summary>
         private bool ValidateAndConnectBlock(MineBlockContext context)
         {
-            context.ValidationContext = new ValidationContext { Block = context.BlockTemplate.Block };
-            this.consensusLoop.AcceptBlockAsync(context.ValidationContext).GetAwaiter().GetResult();
+            ChainedHeader chainedHeader = this.consensusManager.BlockMinedAsync(context.BlockTemplate.Block).GetAwaiter().GetResult();
 
-            if (context.ValidationContext.ChainedHeader == null)
+            if (chainedHeader == null)
             {
-                this.logger.LogTrace("(-)[REORG-2]");
+                this.logger.LogTrace("(-)[BLOCK_VALIDATION_ERROR]:false");
                 return false;
             }
 
-            if (context.ValidationContext.Error != null && context.ValidationContext.Error != ConsensusErrors.InvalidPrevTip)
-            {
-                this.logger.LogTrace("(-)[ACCEPT_BLOCK_ERROR]");
-                return false;
-            }
+            context.ChainedHeaderBlock = new ChainedHeaderBlock(context.BlockTemplate.Block, chainedHeader);
 
-            return true;
-        }
-
-        private bool CheckValidationContextPreviousTip(MineBlockContext context)
-        {
-            if (context.ValidationContext.Error != null)
-                if (context.ValidationContext.Error == ConsensusErrors.InvalidPrevTip)
-                    return false;
             return true;
         }
 
         private void OnBlockMined(MineBlockContext context)
         {
-            this.logger.LogInformation("Mined new {0} block: '{1}'.", BlockStake.IsProofOfStake(context.ValidationContext.Block) ? "POS" : "POW", context.ValidationContext.ChainedHeader);
+            this.logger.LogInformation("Mined new {0} block: '{1}'.", BlockStake.IsProofOfStake(context.ChainedHeaderBlock.Block) ? "POS" : "POW", context.ChainedHeaderBlock.ChainedHeader);
 
             context.CurrentHeight++;
 
@@ -316,7 +293,7 @@ namespace Stratis.Bitcoin.Features.Miner
             context.BlockTemplate = null;
         }
 
-        ///<inheritdoc/>
+        //<inheritdoc/>
         public int IncrementExtraNonce(Block block, ChainedHeader previousHeader, int extraNonce)
         {
             if (this.hashPrevBlock != block.Header.HashPrevBlock)
@@ -335,7 +312,7 @@ namespace Stratis.Bitcoin.Features.Miner
 
             return extraNonce;
         }
-        
+
         /// <summary>
         /// Context class that holds information on the current state of the mining process (per block).
         /// </summary>
@@ -345,13 +322,13 @@ namespace Stratis.Bitcoin.Features.Miner
             public List<uint256> Blocks = new List<uint256>();
             public BlockTemplate BlockTemplate { get; set; }
             public ulong ChainHeight { get; set; }
+            public ChainedHeaderBlock ChainedHeaderBlock { get; internal set; }
             public ulong CurrentHeight { get; set; }
             public ChainedHeader ChainTip { get; set; }
             public int ExtraNonce { get; set; }
             public ulong MaxTries { get; set; }
             public bool MiningCanContinue { get { return this.CurrentHeight < this.ChainHeight + this.amountOfBlocksToMine; } }
             public readonly ReserveScript ReserveScript;
-            public ValidationContext ValidationContext { get; set; }
 
             public MineBlockContext(ulong amountOfBlocksToMine, ulong chainHeight, ulong maxTries, ReserveScript reserveScript)
             {

@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
 using Stratis.Bitcoin.Features.Consensus.CoinViews;
+using Stratis.Bitcoin.Networks;
 using Stratis.Bitcoin.Tests.Common;
 using Stratis.Bitcoin.Utilities;
 
@@ -15,14 +16,15 @@ namespace Stratis.Bitcoin.IntegrationTests
         protected readonly ILoggerFactory loggerFactory;
 
         private readonly List<IDisposable> cleanList;
-       
+
         public NodeContext(object caller, string name, Network network, bool clean)
         {
-            network = network ?? Network.RegTest;
+            network = network ?? KnownNetworks.RegTest;
             this.loggerFactory = new LoggerFactory();
             this.Network = network;
             this.FolderName = TestBase.CreateTestDir(caller, name);
-            this.PersistentCoinView = new DBreezeCoinView(network, this.FolderName, DateTimeProvider.Default, this.loggerFactory);
+            var dateTimeProvider = new DateTimeProvider();
+            this.PersistentCoinView = new DBreezeCoinView(network, this.FolderName, dateTimeProvider, this.loggerFactory, new NodeStats(dateTimeProvider));
             this.PersistentCoinView.InitializeAsync().GetAwaiter().GetResult();
             this.cleanList = new List<IDisposable> {this.PersistentCoinView};
         }
@@ -58,7 +60,8 @@ namespace Stratis.Bitcoin.IntegrationTests
         {
             this.PersistentCoinView.Dispose();
             this.cleanList.Remove(this.PersistentCoinView);
-            this.PersistentCoinView = new DBreezeCoinView(this.Network, this.FolderName, DateTimeProvider.Default, this.loggerFactory);
+            var dateTimeProvider = new DateTimeProvider();
+            this.PersistentCoinView = new DBreezeCoinView(this.Network, this.FolderName, dateTimeProvider, this.loggerFactory, new NodeStats(dateTimeProvider));
             this.PersistentCoinView.InitializeAsync().GetAwaiter().GetResult();
             this.cleanList.Add(this.PersistentCoinView);
         }

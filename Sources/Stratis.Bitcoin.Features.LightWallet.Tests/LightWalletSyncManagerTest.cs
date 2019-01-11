@@ -4,12 +4,13 @@ using System.Threading;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NBitcoin;
-using Stratis.Bitcoin.Features.Notifications;
 using Stratis.Bitcoin.Features.Notifications.Interfaces;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.Wallet.Interfaces;
 using Stratis.Bitcoin.Features.Wallet.Notifications;
+using Stratis.Bitcoin.Primitives;
 using Stratis.Bitcoin.Signals;
+using Stratis.Bitcoin.Tests.Common;
 using Stratis.Bitcoin.Tests.Common.Logging;
 using Stratis.Bitcoin.Tests.Wallet.Common;
 using Stratis.Bitcoin.Utilities;
@@ -29,13 +30,14 @@ namespace Stratis.Bitcoin.Features.LightWallet.Tests
 
         public LightWalletSyncManagerTest()
         {
+            this.network = KnownNetworks.StratisMain;
+
             this.walletManager = new Mock<IWalletManager>();
-            this.chain = new ConcurrentChain();
+            this.chain = new ConcurrentChain(this.network);
             this.blockNotification = new Mock<IBlockNotification>();
             this.signals = new Mock<ISignals>();
             this.nodeLifetime = new Mock<INodeLifetime>();
             this.asyncLoopFactory = new Mock<IAsyncLoopFactory>();
-            this.network = Network.StratisMain;
         }
 
         [Fact]
@@ -46,7 +48,7 @@ namespace Stratis.Bitcoin.Features.LightWallet.Tests
 
             lightWalletSyncManager.Start();
 
-            this.signals.Verify(s => s.SubscribeForBlocks(It.IsAny<IObserver<Block>>()), Times.Exactly(1));
+            this.signals.Verify(s => s.SubscribeForBlocksConnected(It.IsAny<IObserver<ChainedHeaderBlock>>()), Times.Exactly(1));
             this.signals.Verify(s => s.SubscribeForTransactions(It.IsAny<IObserver<Transaction>>()), Times.Exactly(1));
         }
 
@@ -299,7 +301,7 @@ namespace Stratis.Bitcoin.Features.LightWallet.Tests
             this.chain = WalletTestsHelpers.GenerateChainWithHeight(1, this.network);
             var blockSub = new Mock<IDisposable>();
             var transSub = new Mock<IDisposable>();
-            this.signals.Setup(s => s.SubscribeForBlocks(It.IsAny<BlockObserver>()))
+            this.signals.Setup(s => s.SubscribeForBlocksConnected(It.IsAny<BlockObserver>()))
                 .Returns(blockSub.Object);
             this.signals.Setup(s => s.SubscribeForTransactions(It.IsAny<TransactionObserver>()))
                 .Returns(transSub.Object);
@@ -479,7 +481,7 @@ namespace Stratis.Bitcoin.Features.LightWallet.Tests
         [Fact]
         public void ProcessBlock_NewBlock_PreviousHashSameAsWalletTip_PassesBlockToManagerWithoutReorg()
         {
-            (ConcurrentChain Chain, List<Block> Blocks) result = WalletTestsHelpers.GenerateChainAndBlocksWithHeight(5, Network.StratisMain);
+            (ConcurrentChain Chain, List<Block> Blocks) result = WalletTestsHelpers.GenerateChainAndBlocksWithHeight(5, KnownNetworks.StratisMain);
             this.chain = result.Chain;
             List<Block> blocks = result.Blocks;
             var lightWalletSyncManager = new LightWalletSyncManagerOverride(this.LoggerFactory.Object, this.walletManager.Object, this.chain, this.network,
@@ -502,7 +504,7 @@ namespace Stratis.Bitcoin.Features.LightWallet.Tests
         [Fact]
         public void ProcessBlock_NewBlock_BlockOnBestChain_WalletTipBeforeNewTip_StartsSyncFromWalletTipWithoutProcessingBlock()
         {
-            (ConcurrentChain Chain, List<Block> Blocks) result = WalletTestsHelpers.GenerateChainAndBlocksWithHeight(5, Network.StratisMain);
+            (ConcurrentChain Chain, List<Block> Blocks) result = WalletTestsHelpers.GenerateChainAndBlocksWithHeight(5, KnownNetworks.StratisMain);
             this.chain = result.Chain;
             List<Block> blocks = result.Blocks;
             var lightWalletSyncManager = new LightWalletSyncManagerOverride(this.LoggerFactory.Object, this.walletManager.Object, this.chain, this.network,
@@ -529,7 +531,7 @@ namespace Stratis.Bitcoin.Features.LightWallet.Tests
         [Fact]
         public void ProcessBlock_NewBlock_BlockOnBestChain_WalletTipAfterNewTip_StartsSyncFromNewTip()
         {
-            (ConcurrentChain Chain, List<Block> Blocks) result = WalletTestsHelpers.GenerateChainAndBlocksWithHeight(5, Network.StratisMain);
+            (ConcurrentChain Chain, List<Block> Blocks) result = WalletTestsHelpers.GenerateChainAndBlocksWithHeight(5, KnownNetworks.StratisMain);
             this.chain = result.Chain;
             List<Block> blocks = result.Blocks;
             var lightWalletSyncManager = new LightWalletSyncManagerOverride(this.LoggerFactory.Object, this.walletManager.Object, this.chain, this.network,
@@ -555,7 +557,7 @@ namespace Stratis.Bitcoin.Features.LightWallet.Tests
         [Fact]
         public void ProcessBlock_BlockNotOnBestChain_ReorgWalletTipBeforeNewTip_StartsSyncFromForkPointWithoutProcessingBlock()
         {
-            (ConcurrentChain LeftChain, ConcurrentChain RightChain, List<Block> LeftForkBlocks, List<Block> RightForkBlocks) result = WalletTestsHelpers.GenerateForkedChainAndBlocksWithHeight(5, Network.StratisMain, 2);
+            (ConcurrentChain LeftChain, ConcurrentChain RightChain, List<Block> LeftForkBlocks, List<Block> RightForkBlocks) result = WalletTestsHelpers.GenerateForkedChainAndBlocksWithHeight(5, KnownNetworks.StratisMain, 2);
             // left side chain containing the 'old' fork.
             ConcurrentChain leftChain = result.LeftChain;
             // right side chain containing the 'new' fork. Work on this.
@@ -588,7 +590,7 @@ namespace Stratis.Bitcoin.Features.LightWallet.Tests
         [Fact]
         public void ProcessBlock_BlockNotOnBestChain_ReorgWalletTipAfterNewTip_StartProcessingFromFork()
         {
-            (ConcurrentChain LeftChain, ConcurrentChain RightChain, List<Block> LeftForkBlocks, List<Block> RightForkBlocks) result = WalletTestsHelpers.GenerateForkedChainAndBlocksWithHeight(5, Network.StratisMain, 2);
+            (ConcurrentChain LeftChain, ConcurrentChain RightChain, List<Block> LeftForkBlocks, List<Block> RightForkBlocks) result = WalletTestsHelpers.GenerateForkedChainAndBlocksWithHeight(5, KnownNetworks.StratisMain, 2);
             // left side chain containing the 'old' fork.
             ConcurrentChain leftChain = result.LeftChain;
             // right side chain containing the 'new' fork. Work on this.

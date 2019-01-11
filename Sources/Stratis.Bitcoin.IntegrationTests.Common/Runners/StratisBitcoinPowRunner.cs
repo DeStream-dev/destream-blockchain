@@ -1,42 +1,61 @@
 ﻿using NBitcoin;
+using Stratis.Bitcoin.Base;
 using Stratis.Bitcoin.Builder;
 using Stratis.Bitcoin.Configuration;
+using Stratis.Bitcoin.Features.Api;
 using Stratis.Bitcoin.Features.BlockStore;
 using Stratis.Bitcoin.Features.Consensus;
 using Stratis.Bitcoin.Features.MemoryPool;
 using Stratis.Bitcoin.Features.Miner;
 using Stratis.Bitcoin.Features.RPC;
 using Stratis.Bitcoin.Features.Wallet;
+using Stratis.Bitcoin.IntegrationTests.Common.EnvironmentMockUpHelpers;
+using Stratis.Bitcoin.P2P;
 
 namespace Stratis.Bitcoin.IntegrationTests.Common.Runners
 {
     public sealed class StratisBitcoinPowRunner : NodeRunner
     {
-        public StratisBitcoinPowRunner(string dataDir)
-            : base(dataDir)
+        public StratisBitcoinPowRunner(string dataDir, Network network, string agent)
+            : base(dataDir, agent)
         {
-            this.Network = Network.RegTest;
+            this.Network = network;
         }
 
         public override void BuildNode()
         {
-            var settings = new NodeSettings(args: new string[] { "-conf=bitcoin.conf", "-datadir=" + this.DataFolder });
+            NodeSettings settings = null;
 
-            this.FullNode = (FullNode)new FullNodeBuilder()
-                .UseNodeSettings(settings)
-                .UseBlockStore()
-                .UsePowConsensus()
-                .UseMempool()
-                .AddMining()
-                .UseWallet()
-                .AddRPC()
-                .MockIBD()
-                .Build();
-        }
+            if (string.IsNullOrEmpty(this.Agent))
+                settings = new NodeSettings(this.Network, args: new string[] { "-conf=bitcoin.conf", "-datadir=" + this.DataFolder });
+            else
+                settings = new NodeSettings(this.Network, agent: this.Agent, args: new string[] { "-conf=bitcoin.conf", "-datadir=" + this.DataFolder });
 
-        public override void OnStart()
-        {
-            this.FullNode.Start();
+            var builder = new FullNodeBuilder()
+                            .UseNodeSettings(settings)
+                            .UseBlockStore()
+                            .UsePowConsensus()
+                            .UseMempool()
+                            .AddMining()
+                            .UseWallet()
+                            .AddRPC()
+                            .UseApi()
+                            .UseTestChainedHeaderTree()
+                            .MockIBD();
+
+            if (this.InterceptorDisconnect != null)
+                builder = builder.InterceptBlockDisconnected(this.InterceptorDisconnect);
+
+            if (this.ServiceToOverride != null)
+                builder.OverrideService<BaseFeature>(this.ServiceToOverride);
+
+            if (!this.EnablePeerDiscovery)
+            {
+                builder.RemoveImplementation<PeerConnectorDiscovery>();
+                builder.ReplaceService<IPeerDiscovery>(new PeerDiscoveryDisabled());
+            }
+
+            this.FullNode = (FullNode)builder.Build();
         }
     }
 }

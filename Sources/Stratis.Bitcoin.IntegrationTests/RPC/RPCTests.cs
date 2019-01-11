@@ -6,6 +6,8 @@ using Stratis.Bitcoin.Features.RPC;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Features.Wallet.Interfaces;
 using Stratis.Bitcoin.IntegrationTests.Common.EnvironmentMockUpHelpers;
+using Stratis.Bitcoin.Networks;
+using Stratis.Bitcoin.Tests.Common;
 using Xunit;
 
 namespace Stratis.Bitcoin.IntegrationTests.RPC
@@ -19,8 +21,8 @@ namespace Stratis.Bitcoin.IntegrationTests.RPC
         protected override void InitializeFixture()
         {
             this.Builder = NodeBuilder.Create(this);
-            this.Node = this.Builder.CreateStratisPowNode();
-            this.Builder.StartAll();
+            this.Node = this.Builder.CreateStratisPowNode(new BitcoinRegTest()).Start();
+
             this.RpcClient = this.Node.CreateRPCClient();
             this.NetworkPeerClient = this.Node.CreateNetworkPeerClient();
             this.NetworkPeerClient.VersionHandshakeAsync().GetAwaiter().GetResult();
@@ -62,7 +64,7 @@ namespace Stratis.Bitcoin.IntegrationTests.RPC
         {
             uint256 hash = this.rpcTestFixture.RpcClient.GetBestBlockHash();
 
-            Assert.Equal(hash, Network.RegTest.GetGenesis().GetHash());
+            Assert.Equal(hash, KnownNetworks.RegTest.GetGenesis().GetHash());
             RPCClient oldClient = this.rpcTestFixture.RpcClient;
             var client = new RPCClient("abc:def", this.rpcTestFixture.RpcClient.Address, this.rpcTestFixture.RpcClient.Network);
             try
@@ -131,7 +133,7 @@ namespace Stratis.Bitcoin.IntegrationTests.RPC
             RPCResponse response = this.rpcTestFixture.RpcClient.SendCommand(RPCOperations.getblockhash, 0);
 
             string actualGenesis = (string)response.Result;
-            Assert.Equal(Network.RegTest.GetGenesis().GetHash().ToString(), actualGenesis);
+            Assert.Equal(KnownNetworks.RegTest.GetGenesis().GetHash().ToString(), actualGenesis);
         }
 
         /// <summary>
@@ -166,7 +168,7 @@ namespace Stratis.Bitcoin.IntegrationTests.RPC
             Assert.Equal(expectedHeader.Nonce, actualHeader.Nonce);
 
             // Assert header hash matches genesis hash.
-            Assert.Equal(Network.RegTest.GenesisHash, actualHeader.GetHash());
+            Assert.Equal(KnownNetworks.RegTest.GenesisHash, actualHeader.GetHash());
         }
 
         /// <summary>
@@ -212,6 +214,44 @@ namespace Stratis.Bitcoin.IntegrationTests.RPC
             Assert.StartsWith("[" + Environment.NewLine + "  \"", resp);
         }
 
+        /// <summary>
+        /// Tests that RPC method 'SendRawTransaction' can be called with a new transaction.
+        /// </summary>
+        [Fact]
+        public void SendRawTransaction()
+        {
+            var tx = new Transaction();
+            tx.Outputs.Add(new TxOut(Money.Coins(1.0m), new Key()));
+            this.rpcTestFixture.RpcClient.SendRawTransaction(tx);
+        }
+
+        /// <summary>
+        /// Tests that RPC method 'GetNewAddress' can be called and returns an address.
+        /// </summary>
+        [Fact]
+        public void GetNewAddress()
+        {
+            // Try creating with default parameters.
+            BitcoinAddress address = this.rpcTestFixture.RpcClient.GetNewAddress();
+            Assert.NotNull(address);
+
+            // Try creating with optional parameters.
+            address = BitcoinAddress.Create(this.rpcTestFixture.RpcClient.SendCommand(RPCOperations.getnewaddress, new[] { string.Empty, "legacy" }).ResultString, this.rpcTestFixture.RpcClient.Network);
+            Assert.NotNull(address);
+        }
+
+        [Fact]
+        public void TestGetNewAddressWithUnsupportedAddressTypeThrowsRpcException()
+        {
+            Assert.Throws<RPCException>(() => this.rpcTestFixture.RpcClient.SendCommand(RPCOperations.getnewaddress, new[] { string.Empty, "bech32" }));
+        }
+
+        [Fact]
+        public void TestGetNewAddressWithAccountParameterThrowsRpcException()
+        {
+            Assert.Throws<RPCException>(() => this.rpcTestFixture.RpcClient.SendCommand(RPCOperations.getnewaddress, new[] { "account1", "legacy" }));
+        }
+
         // TODO: implement the RPC methods used below
         //[Fact]
         //public void RawTransactionIsConformsToRPC()
@@ -239,15 +279,6 @@ namespace Stratis.Bitcoin.IntegrationTests.RPC
         //public void TryEstimateFeeRate()
         //{
         //    Assert.Null(this.rpcTestFixture.RpcClient.TryEstimateFeeRate(1));
-        //}
-
-        //[Fact]
-        //public void CanGetTransactionBlockFromRPC()
-        //{
-        //    uint256 blockId = this.rpcTestFixture.RpcClient.GetBestBlockHash();
-        //    RPCBlock block = this.rpcTestFixture.RpcClient.GetRPCBlockAsync(blockId).Result;
-        //    Assert.NotNull(block);
-        //    Assert.Equal(blockId, uint.Parse(block.hash));
         //}
 
         //[Fact]
@@ -290,7 +321,7 @@ namespace Stratis.Bitcoin.IntegrationTests.RPC
         //{
         //    string accountName = "account";
         //    Key key = new Key();
-        //    this.rpcTestFixture.RpcClient.ImportAddress(key.PubKey.GetAddress(Network.StratisMain), accountName, false);
+        //    this.rpcTestFixture.RpcClient.ImportAddress(key.PubKey.GetAddress(StratisNetworks.StratisMain), accountName, false);
         //    BitcoinAddress address = this.rpcTestFixture.RpcClient.GetAccountAddress(accountName);
         //    BitcoinSecret secret = this.rpcTestFixture.RpcClient.DumpPrivKey(address);
         //    BitcoinSecret secret2 = this.rpcTestFixture.RpcClient.GetAccountSecret(accountName);
@@ -304,7 +335,7 @@ namespace Stratis.Bitcoin.IntegrationTests.RPC
         //{
         //    string accountName = "account";
         //    Key key = new Key();
-        //    this.rpcTestFixture.RpcClient.ImportAddress(key.PubKey.GetAddress(Network.StratisMain), accountName, false);
+        //    this.rpcTestFixture.RpcClient.ImportAddress(key.PubKey.GetAddress(StratisNetworks.StratisMain), accountName, false);
         //    BitcoinAddress address = this.rpcTestFixture.RpcClient.GetAccountAddress(accountName);
         //    BitcoinSecret secret = this.rpcTestFixture.RpcClient.DumpPrivKey(address);
         //    BitcoinSecret secret2 = this.rpcTestFixture.RpcClient.GetAccountSecret(accountName);

@@ -9,13 +9,13 @@ namespace Stratis.Bitcoin.Features.Miner
     public sealed class BlockProvider : IBlockProvider
     {
         private readonly Network network;
-        
+
         /// <summary>Defines how proof of work blocks are built.</summary>
         private readonly PowBlockDefinition powBlockDefinition;
 
         /// <summary>Defines how proof of stake blocks are built.</summary>
         private readonly PosBlockDefinition posBlockDefinition;
-        
+
         /// <summary>Defines how proof of work blocks are built on a Proof-of-Stake network.</summary>
         private readonly PosPowBlockDefinition posPowBlockDefinition;
 
@@ -23,6 +23,7 @@ namespace Stratis.Bitcoin.Features.Miner
         public BlockProvider(Network network, IEnumerable<BlockDefinition> definitions)
         {
             this.network = network;
+
             this.powBlockDefinition = definitions.OfType<PowBlockDefinition>().FirstOrDefault();
             this.posBlockDefinition = definitions.OfType<PosBlockDefinition>().FirstOrDefault();
             this.posPowBlockDefinition = definitions.OfType<PosPowBlockDefinition>().FirstOrDefault();
@@ -39,7 +40,7 @@ namespace Stratis.Bitcoin.Features.Miner
         {
             if (this.network.Consensus.IsProofOfStake)
                 return this.posPowBlockDefinition.Build(chainTip, script);
-            
+
             return this.powBlockDefinition.Build(chainTip, script);
         }
     }

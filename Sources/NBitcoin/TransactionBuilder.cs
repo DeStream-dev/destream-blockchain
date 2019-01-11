@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -24,6 +24,18 @@ namespace NBitcoin
     }
 
     /// <summary>
+    /// A coin selector that selects all the coins passed by default.
+    /// Useful when a user wants a specific set of coins to be spent.
+    /// </summary>
+    public class AllCoinsSelector : ICoinSelector
+    {
+        public IEnumerable<ICoin> Select(IEnumerable<ICoin> coins, IMoney target)
+        {
+            return coins;
+        }
+    }
+
+    /// <summary>
     /// Algorithm implemented by bitcoin core https://github.com/bitcoin/bitcoin/blob/master/src/wallet.cpp#L1276
     /// Minimize the change
     /// </summary>
@@ -34,7 +46,7 @@ namespace NBitcoin
 
         }
 
-        protected Random _Rand = new Random();
+        private Random _Rand = new Random();
         public DefaultCoinSelector(int seed)
         {
             this._Rand = new Random(seed);
@@ -50,7 +62,7 @@ namespace NBitcoin
 
         #region ICoinSelector Members
 
-        public virtual IEnumerable<ICoin> Select(IEnumerable<ICoin> coins, IMoney target)
+        public IEnumerable<ICoin> Select(IEnumerable<ICoin> coins, IMoney target)
         {
             IMoney zero = target.Sub(target);
 
@@ -318,7 +330,7 @@ namespace NBitcoin
             }
         }
 
-        public class TransactionBuildingContext
+        internal class TransactionBuildingContext
         {
             public TransactionBuildingContext(TransactionBuilder builder)
             {
@@ -460,7 +472,7 @@ namespace NBitcoin
             }
         }
 
-        public class BuilderGroup
+        internal class BuilderGroup
         {
             private TransactionBuilder _Parent;
             public BuilderGroup(TransactionBuilder parent)
@@ -867,7 +879,7 @@ namespace NBitcoin
             return this;
         }
 
-        protected Money GetDust()
+        private Money GetDust()
         {
             return GetDust(new Script(new byte[25]));
         }
@@ -1152,7 +1164,7 @@ namespace NBitcoin
             return c.Amount >= this.FilterUneconomicalCoinsRate.GetFee(vSize);
         }
 
-        protected virtual IEnumerable<ICoin> BuildTransaction(
+        private IEnumerable<ICoin> BuildTransaction(
             TransactionBuildingContext ctx,
             BuilderGroup group,
             IEnumerable<Builder> builders,

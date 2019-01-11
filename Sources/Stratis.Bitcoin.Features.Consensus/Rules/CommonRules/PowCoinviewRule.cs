@@ -1,28 +1,24 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
+using Stratis.Bitcoin.Consensus;
 using Stratis.Bitcoin.Consensus.Rules;
 using Stratis.Bitcoin.Utilities;
 
 namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
 {
     /// <inheritdoc />
-    [ExecutionRule]
     public sealed class PowCoinviewRule : CoinViewRule
     {
         /// <summary>Consensus parameters.</summary>
-        private NBitcoin.Consensus consensus;
+        private IConsensus consensus;
 
         /// <inheritdoc />
         public override void Initialize()
         {
-            this.Logger.LogTrace("()");
-
             base.Initialize();
 
             this.consensus = this.Parent.Network.Consensus;
-
-            this.Logger.LogTrace("(-)");
         }
 
         /// <inheritdoc/>
@@ -34,16 +30,12 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
         /// <inheritdoc/>
         public override void CheckBlockReward(RuleContext context, Money fees, int height, Block block)
         {
-            this.Logger.LogTrace("()");
-
             Money blockReward = fees + this.GetProofOfWorkReward(height);
             if (block.Transactions[0].TotalOut > blockReward)
             {
                 this.Logger.LogTrace("(-)[BAD_COINBASE_AMOUNT]");
                 ConsensusErrors.BadCoinbaseAmount.Throw();
             }
-
-            this.Logger.LogTrace("(-)");
         }
 
         /// <inheritdoc/>
@@ -66,6 +58,28 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
             subsidy >>= halvings;
 
             return subsidy;
+        }
+
+        /// <inheritdoc />
+        protected override bool IsTxFinal(Transaction transaction, RuleContext context)
+        {
+            if (transaction.IsCoinBase)
+                return true;
+
+            ChainedHeader index = context.ValidationContext.ChainedHeaderToValidate;
+
+            UnspentOutputSet view = (context as UtxoRuleContext).UnspentOutputSet;
+
+            var prevheights = new int[transaction.Inputs.Count];
+            // Check that transaction is BIP68 final.
+            // BIP68 lock checks (as opposed to nLockTime checks) must
+            // be in ConnectBlock because they require the UTXO set.
+            for (int i = 0; i < transaction.Inputs.Count; i++)
+            {
+                prevheights[i] = (int)view.AccessCoins(transaction.Inputs[i].PrevOut.Hash).Height;
+            }
+
+            return transaction.CheckSequenceLocks(prevheights, index, context.Flags.LockTimeFlags);
         }
 
         /// <inheritdoc/>

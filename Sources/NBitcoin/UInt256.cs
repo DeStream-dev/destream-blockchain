@@ -9,6 +9,7 @@ namespace NBitcoin
         public class MutableUint256 : IBitcoinSerializable
         {
             private uint256 _Value;
+
             public uint256 Value
             {
                 get
@@ -20,6 +21,9 @@ namespace NBitcoin
                     this._Value = value;
                 }
             }
+
+            public uint256 MaxValue => uint256.Parse("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+
             public MutableUint256()
             {
                 this._Value = Zero;
@@ -431,21 +435,10 @@ namespace NBitcoin
 
         public override int GetHashCode()
         {
-            int hash = 17;
-            unchecked
-            {
-                hash = hash * 31 + (int) this.pn0;
-                hash = hash * 31 + (int) this.pn1;
-                hash = hash * 31 + (int) this.pn2;
-                hash = hash * 31 + (int) this.pn3;
-                hash = hash * 31 + (int) this.pn4;
-                hash = hash * 31 + (int) this.pn5;
-                hash = hash * 31 + (int) this.pn6;
-                hash = hash * 31 + (int) this.pn7;
-            }
-            return hash;
+            return (int)this.pn0;
         }
     }
+
     public class uint160
     {
         public class MutableUint160 : IBitcoinSerializable
@@ -766,16 +759,7 @@ namespace NBitcoin
 
         public override int GetHashCode()
         {
-            int hash = 17;
-            unchecked
-            {
-                hash = hash * 31 + (int) this.pn0;
-                hash = hash * 31 + (int) this.pn1;
-                hash = hash * 31 + (int) this.pn2;
-                hash = hash * 31 + (int) this.pn3;
-                hash = hash * 31 + (int) this.pn4;
-            }
-            return hash;
+            return (int)this.pn0;
         }
     }
 }
