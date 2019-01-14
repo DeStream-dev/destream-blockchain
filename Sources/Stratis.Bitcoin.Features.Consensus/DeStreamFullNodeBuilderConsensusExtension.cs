@@ -115,7 +115,7 @@ namespace Stratis.Bitcoin.Features.Consensus
                     new SetActivationDeploymentsFullValidationRule(),
 
                     // rules that require the store to be loaded (coinview)
-                    new LoadCoinviewRule(),
+                    new DeStreamLoadCoinviewRule(),
                     new TransactionDuplicationActivationRule(), // implements BIP30
                     new DeStreamPowCoinviewRule(), // implements BIP68, MaxSigOps and BlockReward calculation
                     new SaveCoinviewRule(),
@@ -173,7 +173,7 @@ namespace Stratis.Bitcoin.Features.Consensus
                     new CheckDifficultyHybridRule(),
 
                     // rules that require the store to be loaded (coinview)
-                    new LoadCoinviewRule(),
+                    new DeStreamLoadCoinviewRule(),
                     new TransactionDuplicationActivationRule(), // implements BIP30
                     new DeStreamPosCoinviewRule(), // implements BIP68, MaxSigOps and BlockReward calculation
                     // Place the PosColdStakingRule after the PosCoinviewRule to ensure that all input scripts have been evaluated
