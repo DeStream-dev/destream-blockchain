@@ -1,46 +1,49 @@
 ﻿using Microsoft.Extensions.Logging;
 using NBitcoin;
+using Stratis.Bitcoin.Base;
 using Stratis.Bitcoin.Base.Deployments;
-using Stratis.Bitcoin.BlockPulling;
 using Stratis.Bitcoin.Configuration.Settings;
 using Stratis.Bitcoin.Consensus;
 using Stratis.Bitcoin.Consensus.Rules;
 using Stratis.Bitcoin.Features.Consensus.CoinViews;
 using Stratis.Bitcoin.Features.Consensus.Interfaces;
+using Stratis.Bitcoin.Features.Consensus.ProvenBlockHeaders;
 using Stratis.Bitcoin.Utilities;
 
 namespace Stratis.Bitcoin.Features.Consensus.Rules
 {
-    public class DeStreamPowConsensusRules : PowConsensusRules
+    public class DeStreamPowConsensusRuleEngine : PowConsensusRuleEngine
     {
-        public DeStreamPowConsensusRules(Network network, ILoggerFactory loggerFactory,
+        public DeStreamPowConsensusRuleEngine(Network network, ILoggerFactory loggerFactory,
             IDateTimeProvider dateTimeProvider, ConcurrentChain chain, NodeDeployments nodeDeployments,
-            ConsensusSettings consensusSettings, ICheckpoints checkpoints, CoinView utxoSet,
-            ILookaheadBlockPuller puller) : base(network, loggerFactory, dateTimeProvider, chain, nodeDeployments,
-            consensusSettings, checkpoints, utxoSet, puller)
+            ConsensusSettings consensusSettings, ICheckpoints checkpoints, ICoinView utxoSet, IChainState chainState,
+            IInvalidBlockHashStore invalidBlockHashStore, INodeStats nodeStats) : base(network, loggerFactory,
+            dateTimeProvider, chain, nodeDeployments, consensusSettings, checkpoints, utxoSet, chainState,
+            invalidBlockHashStore, nodeStats)
         {
         }
 
-        public override RuleContext CreateRuleContext(ValidationContext validationContext, ChainedHeader consensusTip)
+        public override RuleContext CreateRuleContext(ValidationContext validationContext)
         {
-            return new DeStreamPowRuleContext(validationContext, this.Network.Consensus, consensusTip);
+            return new DeStreamPowRuleContext(validationContext, DateTimeProvider.GetTimeOffset());
         }
     }
 
-    public class DeStreamPosConsensusRules : PosConsensusRules
+    public class DeStreamPosConsensusRuleEngine : PosConsensusRuleEngine
     {
-        public DeStreamPosConsensusRules(Network network, ILoggerFactory loggerFactory,
+        public DeStreamPosConsensusRuleEngine(Network network, ILoggerFactory loggerFactory,
             IDateTimeProvider dateTimeProvider, ConcurrentChain chain, NodeDeployments nodeDeployments,
-            ConsensusSettings consensusSettings, ICheckpoints checkpoints, CoinView utxoSet,
-            ILookaheadBlockPuller puller, IStakeChain stakeChain, IStakeValidator stakeValidator) : base(network,
-            loggerFactory, dateTimeProvider, chain, nodeDeployments, consensusSettings, checkpoints, utxoSet, puller,
-            stakeChain, stakeValidator)
+            ConsensusSettings consensusSettings, ICheckpoints checkpoints, ICoinView utxoSet, IStakeChain stakeChain,
+            IStakeValidator stakeValidator, IChainState chainState, IInvalidBlockHashStore invalidBlockHashStore,
+            INodeStats nodeStats, IRewindDataIndexCache rewindDataIndexCache) : base(network, loggerFactory,
+            dateTimeProvider, chain, nodeDeployments, consensusSettings, checkpoints, utxoSet, stakeChain,
+            stakeValidator, chainState, invalidBlockHashStore, nodeStats, rewindDataIndexCache)
         {
         }
 
-        public override RuleContext CreateRuleContext(ValidationContext validationContext, ChainedHeader consensusTip)
+        public override RuleContext CreateRuleContext(ValidationContext validationContext)
         {
-            return new DeStreamRuleContext(validationContext, this.Network.Consensus, consensusTip);
+            return new DeStreamPosRuleContext(validationContext, DateTimeProvider.GetTimeOffset());
         }
     }
 }

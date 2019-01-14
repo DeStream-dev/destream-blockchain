@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using NBitcoin;
 using Stratis.Bitcoin.Consensus;
 
@@ -7,25 +8,30 @@ namespace Stratis.Bitcoin.Features.Consensus
     public interface IDeStreamRuleContext
     {
         /// <summary>
-        ///     ScriptPubKeys of inputs spent in transaction
+        ///     Gets or sets scriptPubKeys of inputs spent in transaction
         /// </summary>
         IDictionary<uint256, List<Script>> InputScriptPubKeys { get; set; }
 
         /// <summary>
-        ///     Sum of inputs spent in transaction
+        ///     Gets or sets sum of inputs spent in transaction
         /// </summary>
         IDictionary<uint256, Money> TotalIn { get; set; }
     }
 
     /// <inheritdoc cref="PosRuleContext" />
-    public class DeStreamRuleContext : PosRuleContext, IDeStreamRuleContext
+    public class DeStreamPosRuleContext : PosRuleContext, IDeStreamRuleContext
     {
-        internal DeStreamRuleContext()
+        internal DeStreamPosRuleContext()
         {
         }
 
-        public DeStreamRuleContext(ValidationContext validationContext, NBitcoin.Consensus consensus,
-            ChainedHeader consensusTip) : base(validationContext, consensus, consensusTip)
+        public DeStreamPosRuleContext(BlockStake blockStake)
+            : base(blockStake)
+        {
+        }
+
+        public DeStreamPosRuleContext(ValidationContext validationContext, DateTimeOffset time)
+            : base(validationContext,time)
         {
         }
 
@@ -44,8 +50,8 @@ namespace Stratis.Bitcoin.Features.Consensus
         {
         }
 
-        public DeStreamPowRuleContext(ValidationContext validationContext, NBitcoin.Consensus consensus,
-            ChainedHeader consensusTip) : base(validationContext, consensus, consensusTip)
+        public DeStreamPowRuleContext(ValidationContext validationContext, DateTimeOffset time)
+            : base(validationContext, time)
         {
         }
 
