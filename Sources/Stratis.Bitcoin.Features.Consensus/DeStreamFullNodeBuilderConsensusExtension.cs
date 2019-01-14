@@ -118,7 +118,8 @@ namespace Stratis.Bitcoin.Features.Consensus
                     new LoadCoinviewRule(),
                     new TransactionDuplicationActivationRule(), // implements BIP30
                     new DeStreamPowCoinviewRule(), // implements BIP68, MaxSigOps and BlockReward calculation
-                    new SaveCoinviewRule()
+                    new SaveCoinviewRule(),
+                    new DeStreamBlockFeeRule()
                 };
             }
         }
@@ -178,7 +179,8 @@ namespace Stratis.Bitcoin.Features.Consensus
                     // Place the PosColdStakingRule after the PosCoinviewRule to ensure that all input scripts have been evaluated
                     // and that the "IsColdCoinStake" flag would have been set by the OP_CHECKCOLDSTAKEVERIFY opcode if applicable.
                     new PosColdStakingRule(),
-                    new SaveCoinviewRule()
+                    new SaveCoinviewRule(),
+                    new DeStreamBlockFeeRule()
                 };
             }
         }

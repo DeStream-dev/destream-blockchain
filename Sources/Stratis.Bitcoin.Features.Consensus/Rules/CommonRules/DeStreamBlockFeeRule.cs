@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
+using Stratis.Bitcoin.Consensus;
 using Stratis.Bitcoin.Consensus.Rules;
 
 namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
@@ -10,32 +11,41 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
     /// <summary>
     /// A rule that verifies fee is charged from all spent funds and transferred to <see cref="Network.DeStreamWallet"/>
     /// </summary>
-    [ExecutionRule]
-    public class DeStreamBlockFeeRule : ConsensusRule
+    public class DeStreamBlockFeeRule : FullValidationConsensusRule
     {
+        private DeStreamNetwork DeStreamNetwork
+        {
+            get
+            {
+                if (!(this.Parent.Network is DeStreamNetwork))
+                    throw new NotSupportedException($"Network must be {nameof(NBitcoin.DeStreamNetwork)}");
+                return (DeStreamNetwork) this.Parent.Network;
+            }
+        }
+
         public override Task RunAsync(RuleContext context)
         {
             // Actual fee is funds that are transferred to fee wallet in mined/staked block
-            long actualFee = this.GetActualFee(context.ValidationContext.Block);
+            long actualFee = this.GetActualFee(context.ValidationContext.BlockToValidate);
             
             // Expected fee is charged from all moved funds (not change)
             long expectedFee;
             switch (context)
             {
                 case DeStreamPowRuleContext deStreamPowRuleContext:
-                    expectedFee = this.GetExpectedFee(context.ValidationContext.Block, deStreamPowRuleContext.TotalIn,
+                    expectedFee = this.GetExpectedFee(context.ValidationContext.BlockToValidate, deStreamPowRuleContext.TotalIn,
                         deStreamPowRuleContext.InputScriptPubKeys);
                     break;
-                case DeStreamRuleContext deStreamPosRuleContext:
-                    expectedFee = this.GetExpectedFee(context.ValidationContext.Block, deStreamPosRuleContext.TotalIn,
+                case DeStreamPosRuleContext deStreamPosRuleContext:
+                    expectedFee = this.GetExpectedFee(context.ValidationContext.BlockToValidate, deStreamPosRuleContext.TotalIn,
                         deStreamPosRuleContext.InputScriptPubKeys);
                     break;
                 default:
                     throw new NotSupportedException(
-                        $"Rule context must be {nameof(DeStreamPowRuleContext)} or {nameof(DeStreamRuleContext)}");
+                        $"Rule context must be {nameof(DeStreamPowRuleContext)} or {nameof(DeStreamPosRuleContext)}");
             }
 
-            this.Parent.Network.SplitFee(expectedFee, out long expectedDeStreamFee, out long _);
+            this.DeStreamNetwork.SplitFee(expectedFee, out long expectedDeStreamFee, out long _);
             
             if (actualFee < expectedDeStreamFee)
                 ConsensusErrors.BadTransactionFeeOutOfRange.Throw();
@@ -46,8 +56,8 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
         private long GetActualFee(Block block)
         {
             IList<TxOut> outputsToFeeWallet = block.Transactions[BlockStake.IsProofOfStake(block) ? 1 : 0].Outputs
-                .Where(p => this.Parent.Network.IsDeStreamAddress(p.ScriptPubKey
-                    .GetDestinationAddress(this.Parent.Network)?.ToString())).ToList();
+                .Where(p => this.DeStreamNetwork.IsDeStreamAddress(p.ScriptPubKey
+                    .GetDestinationAddress(this.DeStreamNetwork)?.ToString())).ToList();
 
             if (outputsToFeeWallet.Count != 1)
                 ConsensusErrors.BadBlockNoFeeOutput.Throw();
@@ -71,7 +81,7 @@ namespace Stratis.Bitcoin.Features.Consensus.Rules.CommonRules
         {
             long feeInTransaction = Convert.ToInt64(transaction.Outputs
                                           .Where(p => !changeScriptPubKeys.Contains(p.ScriptPubKey))
-                                          .Sum(p => p.Value) * this.Parent.Network.FeeRate);
+                                          .Sum(p => p.Value) * this.DeStreamNetwork.FeeRate);
             if (Math.Abs(totalIn.Satoshi - transaction.TotalOut.Satoshi - feeInTransaction) > 1)
                 ConsensusErrors.BadTransactionFeeOutOfRange.Throw();
 
