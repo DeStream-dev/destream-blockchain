@@ -17,13 +17,16 @@ namespace NBitcoin
             this.CoinSelector = new DeStreamCoinSelector(seed);
         }
 
-        protected override IEnumerable<ICoin> BuildTransaction(TransactionBuildingContext ctx, BuilderGroup group,
+        protected override IEnumerable<ICoin> BuildTransaction(
+            TransactionBuildingContext ctx,
+            BuilderGroup group,
             IEnumerable<Func<TransactionBuildingContext, IMoney>> builders,
-            IEnumerable<ICoin> coins, IMoney zero)
+            IEnumerable<ICoin> coins,
+            IMoney zero)
         {
             IEnumerable<ICoin> result = base.BuildTransaction(ctx, group, builders, coins, zero);
 
-            if (ctx.Transaction.Inputs.Any(p => p.PrevOut.Hash == uint256.Zero))
+            if (ctx.Transaction.Inputs.GetChangePointers().Any())
                 return result;
 
             // To secure that fee is charged from spending coins and not from change,

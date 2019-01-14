@@ -46,7 +46,7 @@ namespace NBitcoin
 
         }
 
-        private Random _Rand = new Random();
+        protected Random _Rand = new Random();
         public DefaultCoinSelector(int seed)
         {
             this._Rand = new Random(seed);
@@ -62,7 +62,7 @@ namespace NBitcoin
 
         #region ICoinSelector Members
 
-        public IEnumerable<ICoin> Select(IEnumerable<ICoin> coins, IMoney target)
+        public virtual IEnumerable<ICoin> Select(IEnumerable<ICoin> coins, IMoney target)
         {
             IMoney zero = target.Sub(target);
 
@@ -330,7 +330,7 @@ namespace NBitcoin
             }
         }
 
-        internal class TransactionBuildingContext
+        protected internal class TransactionBuildingContext
         {
             public TransactionBuildingContext(TransactionBuilder builder)
             {
@@ -472,7 +472,7 @@ namespace NBitcoin
             }
         }
 
-        internal class BuilderGroup
+        protected internal class BuilderGroup
         {
             private TransactionBuilder _Parent;
             public BuilderGroup(TransactionBuilder parent)
@@ -1164,7 +1164,7 @@ namespace NBitcoin
             return c.Amount >= this.FilterUneconomicalCoinsRate.GetFee(vSize);
         }
 
-        private IEnumerable<ICoin> BuildTransaction(
+        protected virtual IEnumerable<ICoin> BuildTransaction(
             TransactionBuildingContext ctx,
             BuilderGroup group,
             IEnumerable<Builder> builders,
