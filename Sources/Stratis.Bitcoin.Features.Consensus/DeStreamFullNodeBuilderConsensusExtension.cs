@@ -22,7 +22,7 @@ namespace Stratis.Bitcoin.Features.Consensus
     /// </summary>
     public static class DeStreamFullNodeBuilderConsensusExtension
     {
-        public static IFullNodeBuilder UsePowConsensus(this IFullNodeBuilder fullNodeBuilder)
+        public static IFullNodeBuilder UseDeStreamPowConsensus(this IFullNodeBuilder fullNodeBuilder)
         {
             LoggingConfiguration.RegisterFeatureNamespace<PowConsensusFeature>("powconsensus");
 
@@ -33,7 +33,7 @@ namespace Stratis.Bitcoin.Features.Consensus
                     .FeatureServices(services =>
                     {
                         services.AddSingleton<ConsensusOptions, ConsensusOptions>();
-                        services.AddSingleton<DBreezeCoinView>();
+                        services.AddSingleton<DeStreamDBreezeCoinView>();
                         services.AddSingleton<ICoinView, CachedCoinView>();
                         services.AddSingleton<ConsensusController>();
                         services.AddSingleton<IConsensusRuleEngine, PowConsensusRuleEngine>();
@@ -48,7 +48,7 @@ namespace Stratis.Bitcoin.Features.Consensus
             return fullNodeBuilder;
         }
 
-        public static IFullNodeBuilder UsePosConsensus(this IFullNodeBuilder fullNodeBuilder)
+        public static IFullNodeBuilder UseDeStreamPosConsensus(this IFullNodeBuilder fullNodeBuilder)
         {
             LoggingConfiguration.RegisterFeatureNamespace<PosConsensusFeature>("posconsensus");
 
@@ -58,7 +58,7 @@ namespace Stratis.Bitcoin.Features.Consensus
                     .AddFeature<PosConsensusFeature>()
                     .FeatureServices(services =>
                     {
-                        services.AddSingleton<DBreezeCoinView>();
+                        services.AddSingleton<DeStreamDBreezeCoinView>();
                         services.AddSingleton<ICoinView, CachedCoinView>();
                         services.AddSingleton<StakeChainStore>().AddSingleton<IStakeChain, StakeChainStore>(provider => provider.GetService<StakeChainStore>());
                         services.AddSingleton<IStakeValidator, StakeValidator>();

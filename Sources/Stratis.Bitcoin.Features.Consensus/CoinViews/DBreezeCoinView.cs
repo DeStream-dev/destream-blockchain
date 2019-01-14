@@ -24,10 +24,10 @@ namespace Stratis.Bitcoin.Features.Consensus.CoinViews
         private static readonly byte[] blockHashKey = new byte[0];
 
         /// <summary>Instance logger.</summary>
-        private readonly ILogger logger;
+        protected readonly ILogger logger;
         
         /// <summary>Specification of the network the node runs on - regtest/testnet/mainnet.</summary>
-        private readonly Network network;
+        protected readonly Network network;
 
         /// <summary>Hash of the block which is currently the tip of the coinview.</summary>
         private uint256 blockHash;
@@ -78,7 +78,7 @@ namespace Stratis.Bitcoin.Features.Consensus.CoinViews
         /// <summary>
         /// Initializes the database tables used by the coinview.
         /// </summary>
-        public Task InitializeAsync()
+        public virtual Task InitializeAsync()
         {
             Block genesis = this.network.GetGenesis();
 
@@ -164,7 +164,7 @@ namespace Stratis.Bitcoin.Features.Consensus.CoinViews
         /// </summary>
         /// <param name="transaction">Open dBreeze transaction.</param>
         /// <returns>Block header hash of the coinview's current tip.</returns>
-        private uint256 GetTipHash(DBreeze.Transactions.Transaction transaction)
+        protected uint256 GetTipHash(DBreeze.Transactions.Transaction transaction)
         {
             if (this.blockHash == null)
             {
@@ -181,7 +181,7 @@ namespace Stratis.Bitcoin.Features.Consensus.CoinViews
         /// </summary>
         /// <param name="transaction">Open dBreeze transaction.</param>
         /// <param name="nextBlockHash">Hash of the block to become the new tip.</param>
-        private void SetBlockHash(DBreeze.Transactions.Transaction transaction, uint256 nextBlockHash)
+        protected void SetBlockHash(DBreeze.Transactions.Transaction transaction, uint256 nextBlockHash)
         {
             this.blockHash = nextBlockHash;
             transaction.Insert<byte[], uint256>("BlockHash", blockHashKey, nextBlockHash);

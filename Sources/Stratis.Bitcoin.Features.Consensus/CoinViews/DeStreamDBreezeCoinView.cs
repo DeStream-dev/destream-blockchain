@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
 using Stratis.Bitcoin.Configuration;
 using Stratis.Bitcoin.Utilities;
-using Transaction = DBreeze.Transactions.Transaction;
 
 namespace Stratis.Bitcoin.Features.Consensus.CoinViews
 {
@@ -13,55 +11,39 @@ namespace Stratis.Bitcoin.Features.Consensus.CoinViews
     public class DeStreamDBreezeCoinView : DBreezeCoinView, IDisposable
     {
         public DeStreamDBreezeCoinView(Network network, DataFolder dataFolder, IDateTimeProvider dateTimeProvider,
-            ILoggerFactory loggerFactory) : base(network, dataFolder, dateTimeProvider, loggerFactory)
+            ILoggerFactory loggerFactory, INodeStats nodeStats) : base(network, dataFolder, dateTimeProvider,
+            loggerFactory, nodeStats)
         {
         }
 
         public DeStreamDBreezeCoinView(Network network, string folder, IDateTimeProvider dateTimeProvider,
-            ILoggerFactory loggerFactory) : base(network, folder, dateTimeProvider, loggerFactory)
+            ILoggerFactory loggerFactory, INodeStats nodeStats) : base(network, folder, dateTimeProvider, loggerFactory,
+            nodeStats)
         {
         }
 
         /// <inheritdoc />
+        // Instead of ignoring genesis coins, add them to database
         public override Task InitializeAsync()
         {
-            this.logger.LogTrace("()");
+            var genesis = network.GetGenesis();
 
-            Block genesis = this.network.GetGenesis();
-
-            int insertedEntities = 0;
-
-            Task task = Task.Run(() =>
+            var task = Task.Run(() =>
             {
-                this.logger.LogTrace("()");
-
-                using (Transaction transaction = this.dbreeze.GetTransaction())
+                using (var transaction = CreateTransaction())
                 {
                     transaction.ValuesLazyLoadingIsOn = false;
                     transaction.SynchronizeTables("BlockHash");
 
-                    if (this.GetCurrentHash(transaction) == null)
-                    {
-                        this.SetBlockHash(transaction, genesis.GetHash());
+                    if (GetTipHash(transaction) != null) return;
+                    
+                    SetBlockHash(transaction, genesis.GetHash());
 
-                        // Genesis coin is spendable and added to the database.
-                        foreach (UnspentOutputs unspentOutput in
-                            genesis.Transactions.Select(p => new UnspentOutputs(0, p)))
-                        {
-                            transaction.Insert("Coins", unspentOutput.TransactionId.ToBytes(false),
-                                unspentOutput.ToCoins());
-                        }
-
-                        insertedEntities += genesis.Transactions.Count;
-                        transaction.Commit();
-                    }
+                    // Genesis coin is spendable and included to database.
+                    transaction.Commit();
                 }
-
-                this.logger.LogTrace("(-)");
             });
 
-            this.PerformanceCounter.AddInsertedEntities(insertedEntities);
-            this.logger.LogTrace("(-)");
             return task;
         }
     }
