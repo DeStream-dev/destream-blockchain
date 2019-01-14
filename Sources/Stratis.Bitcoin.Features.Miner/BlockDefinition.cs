@@ -164,7 +164,7 @@ namespace Stratis.Bitcoin.Features.Miner
         /// Configures (resets) the builder to its default state
         /// before constructing a new block.
         /// </summary>
-        private void Configure()
+        protected void Configure()
         {
             this.BlockSize = 1000;
             this.BlockTemplate = new BlockTemplate(this.Network);
@@ -182,7 +182,7 @@ namespace Stratis.Bitcoin.Features.Miner
         /// <param name="chainTip">Tip of the chain that this instance will work with without touching any shared chain resources.</param>
         /// <param name="scriptPubKey">Script that explains what conditions must be met to claim ownership of a coin.</param>
         /// <returns>The contructed <see cref="Mining.BlockTemplate"/>.</returns>
-        protected void OnBuild(ChainedHeader chainTip, Script scriptPubKey)
+        protected virtual void OnBuild(ChainedHeader chainTip, Script scriptPubKey)
         {
             this.Configure();
 

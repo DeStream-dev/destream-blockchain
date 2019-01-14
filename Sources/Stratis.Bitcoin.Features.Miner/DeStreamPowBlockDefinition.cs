@@ -3,6 +3,7 @@ using System.Linq;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
 using NBitcoin.DataEncoders;
+using Stratis.Bitcoin.Consensus;
 using Stratis.Bitcoin.Consensus.Rules;
 using Stratis.Bitcoin.Features.Consensus.Interfaces;
 using Stratis.Bitcoin.Features.Consensus.Rules.CommonRules;
@@ -14,10 +15,16 @@ namespace Stratis.Bitcoin.Features.Miner
 {
     public class DeStreamPowBlockDefinition : PowBlockDefinition
     {
-        public DeStreamPowBlockDefinition(IConsensusLoop consensusLoop, IDateTimeProvider dateTimeProvider, ILoggerFactory loggerFactory, ITxMempool mempool, MempoolSchedulerLock mempoolLock, Network network, IConsensusRules consensusRules, BlockDefinitionOptions options = null) : base(consensusLoop, dateTimeProvider, loggerFactory, mempool, mempoolLock, network, consensusRules, options)
+        private DeStreamNetwork DeStreamNetwork
         {
+            get
+            {
+                if (!(this.Network is DeStreamNetwork))
+                    throw new NotSupportedException($"Network must be {nameof(NBitcoin.DeStreamNetwork)}");
+                return (DeStreamNetwork) this.Network;
+            }
         }
-
+        
         protected override void OnBuild(ChainedHeader chainTip, Script scriptPubKey)
         {
             this.Configure();
@@ -37,10 +44,9 @@ namespace Stratis.Bitcoin.Features.Miner
             //    pblock->nVersion = GetArg("-blockversion", pblock->nVersion);
 
             this.MedianTimePast = Utils.DateTimeToUnixTime(this.ChainTip.GetMedianTimePast());
-            this.LockTimeCutoff =
-                MempoolValidator.StandardLocktimeVerifyFlags.HasFlag(Transaction.LockTimeFlags.MedianTimePast)
-                    ? this.MedianTimePast
-                    : this.block.Header.Time;
+            this.LockTimeCutoff = MempoolValidator.StandardLocktimeVerifyFlags.HasFlag(Transaction.LockTimeFlags.MedianTimePast)
+                ? this.MedianTimePast
+                : this.block.Header.Time;
 
             // TODO: Implement Witness Code
             // Decide whether to include witness transactions
@@ -63,16 +69,14 @@ namespace Stratis.Bitcoin.Features.Miner
             // TODO: Implement Witness Code
             // pblocktemplate->CoinbaseCommitment = GenerateCoinbaseCommitment(*pblock, pindexPrev, chainparams.GetConsensus());
 
-            var coinviewRule = this.ConsensusLoop.ConsensusRules.GetRule<CoinViewRule>();
-            this.Network.SplitFee(this.fees.Satoshi, out long deStreamFee, out long minerReward);
+            var coinviewRule = this.ConsensusManager.ConsensusRules.GetRule<CoinViewRule>();
+            this.DeStreamNetwork.SplitFee(this.fees.Satoshi, out long deStreamFee, out long minerReward);
             this.coinbase.Outputs[0].Value =  minerReward;
             this.coinbase.Outputs[1].Value = deStreamFee;
             this.BlockTemplate.TotalFee = this.fees;
 
             int nSerializeSize = this.block.GetSerializedSize();
-            this.logger.LogDebug(
-                "Serialized size is {0} bytes, block weight is {1}, number of txs is {2}, tx fees are {3}, number of sigops is {4}.",
-                nSerializeSize, coinviewRule.GetBlockWeight(this.block), this.BlockTx, this.fees, this.BlockSigOpsCost);
+            this.logger.LogDebug("Serialized size is {0} bytes, block weight is {1}, number of txs is {2}, tx fees are {3}, number of sigops is {4}.", nSerializeSize, coinviewRule.GetBlockWeight(this.block), this.BlockTx, this.fees, this.BlockSigOpsCost);
 
             this.UpdateHeaders();
         }
@@ -82,9 +86,13 @@ namespace Stratis.Bitcoin.Features.Miner
             base.CreateCoinbase();
 
             Script deStreamAddressKey = new KeyId(new uint160(Encoders.Base58Check
-                .DecodeData(this.Network.DeStreamWallet)
+                .DecodeData(this.DeStreamNetwork.DeStreamWallet)
                 .Skip(this.Network.Base58Prefixes[(int) Base58Type.PUBKEY_ADDRESS].Length).ToArray())).ScriptPubKey;
             this.coinbase.AddOutput(new TxOut(Money.Zero, deStreamAddressKey));
+        }
+
+        public DeStreamPowBlockDefinition(IConsensusManager consensusManager, IDateTimeProvider dateTimeProvider, ILoggerFactory loggerFactory, ITxMempool mempool, MempoolSchedulerLock mempoolLock, MinerSettings minerSettings, Network network, IConsensusRuleEngine consensusRules, BlockDefinitionOptions options = null) : base(consensusManager, dateTimeProvider, loggerFactory, mempool, mempoolLock, minerSettings, network, consensusRules, options)
+        {
         }
     }
 }

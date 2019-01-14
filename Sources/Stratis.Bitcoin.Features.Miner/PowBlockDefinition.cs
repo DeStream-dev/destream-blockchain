@@ -11,7 +11,7 @@ namespace Stratis.Bitcoin.Features.Miner
     public class PowBlockDefinition : BlockDefinition
     {
         private readonly IConsensusRuleEngine consensusRules;
-        private readonly ILogger logger;
+        protected readonly ILogger logger;
 
         public PowBlockDefinition(
             IConsensusManager consensusManager,
