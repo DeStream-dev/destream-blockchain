@@ -4,13 +4,14 @@ using Stratis.Bitcoin.Configuration.Logging;
 using Stratis.Bitcoin.Features.MemoryPool;
 using Stratis.Bitcoin.Features.Miner.Controllers;
 using Stratis.Bitcoin.Features.Miner.Interfaces;
+using Stratis.Bitcoin.Features.Miner.Staking;
 using Stratis.Bitcoin.Features.RPC;
 using Stratis.Bitcoin.Features.Wallet;
 using Stratis.Bitcoin.Mining;
 
 namespace Stratis.Bitcoin.Features.Miner
 {
-    public static class DeStreamFullNodeBuilderMinerExtension
+    public static class DeStreamFullNodeBuilderMiningExtension
     {
         public static IFullNodeBuilder AddDeStreamPowMining(this IFullNodeBuilder fullNodeBuilder)
         {
@@ -28,8 +29,8 @@ namespace Stratis.Bitcoin.Features.Miner
                         services.AddSingleton<IPowMining, PowMining>();
                         services.AddSingleton<IBlockProvider, BlockProvider>();
                         services.AddSingleton<BlockDefinition, DeStreamPowBlockDefinition>();
-                        services.AddSingleton<MinerController>();
-                        services.AddSingleton<MiningRPCController>();
+                        services.AddSingleton<MiningRpcController>();
+                        services.AddSingleton<MiningController>();
                         services.AddSingleton<MinerSettings>();
                     });
             });
@@ -57,8 +58,8 @@ namespace Stratis.Bitcoin.Features.Miner
                         services.AddSingleton<BlockDefinition, DeStreamPowBlockDefinition>();
                         services.AddSingleton<BlockDefinition, DeStreamPosPowBlockDefinition>();
                         services.AddSingleton<BlockDefinition, PosBlockDefinition>();
-                        services.AddSingleton<MinerController>();
-                        services.AddSingleton<MiningRPCController>();
+                        services.AddSingleton<MiningRpcController>();
+                        services.AddSingleton<MiningController>();
                         services.AddSingleton<MinerSettings>();
                     });
             });

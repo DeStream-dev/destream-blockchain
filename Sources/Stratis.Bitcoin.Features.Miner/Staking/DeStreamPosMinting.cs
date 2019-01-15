@@ -4,10 +4,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
+using NBitcoin.BuilderExtensions;
 using NBitcoin.DataEncoders;
 using NBitcoin.Protocol;
 using Stratis.Bitcoin.Base;
 using Stratis.Bitcoin.Connection;
+using Stratis.Bitcoin.Consensus;
 using Stratis.Bitcoin.Features.Consensus;
 using Stratis.Bitcoin.Features.Consensus.CoinViews;
 using Stratis.Bitcoin.Features.Consensus.Interfaces;
@@ -19,57 +21,58 @@ using Stratis.Bitcoin.Interfaces;
 using Stratis.Bitcoin.Mining;
 using Stratis.Bitcoin.Utilities;
 
-namespace Stratis.Bitcoin.Features.Miner
+namespace Stratis.Bitcoin.Features.Miner.Staking
 {
     public class DeStreamPosMinting : PosMinting
     {
-        public DeStreamPosMinting(IBlockProvider blockProvider, IConsensusLoop consensusLoop, ConcurrentChain chain,
-            Network network, IConnectionManager connectionManager, IDateTimeProvider dateTimeProvider,
-            IInitialBlockDownloadState initialBlockDownloadState, INodeLifetime nodeLifetime, CoinView coinView,
-            IStakeChain stakeChain, IStakeValidator stakeValidator, MempoolSchedulerLock mempoolLock,
-            ITxMempool mempool, IWalletManager walletManager, IAsyncLoopFactory asyncLoopFactory,
-            ITimeSyncBehaviorState timeSyncBehaviorState, ILoggerFactory loggerFactory) : base(blockProvider,
-            consensusLoop, chain, network, connectionManager, dateTimeProvider, initialBlockDownloadState, nodeLifetime,
-            coinView, stakeChain, stakeValidator, mempoolLock, mempool, walletManager, asyncLoopFactory,
-            timeSyncBehaviorState, loggerFactory)
+        private DeStreamNetwork DeStreamNetwork
         {
+            get
+            {
+                if (!(this.network is DeStreamNetwork))
+                {
+                    throw new NotSupportedException($"Network must be {nameof(NBitcoin.DeStreamNetwork)}");
+                }
+
+                return (DeStreamNetwork) this.network;
+            }
         }
 
         protected override void CoinstakeWorker(CoinstakeWorkerContext context, ChainedHeader chainTip, Block block,
             long minimalAllowedTime, long searchInterval)
         {
+            // Adds empty output for DeStream fees to the end of outputs' array
+
             base.CoinstakeWorker(context, chainTip, block, minimalAllowedTime, searchInterval);
 
             if (context.Result.KernelFoundIndex != context.Index)
+            {
                 return;
+            }
 
             Script deStreamAddressKey = new KeyId(new uint160(Encoders.Base58Check
-                .DecodeData(this.network.DeStreamWallet)
+                .DecodeData(this.DeStreamNetwork.DeStreamWallet)
                 .Skip(this.network.Base58Prefixes[(int) Base58Type.PUBKEY_ADDRESS].Length).ToArray())).ScriptPubKey;
 
             context.CoinstakeContext.CoinstakeTx.AddOutput(new TxOut(Money.Zero, deStreamAddressKey));
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc/>
         public override async Task<bool> CreateCoinstakeAsync(List<UtxoStakeDescription> utxoStakeDescriptions,
-            Block block, ChainedHeader chainTip, long searchInterval,
-            long fees, CoinstakeContext coinstakeContext)
+            Block block, ChainedHeader chainTip, long searchInterval, long fees, CoinstakeContext coinstakeContext)
         {
-            this.logger.LogTrace("({0}.{1}:{2},{3}:'{4}',{5}:{6},{7}:{8})", nameof(utxoStakeDescriptions),
-                nameof(utxoStakeDescriptions.Count), utxoStakeDescriptions.Count, nameof(chainTip), chainTip,
-                nameof(searchInterval), searchInterval, nameof(fees), fees);
+            // Provides PrepareCoinStakeTransactions with fees amount
 
-            int nonEmptyUtxos = utxoStakeDescriptions.Count;
             coinstakeContext.CoinstakeTx.Inputs.Clear();
             coinstakeContext.CoinstakeTx.Outputs.Clear();
 
             // Mark coinstake transaction.
             coinstakeContext.CoinstakeTx.Outputs.Add(new TxOut(Money.Zero, new Script()));
 
-            long balance = this.GetMatureBalance(utxoStakeDescriptions).Satoshi;
+            long balance = (await this.GetMatureBalanceAsync(utxoStakeDescriptions).ConfigureAwait(false)).Satoshi;
             if (balance <= this.targetReserveBalance)
             {
-                this.rpcGetStakingInfoModel.Staking = false;
+                this.rpcGetStakingInfoModel.PauseStaking();
 
                 this.logger.LogTrace(
                     "Total balance of available UTXOs is {0}, which is less than or equal to reserve balance {1}.",
@@ -79,28 +82,28 @@ namespace Stratis.Bitcoin.Features.Miner
             }
 
             // Select UTXOs with suitable depth.
-            List<UtxoStakeDescription> stakingUtxoDescriptions =
-                this.GetUtxoStakeDescriptionsSuitableForStaking(utxoStakeDescriptions, chainTip,
-                    coinstakeContext.CoinstakeTx.Time, balance - this.targetReserveBalance);
+            List<UtxoStakeDescription> stakingUtxoDescriptions = await this
+                .GetUtxoStakeDescriptionsSuitableForStakingAsync(utxoStakeDescriptions, chainTip,
+                    coinstakeContext.CoinstakeTx.Time, balance - this.targetReserveBalance).ConfigureAwait(false);
             if (!stakingUtxoDescriptions.Any())
             {
-                this.rpcGetStakingInfoModel.Staking = false;
+                this.rpcGetStakingInfoModel.PauseStaking();
+
                 this.logger.LogTrace("(-)[NO_SELECTION]:false");
                 return false;
             }
 
             long ourWeight = stakingUtxoDescriptions.Sum(s => s.TxOut.Value);
             long expectedTime = StakeValidator.TargetSpacingSeconds * this.networkWeight / ourWeight;
-            decimal ourPercent = this.networkWeight != 0 ? 100.0m * ourWeight / this.networkWeight : 0;
+            decimal ourPercent = this.networkWeight != 0
+                ? 100.0m * (decimal) ourWeight / (decimal) this.networkWeight
+                : 0;
 
             this.logger.LogInformation(
                 "Node staking with {0} ({1:0.00} % of the network weight {2}), est. time to find new block is {3}.",
                 new Money(ourWeight), ourPercent, new Money(this.networkWeight), TimeSpan.FromSeconds(expectedTime));
 
-            this.rpcGetStakingInfoModel.Staking = true;
-            this.rpcGetStakingInfoModel.Weight = ourWeight;
-            this.rpcGetStakingInfoModel.ExpectedTime = expectedTime;
-            this.rpcGetStakingInfoModel.Errors = null;
+            this.rpcGetStakingInfoModel.ResumeStaking(ourWeight, expectedTime);
 
             long minimalAllowedTime = chainTip.Header.Time + 1;
             this.logger.LogTrace(
@@ -109,8 +112,7 @@ namespace Stratis.Bitcoin.Features.Miner
 
             // If the time after applying the mask is lower than minimal allowed time,
             // it is simply too early for us to mine, there can't be any valid solution.
-            if ((coinstakeContext.CoinstakeTx.Time & ~BlockHeaderPosContextualRule.StakeTimestampMask) <
-                minimalAllowedTime)
+            if ((coinstakeContext.CoinstakeTx.Time & ~PosConsensusOptions.StakeTimestampMask) < minimalAllowedTime)
             {
                 this.logger.LogTrace("(-)[TOO_EARLY_TIME_AFTER_LAST_BLOCK]:false");
                 return false;
@@ -156,18 +158,27 @@ namespace Stratis.Bitcoin.Features.Miner
 
             this.logger.LogTrace("Worker #{0} found the kernel.", workersResult.KernelFoundIndex);
 
-
-            // Split stake if above threshold.
-            this.SplitStake(nonEmptyUtxos, chainTip, coinstakeContext.CoinstakeTx.Outputs);
+            // Get reward for newly created block.
+            long reward = fees + this.consensusManager.ConsensusRules.GetRule<PosCoinviewRule>()
+                              .GetProofOfStakeReward(chainTip.Height + 1);
+            if (reward <= 0)
+            {
+                // TODO: This can't happen unless we remove reward for mined block.
+                // If this can happen over time then this check could be done much sooner
+                // to avoid a lot of computation.
+                this.logger.LogTrace("(-)[NO_REWARD]:false");
+                return false;
+            }
 
             // Input to coinstake transaction.
             UtxoStakeDescription coinstakeInput = workersResult.KernelCoin;
 
-            // Set output amount.
-            this.SetOutputAmount(coinstakeContext.CoinstakeTx.Outputs, coinstakeInput.TxOut.Value, fees);
+            int eventuallyStakableUtxosCount = utxoStakeDescriptions.Count;
+            Transaction coinstakeTx = this.PrepareCoinStakeTransactions(chainTip.Height, coinstakeContext,
+                coinstakeInput.TxOut.Value, fees, eventuallyStakableUtxosCount, ourWeight);
 
             // Sign.
-            if (!this.SignTransactionInput(coinstakeInput, coinstakeContext.CoinstakeTx))
+            if (!this.SignTransactionInput(coinstakeInput, coinstakeTx))
             {
                 this.logger.LogTrace("(-)[SIGN_FAILED]:false");
                 return false;
@@ -177,7 +188,7 @@ namespace Stratis.Bitcoin.Features.Miner
             int serializedSize =
                 coinstakeContext.CoinstakeTx.GetSerializedSize(ProtocolVersion.ALT_PROTOCOL_VERSION,
                     SerializationType.Network);
-            if (serializedSize >= MaxBlockSizeGen / 5)
+            if (serializedSize >= (MaxBlockSizeGen / 5))
             {
                 this.logger.LogTrace("Coinstake size {0} bytes exceeded limit {1} bytes.", serializedSize,
                     MaxBlockSizeGen / 5);
@@ -186,51 +197,69 @@ namespace Stratis.Bitcoin.Features.Miner
             }
 
             // Successfully generated coinstake.
-            this.logger.LogTrace("(-):true");
             return true;
         }
 
-        private void SetOutputAmount(TxOutList outputs, long totalOut, long fees)
+        private Transaction PrepareCoinStakeTransactions(int currentChainHeight, CoinstakeContext coinstakeContext,long totalOut, long fees, int utxosCount, long amountStaked)
         {
-            this.network.SplitFee(fees, out long deStreamFee, out long minerReward);
-            
-            if (outputs.Count == 4)
-            {
-                outputs[1].Value = (totalOut + minerReward) / 2 / Money.CENT * Money.CENT;
-                outputs[2].Value = totalOut + minerReward - outputs[1].Value;
-                outputs[3].Value = deStreamFee;
-                this.logger.LogTrace("Coinstake first output value is {0}, second is {1}, third is {3}.",
-                    outputs[1].Value, outputs[2].Value, outputs[3].Value);
-            }
-            else
-            {
-                outputs[1].Value = totalOut + minerReward;
-                outputs[2].Value = deStreamFee;
-                this.logger.LogTrace("Coinstake first output value is {0}, second is {1} .", outputs[1].Value,
-                    outputs[2].Value);
-            }
-        }
+            // Splits fees between miner and DeStream
+            // Splits miner's output if needed
+            // Output to DeStream stays in the end of array
 
-        private void SplitStake(int nonEmptyUtxos, ChainedHeader chainTip, TxOutList outputs)
-        {
-            if (!this.GetSplitStake(nonEmptyUtxos, chainTip)) return;
+            this.DeStreamNetwork.SplitFee(fees, out long deStreamFee, out long minerReward);
 
-            this.logger.LogTrace("Coinstake UTXO will be split to two.");
-            outputs.Insert(2, new TxOut(0, outputs[1].ScriptPubKey));
+            // Split stake into SplitFactor utxos if above threshold.
+            bool shouldSplitStake = this.ShouldSplitStake(utxosCount, amountStaked, totalOut, currentChainHeight);
+
+            int lastOutputIndex = coinstakeContext.CoinstakeTx.Outputs.Count - 1;
+
+            if (!shouldSplitStake)
+            {
+                coinstakeContext.CoinstakeTx.Outputs[lastOutputIndex - 1].Value = totalOut + minerReward;
+                coinstakeContext.CoinstakeTx.Outputs[lastOutputIndex].Value = deStreamFee;
+
+                this.logger.LogTrace(
+                    "Coinstake miner output value is {0}, DeStream output value is {1}.",
+                    coinstakeContext.CoinstakeTx.Outputs[lastOutputIndex - 1].Value,
+                    coinstakeContext.CoinstakeTx.Outputs[lastOutputIndex].Value);
+                this.logger.LogTrace("(-)[NO_SPLIT]:{0}", coinstakeContext.CoinstakeTx);
+
+                return coinstakeContext.CoinstakeTx;
+            }
+
+            long splitValue = (totalOut + minerReward) / SplitFactor;
+            long remainder = (totalOut + minerReward) - ((SplitFactor - 1) * splitValue);
+            coinstakeContext.CoinstakeTx.Outputs[lastOutputIndex - 1].Value = remainder;
+
+            for (int i = 0; i < SplitFactor - 1; i++)
+            {
+                var split = new TxOut(splitValue,
+                    coinstakeContext.CoinstakeTx.Outputs[lastOutputIndex - 1].ScriptPubKey);
+                coinstakeContext.CoinstakeTx.Outputs.Insert(coinstakeContext.CoinstakeTx.Outputs.Count - 1, split);
+            }
+
+            this.logger.LogTrace(
+                "Coinstake output value has been split into {0} outputs of {1} and a remainder of {2}.",
+                SplitFactor - 1, splitValue, remainder);
+
+            return coinstakeContext.CoinstakeTx;
         }
 
         protected override bool SignTransactionInput(UtxoStakeDescription input, Transaction transaction)
         {
-            
-            this.logger.LogTrace("({0}:'{1}')", nameof(input), input.OutPoint);
+            // Creates DeStreamTransactionBuilder
 
             bool res = false;
             try
             {
-                new DeStreamTransactionBuilder(this.network)
+                var transactionBuilder = new DeStreamTransactionBuilder(this.network)
                     .AddKeys(input.Key)
-                    .AddCoins(new Coin(input.OutPoint, input.TxOut))
-                    .SignTransactionInPlace(transaction);
+                    .AddCoins(new Coin(input.OutPoint, input.TxOut));
+
+                foreach (BuilderExtension extension in this.walletManager.GetTransactionBuilderExtensionsForStaking())
+                    transactionBuilder.Extensions.Add(extension);
+
+                transactionBuilder.SignTransactionInPlace(transaction);
 
                 res = true;
             }
@@ -239,8 +268,19 @@ namespace Stratis.Bitcoin.Features.Miner
                 this.logger.LogDebug("Exception occurred: {0}", e.ToString());
             }
 
-            this.logger.LogTrace("(-):{0}", res);
             return res;
+        }
+
+        public DeStreamPosMinting(IBlockProvider blockProvider, IConsensusManager consensusManager,
+            ConcurrentChain chain, Network network, IDateTimeProvider dateTimeProvider,
+            IInitialBlockDownloadState initialBlockDownloadState, INodeLifetime nodeLifetime, ICoinView coinView,
+            IStakeChain stakeChain, IStakeValidator stakeValidator, MempoolSchedulerLock mempoolLock,
+            ITxMempool mempool, IWalletManager walletManager, IAsyncLoopFactory asyncLoopFactory,
+            ITimeSyncBehaviorState timeSyncBehaviorState, ILoggerFactory loggerFactory, MinerSettings minerSettings) :
+            base(blockProvider, consensusManager, chain, network, dateTimeProvider, initialBlockDownloadState,
+                nodeLifetime, coinView, stakeChain, stakeValidator, mempoolLock, mempool, walletManager,
+                asyncLoopFactory, timeSyncBehaviorState, loggerFactory, minerSettings)
+        {
         }
     }
 }

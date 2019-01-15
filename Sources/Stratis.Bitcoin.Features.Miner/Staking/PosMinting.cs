@@ -98,16 +98,16 @@ namespace Stratis.Bitcoin.Features.Miner.Staking
         /// <summary>Number of UTXO descriptions that a single worker's task will process.</summary>
         /// <remarks>To achieve a good level of parallelism, this should be low enough so that CPU threads are used,
         /// but high enough to compensate for tasks' overhead.</remarks>
-        private const int UtxoStakeDescriptionsPerCoinstakeWorker = 25;
+        protected const int UtxoStakeDescriptionsPerCoinstakeWorker = 25;
 
         /// <summary>Consumes manager class.</summary>
-        private readonly IConsensusManager consensusManager;
+        protected readonly IConsensusManager consensusManager;
 
         /// <summary>Thread safe access to the best chain of block headers (that the node is aware of) from genesis.</summary>
         private readonly ConcurrentChain chain;
 
         /// <summary>Specification of the network the node runs on - regtest/testnet/mainnet.</summary>
-        private readonly Network network;
+        protected readonly Network network;
 
         /// <summary>Provides date time functionality.</summary>
         private readonly IDateTimeProvider dateTimeProvider;
@@ -128,13 +128,13 @@ namespace Stratis.Bitcoin.Features.Miner.Staking
         private readonly IAsyncLoopFactory asyncLoopFactory;
 
         /// <summary>A manager providing operations on wallets.</summary>
-        private readonly IWalletManager walletManager;
+        protected readonly IWalletManager walletManager;
 
         /// <summary>Factory for creating loggers.</summary>
-        private readonly ILoggerFactory loggerFactory;
+        protected readonly ILoggerFactory loggerFactory;
 
         /// <summary>Instance logger.</summary>
-        private readonly ILogger logger;
+        protected readonly ILogger logger;
 
         /// <summary>Loop in which the node attempts to generate new POS blocks by staking coins from its wallet.</summary>
         private IAsyncLoop stakingLoop;
@@ -159,7 +159,7 @@ namespace Stratis.Bitcoin.Features.Miner.Staking
         /// Target reserved balance that will not participate in staking.
         /// It is possible that less than this amount will be reserved.
         /// </summary>
-        private Money targetReserveBalance;
+        protected Money targetReserveBalance;
 
         /// <summary>Time in milliseconds between attempts to generate PoS blocks.</summary>
         private readonly int minerSleep;
@@ -179,10 +179,10 @@ namespace Stratis.Bitcoin.Features.Miner.Staking
         /// <summary>Information about node's staking for RPC "getstakinginfo" command.</summary>
         /// <remarks>This object does not need a synchronized access because there is no execution logic
         /// that depends on the reported information.</remarks>
-        private Models.GetStakingInfoModel rpcGetStakingInfoModel;
+        protected Models.GetStakingInfoModel rpcGetStakingInfoModel;
 
         /// <summary>Estimation of the total staking weight of all nodes on the network.</summary>
-        private long networkWeight;
+        protected long networkWeight;
 
         /// <summary>
         /// Timestamp of the last attempt to search for POS solution.
@@ -576,7 +576,7 @@ namespace Stratis.Bitcoin.Features.Miner.Staking
         }
 
         /// <inheritdoc/>
-        public async Task<bool> CreateCoinstakeAsync(List<UtxoStakeDescription> utxoStakeDescriptions, Block block, ChainedHeader chainTip, long searchInterval, long fees, CoinstakeContext coinstakeContext)
+        public virtual async Task<bool> CreateCoinstakeAsync(List<UtxoStakeDescription> utxoStakeDescriptions, Block block, ChainedHeader chainTip, long searchInterval, long fees, CoinstakeContext coinstakeContext)
         {
             coinstakeContext.CoinstakeTx.Inputs.Clear();
             coinstakeContext.CoinstakeTx.Outputs.Clear();
@@ -700,7 +700,7 @@ namespace Stratis.Bitcoin.Features.Miner.Staking
             return true;
         }
 
-        internal Transaction PrepareCoinStakeTransactions(int currentChainHeight, CoinstakeContext coinstakeContext, long coinstakeOutputValue, int utxosCount, long amountStaked)
+        internal virtual Transaction PrepareCoinStakeTransactions(int currentChainHeight, CoinstakeContext coinstakeContext, long coinstakeOutputValue, int utxosCount, long amountStaked)
         {
             // Split stake into SplitFactor utxos if above threshold.
             bool shouldSplitStake = this.ShouldSplitStake(utxosCount, amountStaked, coinstakeOutputValue, currentChainHeight);
@@ -742,7 +742,7 @@ namespace Stratis.Bitcoin.Features.Miner.Staking
         /// <param name="block">Template of the block that we are trying to mine.</param>
         /// <param name="minimalAllowedTime">Minimal valid timestamp for new coinstake transaction.</param>
         /// <param name="searchInterval">Length of an unexplored block time space in seconds. It only makes sense to look for a solution within this interval.</param>
-        private void CoinstakeWorker(CoinstakeWorkerContext context, ChainedHeader chainTip, Block block, long minimalAllowedTime, long searchInterval)
+        protected virtual void CoinstakeWorker(CoinstakeWorkerContext context, ChainedHeader chainTip, Block block, long minimalAllowedTime, long searchInterval)
         {
             context.Logger.LogTrace("Going to process {0} UTXOs.", context.utxoStakeDescriptions.Count);
 
@@ -867,7 +867,7 @@ namespace Stratis.Bitcoin.Features.Miner.Staking
         /// <param name="input">Transaction input.</param>
         /// <param name="transaction">Transaction being built.</param>
         /// <returns><c>true</c> if the function succeeds, <c>false</c> otherwise.</returns>
-        private bool SignTransactionInput(UtxoStakeDescription input, Transaction transaction)
+        protected virtual bool SignTransactionInput(UtxoStakeDescription input, Transaction transaction)
         {
             bool res = false;
             try
