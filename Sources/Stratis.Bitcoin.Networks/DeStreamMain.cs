@@ -41,6 +41,21 @@ namespace Stratis.Bitcoin.Networks
             
             var consensusFactory = new PosConsensusFactory();
             
+            this.Base58Prefixes = new byte[12][];
+            this.Base58Prefixes[(int) Base58Type.PUBKEY_ADDRESS] = new byte[] {30};
+            this.Base58Prefixes[(int) Base58Type.SCRIPT_ADDRESS] = new byte[] {90};
+            this.Base58Prefixes[(int) Base58Type.SECRET_KEY] = new byte[] {30 + 90};
+            this.Base58Prefixes[(int) Base58Type.ENCRYPTED_SECRET_KEY_NO_EC] = new byte[] {0x01, 0x42};
+            this.Base58Prefixes[(int) Base58Type.ENCRYPTED_SECRET_KEY_EC] = new byte[] {0x01, 0x43};
+            this.Base58Prefixes[(int) Base58Type.EXT_PUBLIC_KEY] = new byte[] {0x04, 0x88, 0xB2, 0x1E};
+            this.Base58Prefixes[(int) Base58Type.EXT_SECRET_KEY] = new byte[] {0x04, 0x88, 0xAD, 0xE4};
+            this.Base58Prefixes[(int) Base58Type.PASSPHRASE_CODE] =
+                new byte[] {0x2C, 0xE9, 0xB3, 0xE1, 0xFF, 0x39, 0xE2};
+            this.Base58Prefixes[(int) Base58Type.CONFIRMATION_CODE] = new byte[] {0x64, 0x3B, 0xF6, 0xA8, 0x9A};
+            this.Base58Prefixes[(int) Base58Type.STEALTH_ADDRESS] = new byte[] {0x2a};
+            this.Base58Prefixes[(int) Base58Type.ASSET_ID] = new byte[] {23};
+            this.Base58Prefixes[(int) Base58Type.COLORED_ADDRESS] = new byte[] {0x13};
+            
             // Create the genesis block.
             var initialWalletAddresses = new[]
             {
@@ -64,7 +79,7 @@ namespace Stratis.Bitcoin.Networks
             this.GenesisReward = Money.Coins(initialCoins);
             this.GenesisWalletAddress = initialWalletAddresses.First();
 
-            var genesisBlock = this.CreateDeStreamGenesisBlock(this.Consensus.ConsensusFactory, this.GenesisTime,
+            var genesisBlock = this.CreateDeStreamGenesisBlock(consensusFactory, this.GenesisTime,
                 this.GenesisNonce, this.GenesisBits, this.GenesisVersion, this.GenesisReward,
                 initialWalletAddresses);
 
@@ -122,21 +137,6 @@ namespace Stratis.Bitcoin.Networks
                 proofOfStakeReward: Money.Zero
             );
             
-            this.Base58Prefixes = new byte[12][];
-            this.Base58Prefixes[(int) Base58Type.PUBKEY_ADDRESS] = new byte[] {30};
-            this.Base58Prefixes[(int) Base58Type.SCRIPT_ADDRESS] = new byte[] {90};
-            this.Base58Prefixes[(int) Base58Type.SECRET_KEY] = new byte[] {30 + 90};
-            this.Base58Prefixes[(int) Base58Type.ENCRYPTED_SECRET_KEY_NO_EC] = new byte[] {0x01, 0x42};
-            this.Base58Prefixes[(int) Base58Type.ENCRYPTED_SECRET_KEY_EC] = new byte[] {0x01, 0x43};
-            this.Base58Prefixes[(int) Base58Type.EXT_PUBLIC_KEY] = new byte[] {0x04, 0x88, 0xB2, 0x1E};
-            this.Base58Prefixes[(int) Base58Type.EXT_SECRET_KEY] = new byte[] {0x04, 0x88, 0xAD, 0xE4};
-            this.Base58Prefixes[(int) Base58Type.PASSPHRASE_CODE] =
-                new byte[] {0x2C, 0xE9, 0xB3, 0xE1, 0xFF, 0x39, 0xE2};
-            this.Base58Prefixes[(int) Base58Type.CONFIRMATION_CODE] = new byte[] {0x64, 0x3B, 0xF6, 0xA8, 0x9A};
-            this.Base58Prefixes[(int) Base58Type.STEALTH_ADDRESS] = new byte[] {0x2a};
-            this.Base58Prefixes[(int) Base58Type.ASSET_ID] = new byte[] {23};
-            this.Base58Prefixes[(int) Base58Type.COLORED_ADDRESS] = new byte[] {0x13};
-
             this.Checkpoints = new Dictionary<int, CheckpointInfo>
             {
                 {

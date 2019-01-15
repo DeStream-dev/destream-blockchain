@@ -19,5 +19,9 @@ namespace Stratis.Bitcoin.Tests.Common
         public static Network StratisTest => NetworkRegistration.GetNetwork("StratisTest") ?? NetworkRegistration.Register(new StratisTest());
 
         public static Network StratisRegTest => NetworkRegistration.GetNetwork("StratisRegTest") ?? NetworkRegistration.Register(new StratisRegTest());
+
+        public static Network DeStreamMain => NetworkRegistration.GetNetwork("DeStreamMain") ?? NetworkRegistration.Register(new DeStreamMain());
+        
+        public static Network DeStreamTest => NetworkRegistration.GetNetwork("DeStreamTest") ?? NetworkRegistration.Register(new DeStreamTest());
     }
 }
