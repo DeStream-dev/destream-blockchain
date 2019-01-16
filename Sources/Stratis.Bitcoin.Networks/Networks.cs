@@ -22,5 +22,14 @@ namespace Stratis.Bitcoin.Networks
                 return new NetworksSelector(() => new StratisMain(), () => new StratisTest(), () => new StratisRegTest());
             }
         }
+        
+        public static NetworksSelector DeStream
+        {
+            get
+            {
+                // TODO: DeStreamRegTest?
+                return new NetworksSelector(() => new DeStreamMain(), () => new DeStreamTest(), () => new DeStreamTest());
+            }
+        }
     }
 }

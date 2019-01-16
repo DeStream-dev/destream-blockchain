@@ -1,35 +1,31 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using DeStream.Stratis.Bitcoin.Configuration;
-using NBitcoin;
 using NBitcoin.Protocol;
 using Stratis.Bitcoin;
 using Stratis.Bitcoin.Builder;
+using Stratis.Bitcoin.Configuration;
 using Stratis.Bitcoin.Features.Api;
 using Stratis.Bitcoin.Features.LightWallet;
 using Stratis.Bitcoin.Features.Notifications;
+using Stratis.Bitcoin.Networks;
 using Stratis.Bitcoin.Utilities;
 
 namespace DeStream.BreezeD
 {
-    public class Program
+    class Program
     {
-        public static void Main(string[] args)
-        {
-            MainAsync(args).Wait();
-        }
-
-        public static async Task MainAsync(string[] args)
+        public static async Task Main(string[] args)
         {
             try
             {
-                // Get the API uri.
-                Network network = args.Contains("-testnet") ? Network.DeStreamTest : Network.DeStreamMain;
+                string agent = "Breeze";
 
-                var nodeSettings = new DeStreamNodeSettings(network, ProtocolVersion.ALT_PROTOCOL_VERSION, args: args,
-                    loadConfiguration: false);
+                NodeSettings nodeSettings;
 
+                nodeSettings = new NodeSettings(networksSelector: Networks.DeStream,
+                    protocolVersion: ProtocolVersion.ALT_PROTOCOL_VERSION, agent: agent, args: args);
+                
                 IFullNodeBuilder fullNodeBuilder = new FullNodeBuilder()
                     .UseNodeSettings(nodeSettings)
                     .UseDeStreamLightWallet()
@@ -45,7 +41,7 @@ namespace DeStream.BreezeD
             }
             catch (Exception ex)
             {
-                Console.WriteLine("There was a problem initializing the node. Details: '{0}'", ex.Message);
+                Console.WriteLine("There was a problem initializing the node. Details: '{0}'", ex.ToString());
             }
         }
     }

@@ -166,6 +166,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stratis.SmartContracts.Stan
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stratis.SmartContracts.RuntimeObserver", "Stratis.SmartContracts.RuntimeObserver\Stratis.SmartContracts.RuntimeObserver.csproj", "{8FEFF18B-3546-4237-8FD1-9F184BC7B4C7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeStream.DeStreamD", "DeStream.DeStreamD\DeStream.DeStreamD.csproj", "{09262A6E-DAC6-48CF-8EF5-7A575FFADD64}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeStream.BreezeD", "DeStream.BreezeD\DeStream.BreezeD.csproj", "{AB5BCFEF-FBBB-4ECD-9AA4-63699EBA434C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -432,6 +436,14 @@ Global
 		{8FEFF18B-3546-4237-8FD1-9F184BC7B4C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8FEFF18B-3546-4237-8FD1-9F184BC7B4C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8FEFF18B-3546-4237-8FD1-9F184BC7B4C7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09262A6E-DAC6-48CF-8EF5-7A575FFADD64}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09262A6E-DAC6-48CF-8EF5-7A575FFADD64}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09262A6E-DAC6-48CF-8EF5-7A575FFADD64}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09262A6E-DAC6-48CF-8EF5-7A575FFADD64}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB5BCFEF-FBBB-4ECD-9AA4-63699EBA434C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB5BCFEF-FBBB-4ECD-9AA4-63699EBA434C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB5BCFEF-FBBB-4ECD-9AA4-63699EBA434C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB5BCFEF-FBBB-4ECD-9AA4-63699EBA434C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
