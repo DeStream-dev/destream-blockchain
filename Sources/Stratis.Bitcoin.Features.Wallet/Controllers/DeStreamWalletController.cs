@@ -9,6 +9,7 @@ using Stratis.Bitcoin.Features.Wallet.Interfaces;
 using Stratis.Bitcoin.Features.Wallet.Models;
 using Stratis.Bitcoin.Utilities;
 using Stratis.Bitcoin.Utilities.JsonErrors;
+using Stratis.Bitcoin.Utilities.ModelStateErrors;
 
 namespace Stratis.Bitcoin.Features.Wallet.Controllers
 {
@@ -19,15 +20,16 @@ namespace Stratis.Bitcoin.Features.Wallet.Controllers
     public class DeStreamWalletController : Controller
     {
         private readonly ILogger _logger;
-        private readonly Network _network;
+        private readonly DeStreamNetwork _network;
         private readonly IWalletTransactionHandler _walletTransactionHandler;
 
         public DeStreamWalletController(Network network, IWalletTransactionHandler walletTransactionHandler,
             ILoggerFactory loggerFactory)
         {
-            this._network = network;
+            this._network = (DeStreamNetwork) network ??
+                            throw new NotSupportedException($"Network must be {nameof(NBitcoin.DeStreamNetwork)}");
             this._walletTransactionHandler = walletTransactionHandler;
-            this._logger = loggerFactory.CreateLogger(this.GetType().FullName);
+            this._logger = loggerFactory.CreateLogger(GetType().FullName);
         }
 
         /// <summary>
@@ -42,24 +44,36 @@ namespace Stratis.Bitcoin.Features.Wallet.Controllers
             Guard.NotNull(request, nameof(request));
 
             // checks the request is valid
-            if (!this.ModelState.IsValid) return WalletController.BuildErrorResponse(this.ModelState);
+            if (!this.ModelState.IsValid) return ModelStateErrors.BuildErrorResponse(this.ModelState);
 
             try
             {
-                Script destination = BitcoinAddress.Create(request.DestinationAddress, this._network).ScriptPubKey;
-                var context = new TransactionBuildContext(
-                    new WalletAccountReference(request.WalletName, request.AccountName),
-                    new[] {new Recipient {Amount = request.Amount, ScriptPubKey = destination}}.ToList(),
-                    request.Password, request.OpReturnData)
+                var recipients = new List<Recipient>();
+                foreach (RecipientModel recipientModel in request.Recipients)
+                    recipients.Add(new Recipient
+                    {
+                        ScriptPubKey = BitcoinAddress.Create(recipientModel.DestinationAddress, this._network)
+                            .ScriptPubKey,
+                        Amount = recipientModel.Amount
+                    });
+
+                var context = new TransactionBuildContext(this._network)
                 {
+                    AccountReference = new WalletAccountReference(request.WalletName, request.AccountName),
                     TransactionFee = string.IsNullOrEmpty(request.FeeAmount) ? null : Money.Parse(request.FeeAmount),
                     MinConfirmations = request.AllowUnconfirmed ? 0 : 1,
                     Shuffle =
                         request.ShuffleOutputs ??
-                        true // We shuffle transaction outputs by default as it's better for anonymity.
+                        true, // We shuffle transaction outputs by default as it's better for anonymity.
+                    OpReturnData = request.OpReturnData,
+                    WalletPassword = request.Password,
+                    SelectedInputs =
+                        request.Outpoints?.Select(u => new OutPoint(uint256.Parse(u.TransactionId), u.Index)).ToList(),
+                    AllowOtherInputs = false,
+                    Recipients = recipients
                 };
 
-                this.ProcessFeeType(request.FeeType, context.Recipients);
+                ProcessFeeType(request.FeeType, context.Recipients);
 
                 Transaction transactionResult = this._walletTransactionHandler.BuildTransaction(context);
 
@@ -70,7 +84,7 @@ namespace Stratis.Bitcoin.Features.Wallet.Controllers
                     TransactionId = transactionResult.GetHash()
                 };
 
-                return this.Json(model);
+                return Json(model);
             }
             catch (Exception e)
             {
@@ -93,21 +107,30 @@ namespace Stratis.Bitcoin.Features.Wallet.Controllers
             Guard.NotNull(request, nameof(request));
 
             // checks the request is valid
-            if (!this.ModelState.IsValid) return WalletController.BuildErrorResponse(this.ModelState);
+            if (!this.ModelState.IsValid) return ModelStateErrors.BuildErrorResponse(this.ModelState);
 
             try
             {
-                Script destination = BitcoinAddress.Create(request.DestinationAddress, this._network).ScriptPubKey;
-                var context = new TransactionBuildContext(
-                    new WalletAccountReference(request.WalletName, request.AccountName),
-                    new[] {new Recipient {Amount = request.Amount, ScriptPubKey = destination}}.ToList())
+                var recipients = new List<Recipient>();
+                foreach (RecipientModel recipientModel in request.Recipients)
+                    recipients.Add(new Recipient
+                    {
+                        ScriptPubKey = BitcoinAddress.Create(recipientModel.DestinationAddress, this._network)
+                            .ScriptPubKey,
+                        Amount = recipientModel.Amount
+                    });
+
+                var context = new TransactionBuildContext(this._network)
                 {
-                    MinConfirmations = request.AllowUnconfirmed ? 0 : 1
+                    AccountReference = new WalletAccountReference(request.WalletName, request.AccountName),
+                    FeeType = FeeParser.Parse(request.FeeType),
+                    MinConfirmations = request.AllowUnconfirmed ? 0 : 1,
+                    Recipients = recipients
                 };
 
-                this.ProcessFeeType(request.FeeType, context.Recipients);
+                ProcessFeeType(request.FeeType, context.Recipients);
 
-                return this.Json(this._walletTransactionHandler.EstimateFee(context));
+                return Json(this._walletTransactionHandler.EstimateFee(context));
             }
             catch (Exception e)
             {
@@ -134,7 +157,9 @@ namespace Stratis.Bitcoin.Features.Wallet.Controllers
                     recipient.Amount = this._network.SubtractFee(recipient.Amount);
             }
             else
+            {
                 throw new FormatException($"FeeType {requestFeeType} is not a valid DeStreamFeeType");
+            }
         }
     }
 }

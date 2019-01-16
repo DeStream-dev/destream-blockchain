@@ -5,7 +5,7 @@ using System.Security;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
-using Stratis.Bitcoin.Features.Consensus;
+using NBitcoin.Policy;
 using Stratis.Bitcoin.Features.Wallet.Interfaces;
 using Stratis.Bitcoin.Utilities;
 using Stratis.Bitcoin.Utilities.Extensions;
@@ -15,15 +15,25 @@ namespace Stratis.Bitcoin.Features.Wallet
     public class DeStreamWalletTransactionHandler : WalletTransactionHandler
     {
         public DeStreamWalletTransactionHandler(ILoggerFactory loggerFactory, IWalletManager walletManager,
-            IWalletFeePolicy walletFeePolicy, Network network) : base(loggerFactory, walletManager, walletFeePolicy,
-            network)
+            IWalletFeePolicy walletFeePolicy, Network network, StandardTransactionPolicy transactionPolicy) : base(
+            loggerFactory, walletManager, walletFeePolicy, network, transactionPolicy)
         {
+        }
+
+        private DeStreamNetwork DeStreamNetwork
+        {
+            get
+            {
+                if (!(this.network is DeStreamNetwork))
+                    throw new NotSupportedException($"Network must be {nameof(NBitcoin.DeStreamNetwork)}");
+                return (DeStreamNetwork) this.network;
+            }
         }
 
         /// <inheritdoc />
         protected override void AddFee(TransactionBuildContext context)
         {
-            long fee = Convert.ToInt64(context.Recipients.Sum(p => p.Amount) * this.Network.FeeRate);
+            long fee = Convert.ToInt64(context.Recipients.Sum(p => p.Amount) * this.DeStreamNetwork.FeeRate);
             context.TransactionFee = fee;
             context.TransactionBuilder.SendFees(fee);
         }
@@ -56,16 +66,16 @@ namespace Stratis.Bitcoin.Features.Wallet
                 // Here we try to create a transaction that contains all the spendable coins, leaving no room for the fee.
                 // When the transaction builder throws an exception informing us that we have insufficient funds,
                 // we use the amount we're missing as the fee.
-                var context = new TransactionBuildContext(accountReference, recipients, null)
-                {
-                    FeeType = feeType,
-                    MinConfirmations = allowUnconfirmed ? 0 : 1,
-                    TransactionBuilder = new DeStreamTransactionBuilder(this.Network)
-                };
+                var context =
+                    new DeStreamTransactionBuilderContext(new DeStreamTransactionBuilder(this.DeStreamNetwork))
+                    {
+                        FeeType = feeType,
+                        MinConfirmations = allowUnconfirmed ? 0 : 1
+                    };
 
-                this.AddRecipients(context);
-                this.AddCoins(context);
-                this.AddFee(context);
+                AddRecipients(context);
+                AddCoins(context);
+                AddFee(context);
 
                 // Throw an exception if this code is reached, as building a transaction without any funds for the fee should always throw an exception.
                 throw new WalletException(
@@ -97,6 +107,9 @@ namespace Stratis.Bitcoin.Features.Wallet
             }
             else
             {
+                if (string.IsNullOrEmpty(context.WalletPassword))
+                    return;
+
                 privateKey = Key.Parse(wallet.EncryptedSeed, context.WalletPassword, wallet.Network);
                 this.privateKeyCache.Set(cacheKey, privateKey.ToString(wallet.Network).ToSecureString(),
                     new TimeSpan(0, 5, 0));
@@ -143,8 +156,8 @@ namespace Stratis.Bitcoin.Features.Wallet
             // Add all coinstake transactions with enough confirmations
             context.UnspentOutputs.AddRange(this.walletManager
                 .GetSpendableTransactionsInAccount(context.AccountReference,
-                    this.Network.Consensus.Option<PosConsensusOptions>()
-                        .GetStakeMinConfirmations(this.walletManager.LastBlockHeight(), this.Network))
+                    ((PosConsensusOptions) this.DeStreamNetwork.Consensus.Options)
+                    .GetStakeMinConfirmations(this.walletManager.LastBlockHeight(), this.DeStreamNetwork))
                 .Where(p => p.Transaction.IsCoinStake ?? false)
                 .ToList());
 
@@ -154,6 +167,9 @@ namespace Stratis.Bitcoin.Features.Wallet
                     .FirstOrDefault(p => p.Transaction.IsCoinStake ?? false)
                     ?.Address.Pubkey;
 
+            context.UnspentOutputs = this.walletManager
+                .GetSpendableTransactionsInAccount(context.AccountReference, context.MinConfirmations).ToList();
+
             if (context.UnspentOutputs.Count == 0) throw new WalletException("No spendable transactions found.");
 
             // Get total spendable balance in the account.
@@ -162,7 +178,7 @@ namespace Stratis.Bitcoin.Features.Wallet
             if (balance < totalToSend)
                 throw new WalletException("Not enough funds.");
 
-            if (context.SelectedInputs.Any())
+            if (context.SelectedInputs != null && context.SelectedInputs.Any())
             {
                 // 'SelectedInputs' are inputs that must be included in the
                 // current transaction. At this point we check the given
@@ -176,13 +192,9 @@ namespace Stratis.Bitcoin.Features.Wallet
                     throw new WalletException("Not all the selected inputs were found on the wallet.");
 
                 if (!context.AllowOtherInputs)
-                {
                     foreach (KeyValuePair<OutPoint, UnspentOutputReference> unspentOutputsItem in availableHashList)
-                    {
                         if (!context.SelectedInputs.Contains(unspentOutputsItem.Key))
                             context.UnspentOutputs.Remove(unspentOutputsItem.Value);
-                    }
-                }
             }
 
             Money sum = 0;
@@ -197,7 +209,7 @@ namespace Stratis.Bitcoin.Features.Wallet
 
                 // If threshold is reached and the total value is above the target
                 // then its safe to stop adding UTXOs to the coin list.
-                // The primery goal is to reduce the time it takes to build a trx
+                // The primary goal is to reduce the time it takes to build a trx
                 // when the wallet is bloated with UTXOs.
                 if (index > SendCountThresholdLimit && sum > totalToSend)
                     break;
@@ -211,22 +223,16 @@ namespace Stratis.Bitcoin.Features.Wallet
 
             context.TransactionBuilder.AddCoins(coins);
         }
+    }
 
-        /// <inheritdoc />
-        protected override void InitializeTransactionBuilder(TransactionBuildContext context)
+    public class DeStreamTransactionBuilderContext : TransactionBuildContext
+    {
+        private DeStreamTransactionBuilderContext(Network network) : base(network)
         {
-            Guard.NotNull(context, nameof(context));
-            Guard.NotNull(context.Recipients, nameof(context.Recipients));
-            Guard.NotNull(context.AccountReference, nameof(context.AccountReference));
+        }
 
-            context.TransactionBuilder = new DeStreamTransactionBuilder(this.Network);
-
-            this.AddRecipients(context);
-            this.AddOpReturnOutput(context);
-            this.AddCoins(context);
-            this.FindChangeAddress(context);
-            this.AddSecrets(context);
-            this.AddFee(context);
+        public DeStreamTransactionBuilderContext(TransactionBuilder transactionBuilder) : base(transactionBuilder)
+        {
         }
     }
 }

@@ -34,7 +34,7 @@ namespace Stratis.Bitcoin.Features.Wallet.Controllers
 
         private readonly CoinType coinType;
 
-        /// <summary>Specification of the network the node runs on - regtest/testnet/mainnet.</summary>
+        /// <summary>Specification of the network the node runs on - regtest/testnet/mainnet.</summary>summary
         private readonly Network network;
 
         private readonly IConnectionManager connectionManager;

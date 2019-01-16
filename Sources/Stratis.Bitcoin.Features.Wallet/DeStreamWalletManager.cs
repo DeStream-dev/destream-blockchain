@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using NBitcoin;
 using Stratis.Bitcoin.Configuration;
 using Stratis.Bitcoin.Features.Wallet.Interfaces;
+using Stratis.Bitcoin.Interfaces;
 using Stratis.Bitcoin.Utilities;
 
 namespace Stratis.Bitcoin.Features.Wallet
@@ -13,12 +14,11 @@ namespace Stratis.Bitcoin.Features.Wallet
     public class DeStreamWalletManager : WalletManager, IDeStreamWalletManager
     {
         public DeStreamWalletManager(ILoggerFactory loggerFactory, Network network, ConcurrentChain chain,
-            NodeSettings settings, WalletSettings walletSettings,
-            DataFolder dataFolder, IWalletFeePolicy walletFeePolicy, IAsyncLoopFactory asyncLoopFactory,
-            INodeLifetime nodeLifetime, IDateTimeProvider dateTimeProvider,
-            IBroadcasterManager broadcasterManager = null) :
-            base(loggerFactory, network, chain, settings, walletSettings, dataFolder, walletFeePolicy, asyncLoopFactory,
-                nodeLifetime, dateTimeProvider, broadcasterManager)
+            WalletSettings walletSettings, DataFolder dataFolder, IWalletFeePolicy walletFeePolicy,
+            IAsyncLoopFactory asyncLoopFactory, INodeLifetime nodeLifetime, IDateTimeProvider dateTimeProvider,
+            IScriptAddressReader scriptAddressReader, IBroadcasterManager broadcasterManager = null) : base(
+            loggerFactory, network, chain, walletSettings, dataFolder, walletFeePolicy, asyncLoopFactory, nodeLifetime,
+            dateTimeProvider, scriptAddressReader, broadcasterManager)
         {
         }
 
@@ -27,7 +27,7 @@ namespace Stratis.Bitcoin.Features.Wallet
         {
             Wallet result = base.LoadWallet(password, name);
 
-            this.LoadKeysLookupLock();
+            LoadKeysLookupLock();
 
             return result;
         }
@@ -37,11 +37,9 @@ namespace Stratis.Bitcoin.Features.Wallet
         {
             foreach (var transactionWithOutput in this.network.GetGenesis().Transactions.SelectMany(p =>
                 p.Outputs.Select(q => new {Transaction = p, Output = q}).Where(q =>
-                    this.keysLookup.TryGetValue(q.Output.ScriptPubKey, out HdAddress _))))
-            {
-                this.AddTransactionToWallet(transactionWithOutput.Transaction, transactionWithOutput.Output, 0,
+                    this.scriptToAddressLookup.TryGetValue(q.Output.ScriptPubKey, out HdAddress _))))
+                AddTransactionToWallet(transactionWithOutput.Transaction, transactionWithOutput.Output, 0,
                     this.network.GetGenesis());
-            }
         }
 
         protected override void AddSpendingTransactionToWallet(Transaction transaction,
@@ -51,12 +49,9 @@ namespace Stratis.Bitcoin.Features.Wallet
             Guard.NotNull(transaction, nameof(transaction));
             Guard.NotNull(paidToOutputs, nameof(paidToOutputs));
 
-            this.logger.LogTrace("({0}:'{1}',{2}:'{3}',{4}:{5},{6}:'{7}')", nameof(transaction), transaction.GetHash(),
-                nameof(spendingTransactionId), spendingTransactionId, nameof(spendingTransactionIndex),
-                spendingTransactionIndex, nameof(blockHeight), blockHeight);
-
             // Get the transaction being spent.
-            TransactionData spentTransaction = this.keysLookup.Values.Distinct().SelectMany(v => v.Transactions)
+            TransactionData spentTransaction = this.scriptToAddressLookup.Values.Distinct()
+                .SelectMany(v => v.Transactions)
                 .SingleOrDefault(t => t.Id == spendingTransactionId && t.Index == spendingTransactionIndex);
             if (spentTransaction == null)
             {
@@ -64,35 +59,20 @@ namespace Stratis.Bitcoin.Features.Wallet
                 this.logger.LogTrace("(-)[TX_NULL]");
                 return;
             }
-                this.logger.LogTrace(spentTransaction.SpendingDetails == null
-                    ? $"Spending UTXO '{spendingTransactionId}-{spendingTransactionIndex}' is new."
-                    : $"Spending transaction ID '{spendingTransactionId}' is being confirmed, updating.");
+
+            this.logger.LogTrace(spentTransaction.SpendingDetails == null
+                ? $"Spending UTXO '{spendingTransactionId}-{spendingTransactionIndex}' is new."
+                : $"Spending transaction ID '{spendingTransactionId}' is being confirmed, updating.");
 
             var payments = new List<PaymentDetails>();
             foreach (TxOut paidToOutput in paidToOutputs)
             {
                 // Figure out how to retrieve the destination address.
-                string destinationAddress = string.Empty;
-                ScriptTemplate scriptTemplate = paidToOutput.ScriptPubKey.FindTemplate(this.network);
-                switch (scriptTemplate.Type)
-                {
-                    // Pay to PubKey can be found in outputs of staking transactions.
-                    case TxOutType.TX_PUBKEY:
-                        PubKey pubKey =
-                            PayToPubkeyTemplate.Instance.ExtractScriptPubKeyParameters(paidToOutput.ScriptPubKey);
-                        destinationAddress = pubKey.GetAddress(this.network).ToString();
-                        break;
-                    // Pay to PubKey hash is the regular, most common type of output.
-                    case TxOutType.TX_PUBKEYHASH:
-                        destinationAddress = paidToOutput.ScriptPubKey.GetDestinationAddress(this.network).ToString();
-                        break;
-                    case TxOutType.TX_NONSTANDARD:
-                    case TxOutType.TX_SCRIPTHASH:
-                    case TxOutType.TX_MULTISIG:
-                    case TxOutType.TX_NULL_DATA:
-                    case TxOutType.TX_SEGWIT:
-                        break;
-                }
+                string destinationAddress =
+                    this.scriptAddressReader.GetAddressFromScriptPubKey(this.network, paidToOutput.ScriptPubKey);
+                if (destinationAddress == string.Empty)
+                    if (this.scriptToAddressLookup.TryGetValue(paidToOutput.ScriptPubKey, out HdAddress destination))
+                        destinationAddress = destination.Address;
 
                 payments.Add(new PaymentDetails
                 {
@@ -114,8 +94,6 @@ namespace Stratis.Bitcoin.Features.Wallet
 
             spentTransaction.SpendingDetails = spendingDetails;
             spentTransaction.MerkleProof = null;
-
-            this.logger.LogTrace("(-)");
         }
     }
 }

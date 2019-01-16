@@ -2,6 +2,7 @@
 using NBitcoin;
 using Stratis.Bitcoin.Features.BlockStore;
 using Stratis.Bitcoin.Features.Wallet.Interfaces;
+using Stratis.Bitcoin.Interfaces;
 using Stratis.Bitcoin.Utilities;
 
 namespace Stratis.Bitcoin.Features.Wallet
@@ -11,9 +12,9 @@ namespace Stratis.Bitcoin.Features.Wallet
         private readonly IDeStreamWalletManager _deStreamWalletManager;
 
         public DeStreamWalletSyncManager(ILoggerFactory loggerFactory, IDeStreamWalletManager walletManager,
-            ConcurrentChain chain, Network network, IBlockStoreCache blockStoreCache, StoreSettings storeSettings,
-            INodeLifetime nodeLifetime) : base(loggerFactory, walletManager, chain, network, blockStoreCache,
-            storeSettings, nodeLifetime)
+            ConcurrentChain chain, Network network, IBlockStore blockStore, StoreSettings storeSettings,
+            INodeLifetime nodeLifetime) : base(loggerFactory, walletManager, chain, network, blockStore, storeSettings,
+            nodeLifetime)
         {
             this._deStreamWalletManager = walletManager;
         }

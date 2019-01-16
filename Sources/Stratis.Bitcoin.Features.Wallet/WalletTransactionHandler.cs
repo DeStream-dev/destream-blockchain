@@ -30,17 +30,17 @@ namespace Stratis.Bitcoin.Features.Wallet
         /// 500 is a safe number that if reached ensures the coin selector will not take too long to complete,
         /// most regular wallets will never reach such a high number of UTXO.
         /// </remarks>
-        private const int SendCountThresholdLimit = 500;
+        protected const int SendCountThresholdLimit = 500;
 
         private readonly ILogger logger;
 
-        private readonly Network network;
+        protected readonly Network network;
 
-        private readonly MemoryCache privateKeyCache;
+        protected readonly MemoryCache privateKeyCache;
 
         protected readonly StandardTransactionPolicy TransactionPolicy;
 
-        private readonly IWalletManager walletManager;
+        protected readonly IWalletManager walletManager;
 
         private readonly IWalletFeePolicy walletFeePolicy;
 
@@ -129,7 +129,7 @@ namespace Stratis.Bitcoin.Features.Wallet
         }
 
         /// <inheritdoc />
-        public (Money maximumSpendableAmount, Money Fee) GetMaximumSpendableAmount(WalletAccountReference accountReference, FeeType feeType, bool allowUnconfirmed)
+        public virtual (Money maximumSpendableAmount, Money Fee) GetMaximumSpendableAmount(WalletAccountReference accountReference, FeeType feeType, bool allowUnconfirmed)
         {
             Guard.NotNull(accountReference, nameof(accountReference));
             Guard.NotEmpty(accountReference.WalletName, nameof(accountReference.WalletName));
@@ -244,7 +244,7 @@ namespace Stratis.Bitcoin.Features.Wallet
         /// Load's all the private keys for each of the <see cref="HdAddress"/> in <see cref="TransactionBuildContext.UnspentOutputs"/>
         /// </summary>
         /// <param name="context">The context associated with the current transaction being built.</param>
-        protected void AddSecrets(TransactionBuildContext context)
+        protected virtual void AddSecrets(TransactionBuildContext context)
         {
             if (!context.Sign)
                 return;
@@ -303,7 +303,7 @@ namespace Stratis.Bitcoin.Features.Wallet
         /// Then add them to the <see cref="TransactionBuildContext.UnspentOutputs"/>.
         /// </summary>
         /// <param name="context">The context associated with the current transaction being built.</param>
-        protected void AddCoins(TransactionBuildContext context)
+        protected virtual void AddCoins(TransactionBuildContext context)
         {
             context.UnspentOutputs = this.walletManager.GetSpendableTransactionsInAccount(context.AccountReference, context.MinConfirmations).ToList();
 
@@ -389,7 +389,7 @@ namespace Stratis.Bitcoin.Features.Wallet
         /// Use the <see cref="FeeRate"/> from the <see cref="walletFeePolicy"/>.
         /// </summary>
         /// <param name="context">The context associated with the current transaction being built.</param>
-        protected void AddFee(TransactionBuildContext context)
+        protected virtual void AddFee(TransactionBuildContext context)
         {
             Money fee;
             Money minTrxFee = new Money(this.network.MinTxFee, MoneyUnit.Satoshi);
@@ -440,6 +440,18 @@ namespace Stratis.Bitcoin.Features.Wallet
         public TransactionBuildContext(Network network)
         {
             this.TransactionBuilder = new TransactionBuilder(network);
+            this.Recipients = new List<Recipient>();
+            this.WalletPassword = string.Empty;
+            this.FeeType = FeeType.Medium;
+            this.MinConfirmations = 1;
+            this.SelectedInputs = new List<OutPoint>();
+            this.AllowOtherInputs = false;
+            this.Sign = true;
+        }
+
+        protected TransactionBuildContext(TransactionBuilder transactionBuilder)
+        {
+            this.TransactionBuilder = transactionBuilder;
             this.Recipients = new List<Recipient>();
             this.WalletPassword = string.Empty;
             this.FeeType = FeeType.Medium;
