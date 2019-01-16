@@ -11,11 +11,13 @@ using Stratis.Bitcoin.Utilities;
 namespace Stratis.Bitcoin.Features.MemoryPool
 {
     /// <summary>
-    /// Creates <see cref="DeStreamUnspentOutputSet"/> and ChangePointer input
+    ///     Creates <see cref="DeStreamUnspentOutputSet" /> and ChangePointer input
     /// </summary>
     public class DeStreamMempoolCoinView : MempoolCoinView
     {
-        public DeStreamMempoolCoinView(CoinView inner, ITxMempool memPool, SchedulerLock mempoolLock, IMempoolValidator mempoolValidator) : base(inner, memPool, mempoolLock, mempoolValidator)
+        public DeStreamMempoolCoinView(ICoinView inner, ITxMempool memPool, SchedulerLock mempoolLock,
+            IMempoolValidator mempoolValidator)
+            : base(inner, memPool, mempoolLock, mempoolValidator)
         {
             this.Set = new DeStreamUnspentOutputSet();
         }
@@ -23,15 +25,21 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         public override async Task LoadViewAsync(Transaction trx)
         {
             // lookup all ids (duplicate ids are ignored in case a trx spends outputs from the same parent).
-            List<uint256> ids = trx.Inputs.RemoveChangePointer().Select(n => n.PrevOut.Hash).Distinct().Concat(new[] { trx.GetHash() }).ToList();
+            List<uint256> ids = trx.Inputs.RemoveChangePointer().Select(n => n.PrevOut.Hash).Distinct()
+                .Concat(new[] {trx.GetHash()}).ToList();
             FetchCoinsResponse coins = await this.Inner.FetchCoinsAsync(ids.ToArray());
             // find coins currently in the mempool
             List<Transaction> mempoolcoins = await this.mempoolLock.ReadAsync(() =>
             {
-                return this.memPool.MapTx.Values.Where(t => ids.Contains(t.TransactionHash)).Select(s => s.Transaction).ToList();
+                return this.memPool.MapTx.Values.Where(t => ids.Contains(t.TransactionHash))
+                    .Select(s => s.Transaction).ToList();
             });
-            IEnumerable<UnspentOutputs> memOutputs = mempoolcoins.Select(s => new UnspentOutputs(TxMempool.MempoolHeight, s));
-            coins = new FetchCoinsResponse(coins.UnspentOutputs.Concat(memOutputs).Append(new UnspentOutputs(uint256.Zero, new Coins(new Transaction(), 0))).ToArray(), coins.BlockHash);
+            IEnumerable<UnspentOutputs> memOutputs =
+                mempoolcoins.Select(s => new UnspentOutputs(TxMempool.MempoolHeight, s));
+            coins = new FetchCoinsResponse(
+                coins.UnspentOutputs.Concat(memOutputs)
+                    .Append(new UnspentOutputs(uint256.Zero, new Coins(new Transaction(), 0))).ToArray(),
+                coins.BlockHash);
 
             // the UTXO set might have been updated with a recently received block
             // but the block has not yet arrived to the mempool and remove the pending trx

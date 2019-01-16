@@ -14,7 +14,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
     public static class DeStreamFullNodeBuilderMemoryPoolExtension
     {
         /// <summary>
-        /// Include the memory pool feature and related services in the full node.
+        ///     Include the memory pool feature and related services in the full node.
         /// </summary>
         /// <param name="fullNodeBuilder">Full node builder.</param>
         /// <returns>Full node builder.</returns>

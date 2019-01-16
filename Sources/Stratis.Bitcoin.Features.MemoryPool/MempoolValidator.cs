@@ -114,28 +114,28 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         private const int MaxFeeEstimationTipAge = 3 * 60 * 60;
 
         /// <summary>A lock for managing asynchronous access to memory pool.</summary>
-        private readonly MempoolSchedulerLock mempoolLock;
+        protected readonly MempoolSchedulerLock mempoolLock;
 
         /// <summary>Date and time information provider.</summary>
         private readonly IDateTimeProvider dateTimeProvider;
 
         /// <summary>Settings from the memory pool.</summary>
-        private readonly MempoolSettings mempoolSettings;
+        protected readonly MempoolSettings mempoolSettings;
 
         /// <summary>Thread safe access to the best chain of block headers (that the node is aware of) from genesis.</summary>
         private readonly ConcurrentChain chain;
 
         /// <summary>Coin view of the memory pool.</summary>
-        private readonly ICoinView coinView;
+        protected readonly ICoinView coinView;
 
         /// <inheritdoc cref="IConsensusRuleEngine" />
         private readonly IConsensusRuleEngine consensusRules;
 
         /// <summary>Transaction memory pool for managing transactions in the memory pool.</summary>
-        private readonly ITxMempool memPool;
+        protected readonly ITxMempool memPool;
 
         /// <summary>Instance logger for memory pool validator.</summary>
-        private readonly ILogger logger;
+        protected readonly ILogger logger;
 
         /// <summary>Minimum fee rate for a relay transaction.</summary>
         private readonly FeeRate minRelayTxFee;
@@ -152,7 +152,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         //  public long LastTime;
         //}
 
-        private Network network;
+        protected Network network;
 
         public MempoolValidator(
             ITxMempool memPool,
@@ -413,7 +413,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         /// <param name="state">Validation state for creating the validation context.</param>
         /// <param name="tx">The transaction to validate.</param>
         /// <param name="vHashTxnToUncache">Not currently used</param>
-        private async Task AcceptToMemoryPoolWorkerAsync(MempoolValidationState state, Transaction tx, List<uint256> vHashTxnToUncache)
+        protected virtual async Task AcceptToMemoryPoolWorkerAsync(MempoolValidationState state, Transaction tx, List<uint256> vHashTxnToUncache)
         {
             var context = new MempoolValidationContext(tx, state);
 
@@ -491,7 +491,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         /// If a conflict is found it is added to the validation context.
         /// </summary>
         /// <param name="context">Current validation context.</param>
-        private void CheckConflicts(MempoolValidationContext context)
+        protected virtual void CheckConflicts(MempoolValidationContext context)
         {
             context.SetConflicts = new List<uint256>();
             foreach (TxIn txin in context.Transaction.Inputs)
@@ -691,7 +691,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         /// Checks if already in coin view, and missing and unavailable inputs.
         /// </summary>
         /// <param name="context">Validation context.</param>
-        private void CheckMempoolCoinView(MempoolValidationContext context)
+        protected virtual void CheckMempoolCoinView(MempoolValidationContext context)
         {
             Guard.Assert(context.View != null);
 
@@ -758,7 +758,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         /// Check that the transaction doesn't have an excessive number of sigops.
         /// </summary>
         /// <param name="context">Current validation context.</param>
-        private void CheckSigOps(MempoolValidationContext context)
+        protected void CheckSigOps(MempoolValidationContext context)
         {
             // Check that the transaction doesn't have an excessive number of
             // sigops, making it impossible to mine. Since the coinbase transaction
@@ -779,7 +779,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         /// </summary>
         /// <param name="context">Current validation context.</param>
         /// <param name="acceptTime">The accept time to use for the entry.</param>
-        private void CreateMempoolEntry(MempoolValidationContext context, long acceptTime)
+        protected void CreateMempoolEntry(MempoolValidationContext context, long acceptTime)
         {
             // Only accept BIP68 sequence locked transactions that can be mined in the next
             // block; we don't want our mempool filled up with transactions that can't
@@ -838,7 +838,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         /// The new transaction must have sufficient fees to pay for it's bandwidth.
         /// </summary>
         /// <param name="context">Current validation context.</param>
-        private void CheckReplacment(MempoolValidationContext context)
+        protected void CheckReplacment(MempoolValidationContext context)
         {
             // Check if it's economically rational to mine this transaction rather
             // than the ones it replaces.
@@ -969,7 +969,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         /// </summary>
         /// <param name="context">Current validation context</param>
         /// <param name="limitFree">Whether to limit free transactioins</param>
-        private void CheckRateLimit(MempoolValidationContext context, bool limitFree)
+        protected void CheckRateLimit(MempoolValidationContext context, bool limitFree)
         {
             // TODO: sort this logic
             return;
@@ -981,7 +981,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         /// Checks for a transaction that spends outputs that would be replaced by it.
         /// </summary>
         /// <param name="context">Current validation context.</param>
-        private void CheckAncestors(MempoolValidationContext context)
+        protected void CheckAncestors(MempoolValidationContext context)
         {
             // Calculate in-mempool ancestors, up to a limit.
             context.SetAncestors = new TxMempool.SetEntries();
@@ -1020,7 +1020,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         /// </summary>
         /// <param name="limit">New size.</param>
         /// <param name="age">AAge to use for calculating expired transactions.</param>
-        private void LimitMempoolSize(long limit, long age)
+        protected void LimitMempoolSize(long limit, long age)
         {
             int expired = this.memPool.Expire(this.dateTimeProvider.GetTime() - age);
             if (expired != 0)
@@ -1035,7 +1035,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         /// It should only count for fee estimation if the node is not behind.
         /// </summary>
         /// <returns>Whether current for fee estimation.</returns>
-        private bool IsCurrentForFeeEstimation()
+        protected bool IsCurrentForFeeEstimation()
         {
             // TODO: implement method (find a way to know if in IBD)
 
@@ -1058,7 +1058,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         /// Checks against <see cref="ScriptVerify.Standard"/> and <see cref="ScriptVerify.P2SH"/>
         /// </summary>
         /// <param name="context">Current validation context.</param>
-        private void CheckAllInputs(MempoolValidationContext context)
+        protected void CheckAllInputs(MempoolValidationContext context)
         {
             var scriptVerifyFlags = ScriptVerify.Standard;
             if (!this.mempoolSettings.RequireStandard)
@@ -1177,7 +1177,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         /// <param name="tx">Transaction to verify.</param>
         /// <param name="mapInputs">Map of previous transactions that have outputs we're spending.</param>
         /// <returns>Whether all inputs (scriptSigs) use only standard transaction forms.</returns>
-        private bool AreInputsStandard(Transaction tx, MempoolCoinView mapInputs)
+        protected virtual bool AreInputsStandard(Transaction tx, MempoolCoinView mapInputs)
         {
             if (tx.IsCoinBase)
             {

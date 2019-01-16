@@ -19,10 +19,10 @@ namespace Stratis.Bitcoin.Features.MemoryPool
     {
         /// <summary>Transaction memory pool for managing transactions in the memory pool.</summary>
         /// <remarks>All access to this object has to be protected by <see cref="mempoolLock"/>.</remarks>
-        private readonly ITxMempool memPool;
+        protected readonly ITxMempool memPool;
 
         /// <summary>A lock for protecting access to <see cref="memPool"/>.</summary>
-        private readonly SchedulerLock mempoolLock;
+        protected readonly SchedulerLock mempoolLock;
 
         /// <summary>Memory pool validator for validating transactions.</summary>
         private readonly IMempoolValidator mempoolValidator;
@@ -46,7 +46,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         /// <summary>
         /// Gets the unspent transaction output set.
         /// </summary>
-        public UnspentOutputSet Set { get; private set; }
+        public UnspentOutputSet Set { get; protected set; }
 
         /// <summary>
         /// Backing coin view instance.
@@ -87,7 +87,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         /// Load the coin view for a memory pool transaction.
         /// </summary>
         /// <param name="trx">Memory pool transaction.</param>
-        public async Task LoadViewAsync(Transaction trx)
+        public virtual async Task LoadViewAsync(Transaction trx)
         {
             // lookup all ids (duplicate ids are ignored in case a trx spends outputs from the same parent).
             List<uint256> ids = trx.Inputs.Select(n => n.PrevOut.Hash).Distinct().Concat(new[] { trx.GetHash() }).ToList();

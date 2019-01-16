@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
 using Stratis.Bitcoin.Configuration;
-using Stratis.Bitcoin.Consensus.Rules;
+using Stratis.Bitcoin.Consensus;
 using Stratis.Bitcoin.Features.Consensus.CoinViews;
 using Stratis.Bitcoin.Features.MemoryPool.Interfaces;
 using Stratis.Bitcoin.Utilities;
@@ -19,10 +19,20 @@ namespace Stratis.Bitcoin.Features.MemoryPool
     {
         public DeStreamMempoolValidator(ITxMempool memPool, MempoolSchedulerLock mempoolLock,
             IDateTimeProvider dateTimeProvider, MempoolSettings mempoolSettings, ConcurrentChain chain,
-            CoinView coinView, ILoggerFactory loggerFactory, NodeSettings nodeSettings, IConsensusRules consensusRules)
-            : base(memPool, mempoolLock, dateTimeProvider, mempoolSettings, chain, coinView, loggerFactory,
-                nodeSettings, consensusRules)
+            ICoinView coinView, ILoggerFactory loggerFactory, NodeSettings nodeSettings,
+            IConsensusRuleEngine consensusRules) : base(memPool, mempoolLock, dateTimeProvider, mempoolSettings, chain,
+            coinView, loggerFactory, nodeSettings, consensusRules)
         {
+        }
+
+        private DeStreamNetwork DeStreamNetwork
+        {
+            get
+            {
+                if (!(this.network is DeStreamNetwork))
+                    throw new NotSupportedException($"Network must be {nameof(NBitcoin.DeStreamNetwork)}");
+                return (DeStreamNetwork) this.network;
+            }
         }
 
         protected override async Task AcceptToMemoryPoolWorkerAsync(MempoolValidationState state, Transaction tx,
@@ -30,7 +40,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
         {
             var context = new MempoolValidationContext(tx, state);
 
-            this.PreMempoolChecks(context);
+            PreMempoolChecks(context);
 
             // create the MemPoolCoinView and load relevant utxoset
             context.View = new DeStreamMempoolCoinView(this.coinView, this.memPool, this.mempoolLock, this);
@@ -45,33 +55,31 @@ namespace Stratis.Bitcoin.Features.MemoryPool
                     state.Invalid(MempoolErrors.InPool).Throw();
 
                 // Check for conflicts with in-memory transactions
-                this.CheckConflicts(context);
+                CheckConflicts(context);
 
-                this.CheckMempoolCoinView(context);
+                CheckMempoolCoinView(context);
 
-                this.CreateMempoolEntry(context, state.AcceptTime);
-                this.CheckSigOps(context);
-                this.CheckFee(context);
+                CreateMempoolEntry(context, state.AcceptTime);
+                CheckSigOps(context);
+                CheckFee(context);
 
-                this.CheckRateLimit(context, state.LimitFree);
+                CheckRateLimit(context, state.LimitFree);
 
-                this.CheckAncestors(context);
-                this.CheckReplacment(context);
-                this.CheckAllInputs(context);
+                CheckAncestors(context);
+                CheckReplacment(context);
+                CheckAllInputs(context);
 
                 // Remove conflicting transactions from the mempool
                 foreach (TxMempoolEntry it in context.AllConflicting)
-                {
                     this.logger.LogInformation(
                         $"replacing tx {it.TransactionHash} with {context.TransactionHash} for {context.ModifiedFees - context.ConflictingFees} BTC additional fees, {context.EntrySize - context.ConflictingSize} delta bytes");
-                }
 
                 this.memPool.RemoveStaged(context.AllConflicting, false);
 
                 // This transaction should only count for fee estimation if
                 // the node is not behind and it is not dependent on any other
                 // transactions in the mempool
-                bool validForFeeEstimation = this.IsCurrentForFeeEstimation() && this.memPool.HasNoInputsOf(tx);
+                bool validForFeeEstimation = IsCurrentForFeeEstimation() && this.memPool.HasNoInputsOf(tx);
 
                 // Store transaction in memory
                 this.memPool.AddUnchecked(context.TransactionHash, context.Entry, context.SetAncestors,
@@ -80,7 +88,7 @@ namespace Stratis.Bitcoin.Features.MemoryPool
                 // trim mempool and check if tx was trimmed
                 if (!state.OverrideMempoolLimit)
                 {
-                    this.LimitMempoolSize(this.mempoolSettings.MaxMempool * 1000000,
+                    LimitMempoolSize(this.mempoolSettings.MaxMempool * 1000000,
                         this.mempoolSettings.MempoolExpiry * 60 * 60);
 
                     if (!this.memPool.Exists(context.TransactionHash))
@@ -154,10 +162,10 @@ namespace Stratis.Bitcoin.Features.MemoryPool
             {
                 TxMempool.NextTxPair itConflicting = this.memPool.MapNextTx.Find(f => f.OutPoint == txin.PrevOut);
                 if (itConflicting == null) continue;
-                
+
                 Transaction ptxConflicting = itConflicting.Transaction;
                 if (context.SetConflicts.Contains(ptxConflicting.GetHash())) continue;
-                
+
                 // Allow opt-out of transaction replacement by setting
                 // nSequence >= maxint-1 on all inputs.
                 //
@@ -172,15 +180,13 @@ namespace Stratis.Bitcoin.Features.MemoryPool
                 // insecure.
                 bool replacementOptOut = true;
                 if (this.mempoolSettings.EnableReplacement)
-                {
                     foreach (TxIn txiner in ptxConflicting.Inputs)
                     {
                         if (txiner.Sequence >= Sequence.Final - 1) continue;
-                        
+
                         replacementOptOut = false;
                         break;
                     }
-                }
 
                 if (replacementOptOut)
                     context.State.Invalid(MempoolErrors.Conflict).Throw();
@@ -188,12 +194,12 @@ namespace Stratis.Bitcoin.Features.MemoryPool
                 context.SetConflicts.Add(ptxConflicting.GetHash());
             }
         }
-        
+
         /// <summary>
-        /// Validates the transaction fee is valid.
+        ///     Validates the transaction fee is valid.
         /// </summary>
         /// <param name="context">Current validation context.</param>
-        protected override void CheckFee(MempoolValidationContext context)
+        public override void CheckFee(MempoolValidationContext context)
         {
             long expectedFee = Convert.ToInt64(context.Transaction.Outputs
                                                    .Where(p => !context.Transaction.Inputs.RemoveChangePointer()
@@ -201,8 +207,8 @@ namespace Stratis.Bitcoin.Features.MemoryPool
                                                        .Concat(context.Transaction.Inputs.GetChangePointers()
                                                            .Select(q => context.Transaction.Outputs[q].ScriptPubKey))
                                                        .Contains(p.ScriptPubKey))
-                                                   .Sum(p => p.Value) * this.network.FeeRate);
-            
+                                                   .Sum(p => p.Value) * this.DeStreamNetwork.FeeRate);
+
             if (context.ModifiedFees < expectedFee)
                 context.State.Fail(MempoolErrors.InsufficientFee, $" {context.Fees} < {expectedFee}").Throw();
         }
