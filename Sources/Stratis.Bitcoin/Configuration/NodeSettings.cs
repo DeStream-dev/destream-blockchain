@@ -167,6 +167,7 @@ namespace Stratis.Bitcoin.Configuration
             // Set the full data directory path.
             if (this.DataDir == null)
             {
+                var directoryName = network is DeStreamNetwork ? "DeStreamNode" : "StratisNode";
                 // Create the data directories if they don't exist.
                 this.DataDir = this.CreateDefaultDataDirectories(Path.Combine("StratisNode", this.Network.RootFolderName), this.Network);
             }
