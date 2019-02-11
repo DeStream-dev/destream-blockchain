@@ -370,7 +370,7 @@ namespace Stratis.Bitcoin.Features.Miner
             this.systemTimeOutOfSyncSleep = 7000;
             this.lastCoinStakeSearchTime = this.dateTimeProvider.GetAdjustedTimeAsUnixTimestamp();
             this.lastCoinStakeSearchPrevBlockHash = 0;
-            this.targetReserveBalance = 50000000 * Money.COIN; // TOOD:settings.targetReserveBalance
+            this.targetReserveBalance = 0; // TOOD:settings.targetReserveBalance
             this.stakeProgressFlag = StakeNotInProgress;
 
             this.rpcGetStakingInfoModel = new Miner.Models.GetStakingInfoModel();

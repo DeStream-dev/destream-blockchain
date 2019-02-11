@@ -7,10 +7,7 @@ namespace Stratis.Bitcoin.Features.Consensus
     {
         public override int GetStakeMinConfirmations(int height, Network network)
         {
-            if(network.IsTest())
-                return height < CoinstakeMinConfirmationActivationHeightTestnet ? 10 : 20;
-
-            return 500;
+            return network.IsTest() ? 20 : 500;
         }
     }
 }

@@ -33,6 +33,7 @@ namespace Stratis.Bitcoin.Features.Miner
             coinView, stakeChain, stakeValidator, mempoolLock, mempool, walletManager, asyncLoopFactory,
             timeSyncBehaviorState, loggerFactory)
         {
+            this.targetReserveBalance = this.network.IsTest() ? 0 : 50000000 * Money.COIN;
         }
 
         protected override void CoinstakeWorker(CoinstakeWorkerContext context, ChainedHeader chainTip, Block block,

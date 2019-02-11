@@ -76,24 +76,10 @@ namespace NBitcoin.Networks
 
             this.Consensus.PowLimit =
                 new Target(new uint256("0000ffff00000000000000000000000000000000000000000000000000000000"));
-            this.Consensus.PowTargetTimespan = TimeSpan.FromSeconds(14 * 24 * 60 * 60); // two weeks
-            this.Consensus.PowTargetSpacing = TimeSpan.FromSeconds(10 * 60);
-            this.Consensus.PowAllowMinDifficultyBlocks = false;
-            this.Consensus.PowNoRetargeting = false;
-            this.Consensus.RuleChangeActivationThreshold = 1916; // 95% of 2016
-            this.Consensus.MinerConfirmationWindow = 2016; // nPowTargetTimespan / nPowTargetSpacing
-            this.Consensus.LastPOWBlock = 12500;
-            this.Consensus.DefaultAssumeValid =
-                new uint256("0x98fa6ef0bca5b431f15fd79dc6f879dc45b83ed4b1bbe933a383ef438321958e"); // 372652
+            this.Consensus.DefaultAssumeValid = new uint256("0x98fa6ef0bca5b431f15fd79dc6f879dc45b83ed4b1bbe933a383ef438321958e"); // 372652
             this.Consensus.CoinbaseMaturity = 10;
-            this.Consensus.MaxMoney = long.MaxValue;
-            this.Consensus.ProofOfWorkReward = Money.Zero;
-            this.Consensus.ProofOfStakeReward = Money.Zero;
-            this.Consensus.LastPOWBlock = 12500;
+            this.Consensus.MaxReorgLength = 20;
             this.Consensus.CoinType = 1;
-
-            this.DeStreamFeePart = 0.9;
-            this.FeeRate = 0.0077;
 
             this.Base58Prefixes[(int) Base58Type.PUBKEY_ADDRESS] = new byte[] {66};
             this.Base58Prefixes[(int) Base58Type.SCRIPT_ADDRESS] = new byte[] {128};
@@ -112,7 +98,7 @@ namespace NBitcoin.Networks
             this.SeedNodes = new List<NetworkAddress>();
 
             // Create the genesis block.
-            this.GenesisTime = 1470467000;
+            this.GenesisTime = (uint) new DateTimeOffset(2019, 2, 11, 0, 0, 0, new TimeSpan()).ToUnixTimeSeconds();
             this.GenesisNonce = 1831645;
             this.GenesisBits = 0x1e0fffff;
             this.GenesisVersion = 1;
@@ -122,8 +108,7 @@ namespace NBitcoin.Networks
             this.Genesis = this.CreateDeStreamGenesisBlock(this.Consensus.ConsensusFactory, this.GenesisTime,
                 this.GenesisNonce, this.GenesisBits, this.GenesisVersion, this.GenesisReward,
                 initialWalletAddresses);
-            this.Genesis.Header.Time =
-                (uint) new DateTimeOffset(2018, 09, 24, 16, 13, 00, TimeSpan.FromHours(3)).ToUnixTimeSeconds();
+            this.Genesis.Header.Time = (uint) new DateTimeOffset(2019, 2, 11, 12, 0, 0, new TimeSpan()).ToUnixTimeSeconds();
             this.Genesis.Header.Nonce = 2433759;
             this.Genesis.Header.Bits = this.Consensus.PowLimit;
             this.Consensus.HashGenesisBlock = this.Genesis.GetHash();

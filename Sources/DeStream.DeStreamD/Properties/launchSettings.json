@@ -3,9 +3,13 @@
     "DeStream.DeStream": {
       "commandName": "Project"
     },
+    "DeStream.DeStream Trace": {
+      "commandName": "Project",
+      "commandLineArgs": "-debug -loglevel=trace -gateway"
+    },
     "DeStream.DeStreamD Test": {
       "commandName": "Project",
-      "commandLineArgs": "-testnet -debug -loglevel=trace"
+      "commandLineArgs": "-testnet -addnode=40.121.9.206"
     },
     "Stratis.StratisD": {
       "commandName": "Project"
